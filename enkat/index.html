@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Så driver du din box 2026 – OpenGym</title>
+<title>Hur driver du din box 2026? – OpenGym</title>
 <meta name="description" content="Enkät till boxägare inom CrossFit, HYROX och funktionell träning i Sverige. Fem till sju minuter, anonym. Alla som svarar får Boxrapporten 2026.">
 <meta name="robots" content="noindex">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://opengym.se/enkat/">
-<meta property="og:title" content="Så driver du din box 2026">
+<meta property="og:title" content="Hur driver du din box 2026?">
 <meta property="og:description" content="Fem minuter om hur du driver din box, mot branschsiffrorna tillbaka. Enkät till boxägare inom CrossFit, HYROX och funktionell träning.">
 <meta property="og:site_name" content="OpenGym">
 <meta property="og:locale" content="sv_SE">
@@ -255,12 +255,12 @@
 
   <section id="intro" class="card" aria-labelledby="intro-title">
     <div class="eyebrow">Enkät till boxägare · Fem till sju minuter · Anonym</div>
-    <h1 id="intro-title">Så driver du <em>din box</em> 2026.</h1>
+    <h1 id="intro-title">Hur driver du <em>din box</em> 2026?</h1>
     <p class="lede">
-      Jag heter Daniel. Min sambo och jag drev ReShape CrossFit, och jag bygger nu OpenGym, ett affärssystem för boxar inom CrossFit och HYROX. Innan vi bygger vill vi veta hur ni faktiskt driver era boxar: system, priser, betalningar, fasta grupper, dörren, coacher och vad som får medlemmar att stanna.
+      Jag heter Daniel. Min sambo och jag drev ReShape CrossFit, och jag bygger nu OpenGym, ett system för boxar inom CrossFit och HYROX. Innan vi bygger vill vi veta hur ni faktiskt driver era boxar: system, priser, betalningar, fasta grupper, dörren, coacher och vad som får medlemmar att stanna.
     </p>
     <p class="lede">
-      Alla som svarar får <strong>Boxrapporten 2026</strong> med sammanställningen: vad boxar betalar för system, vilka priser som gäller, hur betalningarna fördelar sig och hur retention ser ut. Den bilden finns inte någon annanstans. Dessutom tre platser som pilotgym.
+      Alla som svarar får <strong>Boxrapporten 2026</strong> med sammanställningen: vad boxar betalar för system, vilka priser som gäller, hur betalningarna fördelar sig och hur många som stannar. Den bilden finns inte någon annanstans. Dessutom tre platser som pilotgym.
     </p>
     <ul class="facts">
       <li><span>01</span><div>24 frågor i sju delar, de flesta kryss. Fem till sju minuter.</div></li>
@@ -405,7 +405,7 @@
       ], options: ['Ja', 'Kanske', 'Nej'] },
     ] },
     { id: 'byta', title: 'Byta system', questions: [
-      { code: 'q27_byta', type: 'multi', label: 'Vad skulle få er att byta system?', help: 'Välj upp till tre.', maxSelect: 3, options: ['Träningslogg, PR och leaderboard i samma system som medlemskapen', 'Riktigt stöd för fasta grupper', 'Lägre kostnad', 'Bättre app för medlemmarna', 'Assistenter som sköter påminnelser, leads och uppföljning åt mig', 'Svensk support', 'Att någon flyttar all data åt oss', 'Passersystem inbyggt', 'Swish återkommande', 'Inget, vi är nöjda'], required: true },
+      { code: 'q27_byta', type: 'multi', label: 'Vad skulle få er att byta system?', help: 'Välj upp till tre.', maxSelect: 3, options: ['Träningslogg, PR och leaderboard i samma system som medlemskapen', 'Riktigt stöd för fasta grupper', 'Lägre kostnad', 'Bättre app för medlemmarna', 'Påminnelser, nya som hör av sig och uppföljning sköts åt mig', 'Svensk support', 'Att någon flyttar över medlemmar och historik åt oss', 'Passersystem inbyggt', 'Swish återkommande', 'Inget, vi är nöjda'], required: true },
       { code: 'q28_gratis', type: 'single', label: 'Ett system som är gratis och i stället tar cirka en och en halv procent av betalningarna, med tak på vad det får kosta per månad. Jämfört med fast månadsavgift plus transaktionsavgifter, är det …', options: ['Mer attraktivt', 'Lika', 'Mindre attraktivt', 'Vet inte'], cols: true, required: true },
       { code: 'q28b_varfor', type: 'text', label: 'Varför?', lines: 2, maxlength: 600 },
       { code: 'q29_pilot', type: 'single', label: 'Vill du vara ett av tre pilotgym när vi startar, med allt gratis under piloten och direkt inflytande över vad som byggs?', options: ['Ja', 'Kanske, berätta mer', 'Nej'], cols: true },
@@ -543,7 +543,7 @@
   function renderStep() {
     const step = currentStep();
     const n = state.step + 1;
-    $('step-eyebrow').textContent = `Del ${n} av ${TOTAL_LABEL} · ${step.title}`;
+    $('step-eyebrow').textContent = `Del ${n} av ${TOTAL_LABEL}`;
     $('step-title').textContent = step.title;
     const lead = $('step-lead');
     if (step.lead) { lead.textContent = step.lead; lead.hidden = false; } else { lead.hidden = true; }

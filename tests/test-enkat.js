@@ -51,6 +51,22 @@ function serve() {
   const lastPost = () => posts[posts.length - 1];
   const answersOf = p => JSON.parse(p.body.answers);
 
+  // ---------- Källkod: copyregler ----------
+  {
+    const raw = fs.readFileSync(path.join(ROOT, 'enkat', 'index.html'), 'utf8');
+    // Copy = textnoder i HTML plus strängliteraler i skriptet (frågorna ligger där). Kod och attribut räknas inte.
+    const scripts = [...raw.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
+    const literals = [...scripts.matchAll(/'((?:[^'\\\n]|\\.)*)'|`((?:[^`\\]|\\.)*)`/g)].map(m => m[1] || m[2] || '').join('\n');
+    const textNodes = raw.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<style[\s\S]*?<\/style>/g, '').replace(/<[^>]+>/g, ' ');
+    const src = (textNodes + '\n' + literals).replace(/q\d\d[a-z]?_[a-z0-9]+/g, '');   // kolumnkoder som q23_retention är inte copy
+    check('enkäten: titeln är en fråga', /Hur driver du din box 2026\?/.test(raw));
+    check('enkäten: ordet "hen/hens" förekommer inte', !/\bhens?\b/i.test(src));
+    const banned = ['affärssystem', 'retention', '(?<![-\\w:])leads?(?![-\\w:])', '(?<![-\\w:])data(?![-\\w:])', 'systemlicens', 'plattform', 'träningslager', 'migrering'];
+    const hits = banned.filter(w => new RegExp(w, 'i').test(src));
+    check('enkäten: ingen systemjargong i copyn' + (hits.length ? ' (träffar: ' + hits.join(', ') + ')' : ''), hits.length === 0);
+    check('enkäten: inga skogsgröna färger kvar', !/#22a447|#14732f/i.test(raw));
+  }
+
   // ---------- Flöde A: hela enkäten på desktop ----------
   {
     const { ctx, page } = await newPage({ width: 1280, height: 900 });
