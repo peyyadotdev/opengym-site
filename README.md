@@ -1,6 +1,6 @@
 # opengym-site
 
-Landningssidan för [OpenGym](https://github.com/peyyadotdev/opengym), ett AI-first affärssystem för boxar inom CrossFit, HYROX och funktionell träning i Sverige. En enda `index.html` utan byggsteg, med ett formulär som samlar intresseanmälningar från pilotgym. Samma upplägg som [peyya.dev](https://peyya.dev).
+Landningssidan för [OpenGym](https://github.com/peyyadotdev/opengym), ett AI-first affärssystem för boxar inom CrossFit, HYROX och funktionell träning i Sverige. En enda `index.html` utan byggsteg, med ett formulär som samlar intresseanmälningar från pilotgym.
 
 ## Filer
 
