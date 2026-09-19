@@ -73,7 +73,7 @@ const digits = s => String(s).replace(/[^\d]/g, '');
     const darkEm = await page.$eval('#sa-funkar-det h2 em', el => [getComputedStyle(el).color, getComputedStyle(el).backgroundImage]);
     check('mörk sektion: em i ljus lime utan platta', darkEm[0] === 'rgb(201, 255, 92)' && darkEm[1] === 'none');
     check('nav är sticky', (await page.$eval('.nav', el => getComputedStyle(el).position)) === 'sticky');
-    check('sju sektioner i rätt ordning', (await page.$$eval('section', els => els.map(e => e.id).join(','))) === 'fasta-grupper,appen,sa-funkar-det,vad-ingar,pris,bytet,pilot');
+    check('åtta sektioner i rätt ordning', (await page.$$eval('section', els => els.map(e => e.id).join(','))) === 'fasta-grupper,var-story,appen,sa-funkar-det,vad-ingar,pris,bytet,pilot');
     check('sex rutor i Vad ingår, åtta prispunkter, sex frågor', (await page.locator('.tile').count()) === 6 && (await page.locator('.price-points li').count()) === 8 && (await page.locator('.faq-item').count()) === 6);
     check('desktop utan overflow', (await overflow(page)) === 0);
 
@@ -103,6 +103,7 @@ const digits = s => String(s).replace(/[^\d]/g, '');
     check('POST med rätt fält', posts.length === 1 && posts[0].email === 'agare@boxen.se' && posts[0].box === 'CrossFit Testet' && posts[0].source === 'opengym_landing' && !!posts[0].timestamp);
     check('bekräftelsen nämner boxen', (await page.textContent('#signup-done-detail')).includes('CrossFit Testet är noterad'));
     check('formuläret göms efter inskick', !(await page.isVisible('#signup-form')));
+    check('vår story: Jessica grundade och drev ReShape', /Jessica grundade ReShape CrossFit och drev boxen/.test(await page.textContent('#var-story')) && (await page.textContent('#var-story h2')).includes('Jessicas'));
 
     await page.goto(URL, { waitUntil: 'networkidle' });
     await page.evaluate(() => document.querySelectorAll('[style*="animation"]').forEach(() => {}));

@@ -15,7 +15,7 @@ Statisk sajt för opengym.se: landningssida (`index.html`), enkät (`enkat/index
 - Svenska. Skriv aldrig ”hen” eller ”hens”. Skriv om meningen (den som …, medlemmen, personen, du).
 - Som en boxägare pratar vid whiteboarden: korta meningar, golvets termer (WOD, PR, Rx/Scaled, On-Ramp, drop-in, Open Gym). Säg ”grupp/gruppen”, inte ”lag/laget”. ”Idrottslag” får användas en gång som jämförelse.
 - Undvik systemjargong: brief, vy/vyer, flöde, ”går ut” (säg skickas), ”dras i flödet”, systemlicens, plattform, data, ”ligger hos en människa”, retention (säg att medlemmarna stannar), churn (medlemmar som slutar), leads (nya som hör av sig), migrering (flytta över), träningslager (WOD, resultat och gruppen), affärssystem (systemet).
-- Lova inte funktioner som inte finns i första versionen. Listan ”På väg, inte i första versionen” i sektion 04 är stället för dem.
+- Lova inte funktioner som inte finns i första versionen. Listan ”På väg, inte i första versionen” i sektion 05 är stället för dem.
 - Siffror: mellanslag före %, tankstreck i intervall (80–500), svenska citattecken ”…”, `→` som enda pilglyf. Aldrig emoji.
 
 ## Formulär och data

@@ -8,7 +8,7 @@ Designen görs i Claude Design-projektet ”OpenGym landningssida granskning” 
 
 | Fil | Innehåll |
 |---|---|
-| `index.html` | Landningssidan: sju sektioner, priskalkylator, pilotanmälan. Markup, CSS och skript i samma fil |
+| `index.html` | Landningssidan: åtta sektioner (varav ”Vår story” om Jessica och ReShape), priskalkylator, pilotanmälan. Markup, CSS och skript i samma fil |
 | `assets/logo.svg` | Logotypmärket: viktskiva på gummigolv med limeprick |
 | `enkat/index.html` | Enkäten ”Så driver du din box 2026”: sju delar, en per skärm, autospar efter varje del, återupptagning i samma webbläsare |
 | `leads/Code.gs` | Google Apps Script som tar emot både anmälningar och enkätsvar och skriver dem i ett Google Sheet, med stegen för att publicera den |
