@@ -19,6 +19,18 @@ python3 -m http.server 8000
 
 Öppna sedan `http://localhost:8000`.
 
+## Testa
+
+```
+npm install
+npx playwright install chromium
+npm test
+```
+
+- `tests/test-codegs.js` kör `leads/Code.gs` i Node mot ett låtsas-ark. Ingen Google-inloggning behövs.
+- `tests/test-enkat.js` startar en egen lokal server, kör hela enkäten i Chromium på desktop och mobil mot en mockad endpoint (validering, hopplogik, inskick, paus och återupptagning, overflow) och sparar skärmdumpar i `tests/screenshots/`.
+- Manuellt: `npm run serve` och öppna `http://localhost:8000/enkat/`. Sidan skickar då på riktigt till webbappen, så testsvar hamnar i arket. Ta bort dem efteråt, eller sätt `SIGNUP_ENDPOINT` tillfälligt till `''` för att klicka runt utan att skicka.
+
 ## Publicera
 
 GitHub Pages: Settings → Pages → Source: *Deploy from a branch*, branch `main`, mapp `/ (root)`. Sidan hamnar på `https://peyyadotdev.github.io/opengym-site/` tills en egen domän är kopplad. För opengym.se: lägg en `CNAME`-fil med domänen i repots rot och peka DNS enligt GitHubs guide.
