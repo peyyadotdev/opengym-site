@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Så driver du din box 2026 – OpenGym</title>
+<meta name="description" content="Enkät till boxägare inom CrossFit, HYROX och funktionell träning i Sverige. Fem till sju minuter, anonym. Alla som svarar får Boxrapporten 2026.">
+<meta name="robots" content="noindex">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://opengym.se/enkat/">
+<meta property="og:title" content="Så driver du din box 2026">
+<meta property="og:description" content="Fem minuter om hur du driver din box, mot branschsiffrorna tillbaka. Enkät till boxägare inom CrossFit, HYROX och funktionell träning.">
+<meta property="og:site_name" content="OpenGym">
+<meta property="og:locale" content="sv_SE">
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23121311'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%23f4f2ec' stroke-width='6'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%2322a447'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,100..900&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f2ec;
+    --bg-alt: #eae7dd;
+    --ink: #131311;
+    --ink-soft: #3a3a36;
+    --ink-muted: #6b6a63;
+    --line: #d5d1c5;
+    --line-soft: #e2ded3;
+    --accent: #22a447;
+    --accent-deep: #14732f;
+    --accent-soft: #d7f2cb;
+    --paper: #faf9f5;
+    --error: #9a2f12;
+    --error-soft: #f1c6b6;
+    --display: 'Anybody', 'Inter Tight', system-ui, sans-serif;
+    --sans: 'Inter Tight', system-ui, -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    --card-x: 36px;
+    --card-y: 40px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  main { flex: 1; }
+  .wrap { width: 100%; max-width: 760px; margin: 0 auto; padding: 0 20px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  :focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 3px; }
+  [hidden] { display: none !important; }
+
+  /* TOPP */
+  .top { padding: 18px 0; border-bottom: 1px solid var(--line); background: var(--bg); }
+  .top-inner { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .logo {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--display); font-weight: 700; font-stretch: 110%; font-size: 19px;
+    letter-spacing: -0.01em; text-decoration: none; color: var(--ink);
+  }
+  .logo svg { width: 24px; height: 24px; }
+  .top-meta { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted); text-align: right; }
+
+  /* KORT */
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: var(--card-y) var(--card-x);
+    margin: 32px 0 40px;
+    position: relative;
+  }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--ink-muted); margin-bottom: 18px; display: flex; align-items: center; gap: 12px;
+  }
+  .eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--accent-deep); flex: none; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 700; font-stretch: 105%; letter-spacing: -0.025em; }
+  h1 em, h2 em { font-style: normal; font-weight: 600; font-stretch: 130%; color: var(--accent-deep); }
+  h1 { font-size: clamp(36px, 7vw, 56px); line-height: 1; margin-bottom: 24px; max-width: 14ch; }
+  h2 { font-size: clamp(26px, 4.5vw, 34px); line-height: 1.1; margin-bottom: 8px; }
+  h3 { font-size: 19px; line-height: 1.2; margin-bottom: 12px; }
+  .lede { font-size: 17px; line-height: 1.6; color: var(--ink-soft); max-width: 60ch; }
+  .lede + .lede { margin-top: 16px; }
+  .facts { list-style: none; margin: 28px 0 32px; border-top: 1px solid var(--line); }
+  .facts li { display: grid; grid-template-columns: 28px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 15px; color: var(--ink-soft); }
+  .facts li span:first-child { font-family: var(--mono); font-size: 12px; color: var(--accent-deep); padding-top: 3px; }
+  .fine { font-size: 13px; line-height: 1.55; color: var(--ink-muted); margin-top: 18px; max-width: 62ch; }
+  .actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+  .notice {
+    padding: 14px 16px; border: 1px solid var(--accent-soft); background: rgba(215, 242, 203, 0.35);
+    border-radius: 2px; font-size: 15px; margin-bottom: 20px; line-height: 1.5;
+  }
+
+  /* KNAPPAR */
+  .btn-primary {
+    font-family: var(--sans); font-size: 15px; font-weight: 500; padding: 15px 28px;
+    background: var(--ink); color: var(--paper); border: 1px solid var(--ink); border-radius: 2px;
+    text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; transition: all 0.2s;
+  }
+  .btn-primary::after { content: '→'; transition: transform 0.2s; }
+  .btn-primary:hover { background: var(--accent); border-color: var(--accent); color: var(--ink); }
+  .btn-primary:hover::after { transform: translateX(4px); }
+  .btn-primary:disabled { opacity: 0.6; cursor: wait; }
+  .btn-primary:disabled::after { content: '…'; }
+  .btn-ghost {
+    font-family: var(--sans); font-size: 15px; font-weight: 500; padding: 14px 20px;
+    background: transparent; color: var(--ink-soft); border: 1px solid var(--line); border-radius: 2px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
+  .btn-text { font-family: var(--mono); font-size: 13px; color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid var(--line); padding-bottom: 2px; background: none; border-top: 0; border-left: 0; border-right: 0; cursor: pointer; }
+  .btn-text:hover { color: var(--accent-deep); border-bottom-color: var(--accent-deep); }
+
+  /* FÖRLOPP */
+  .progress { height: 4px; background: var(--line-soft); margin: calc(-1 * var(--card-y)) calc(-1 * var(--card-x)) 28px; }
+  .progress-bar { height: 100%; width: 0; background: var(--accent); transition: width 0.4s ease; }
+  .step-head { margin-bottom: 28px; }
+  .step-head .eyebrow { margin-bottom: 12px; }
+  .step-lead { font-size: 15px; color: var(--ink-muted); margin-top: 6px; }
+
+  /* FRÅGOR */
+  fieldset { border: 0; padding: 0; margin: 0 0 34px; min-width: 0; }
+  fieldset:last-of-type { margin-bottom: 8px; }
+  legend { padding: 0; margin-bottom: 12px; display: block; width: 100%; }
+  .q-label { font-size: 17px; font-weight: 500; line-height: 1.35; letter-spacing: -0.005em; display: block; }
+  .q-opt { display: inline-block; font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-muted); margin-top: 6px; }
+  .q-help { font-size: 14px; color: var(--ink-muted); line-height: 1.5; margin: -4px 0 12px; max-width: 60ch; }
+  .q.has-error { border-left: 2px solid var(--error); padding-left: 14px; margin-left: -16px; }
+  .q-error { color: var(--error); font-family: var(--mono); font-size: 12.5px; margin-top: 10px; }
+
+  .opts { display: grid; gap: 8px; }
+  .opts.cols { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+  .opt {
+    display: grid; grid-template-columns: 20px 1fr; gap: 12px; align-items: start;
+    padding: 13px 14px; border: 1px solid var(--line); background: var(--bg); border-radius: 2px;
+    cursor: pointer; font-size: 15px; line-height: 1.4; position: relative; transition: border-color 0.15s, background 0.15s;
+  }
+  .opt:hover { border-color: var(--ink-muted); }
+  .opt input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; margin: 0; cursor: pointer; z-index: 1; }
+  .opt input:disabled { cursor: not-allowed; }
+  .opt-mark { width: 20px; height: 20px; border: 1px solid var(--ink-muted); border-radius: 50%; background: var(--paper); margin-top: 1px; position: relative; flex: none; }
+  .opt input[type="checkbox"] + .opt-mark { border-radius: 3px; }
+  .opt input:checked + .opt-mark { border-color: var(--accent-deep); background: var(--accent-deep); }
+  .opt input:checked + .opt-mark::after { content: ''; position: absolute; inset: 5px; background: var(--paper); border-radius: inherit; }
+  .opt:has(input:checked) { border-color: var(--accent-deep); background: rgba(215, 242, 203, 0.35); }
+  .opt:has(input:focus-visible) { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
+  .opt:has(input:disabled) { opacity: 0.45; cursor: not-allowed; }
+  .other { margin-top: 10px; }
+
+  input[type="text"], input[type="email"], input[type="number"], select, textarea {
+    width: 100%; font-family: var(--sans); font-size: 15px; color: var(--ink);
+    padding: 13px 14px; border: 1px solid var(--line); background: var(--bg); border-radius: 2px; outline: none;
+  }
+  input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--accent-deep); }
+  textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+  select { appearance: none; -webkit-appearance: none; padding-right: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23131311' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; }
+
+  .pct { display: grid; gap: 8px; }
+  .pct-row { display: grid; grid-template-columns: 1fr 120px; gap: 12px; align-items: center; font-size: 15px; padding: 6px 0; border-bottom: 1px solid var(--line-soft); }
+  .pct-in { display: flex; align-items: center; gap: 8px; }
+  .pct-in input { text-align: right; }
+  .unit { font-family: var(--mono); font-size: 13px; color: var(--ink-muted); }
+  .pct-sum { font-family: var(--mono); font-size: 12.5px; color: var(--ink-muted); text-align: right; padding-top: 4px; }
+  .pct-sum.ok { color: var(--accent-deep); }
+
+  .matrix { border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
+  .m-head, .m-row { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); align-items: center; }
+  .m-head { background: var(--bg-alt); font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-muted); }
+  .m-head span { padding: 10px 12px; text-align: center; }
+  .m-head span:first-child { text-align: left; }
+  .m-row { border-top: 1px solid var(--line); }
+  .m-label { padding: 12px; font-size: 15px; }
+  .m-cell { display: flex; justify-content: center; align-items: center; padding: 12px 6px; cursor: pointer; position: relative; border-left: 1px solid var(--line-soft); min-height: 48px; }
+  .m-cell input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; margin: 0; cursor: pointer; z-index: 1; }
+  .m-cell:has(input:checked) { background: rgba(215, 242, 203, 0.35); }
+  .m-cell:has(input:focus-visible) { outline: 2px solid var(--accent-deep); outline-offset: -2px; }
+
+  .contact { padding: 18px 18px 6px; border: 1px solid var(--accent-soft); background: rgba(215, 242, 203, 0.2); border-radius: 2px; }
+  .contact h3 { font-size: 17px; }
+  .contact .field { margin-bottom: 12px; }
+  .contact label { display: block; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-muted); margin-bottom: 6px; }
+  .consent { font-size: 12.5px; line-height: 1.55; color: var(--ink-muted); margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
+
+  .hp { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; }
+
+  /* NAVIGERING */
+  .nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--line); }
+  .save-status { font-family: var(--mono); font-size: 11.5px; color: var(--ink-muted); text-align: center; flex: 1; }
+  .save-status.err { color: var(--error); }
+  .form-error { margin-top: 14px; color: var(--error); font-family: var(--mono); font-size: 13px; padding: 12px 14px; border: 1px solid var(--error-soft); background: rgba(241, 198, 182, 0.25); border-radius: 2px; }
+
+  /* KLAR */
+  .done-mark { width: 52px; height: 52px; border-radius: 50%; background: var(--accent); color: var(--ink); display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 22px; }
+  .done-list { list-style: none; margin: 22px 0 28px; border-top: 1px solid var(--line); }
+  .done-list li { padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 15px; color: var(--ink-soft); display: grid; grid-template-columns: 24px 1fr; gap: 10px; }
+  .done-list li span:first-child { color: var(--accent-deep); }
+  .share { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; }
+  .share code { font-family: var(--mono); font-size: 13px; padding: 10px 12px; border: 1px solid var(--line); background: var(--bg); border-radius: 2px; }
+
+  footer { padding: 28px 0 36px; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--ink-muted); line-height: 1.6; }
+  footer a { color: inherit; }
+
+  @media (max-width: 600px) {
+    :root { --card-x: 18px; --card-y: 26px; }
+    .card { margin: 16px 0 28px; }
+    .top-meta { display: none; }
+    .q.has-error { margin-left: -10px; padding-left: 8px; }
+    .pct-row { grid-template-columns: 1fr 104px; }
+    .m-head, .m-row { grid-template-columns: 1.3fr repeat(3, 1fr); }
+    .nav { flex-wrap: wrap; }
+    .save-status { order: 3; flex-basis: 100%; text-align: left; }
+    h1 em, h2 em { font-stretch: 112%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+    html { scroll-behavior: auto; }
+  }
+  ::selection { background: var(--accent-soft); color: var(--ink); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-inner">
+    <a href="/" class="logo" aria-label="OpenGym, till startsidan">
+      <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <rect width="64" height="64" rx="12" fill="#121311"/>
+        <circle cx="32" cy="32" r="18" fill="none" stroke="#f4f2ec" stroke-width="6"/>
+        <circle cx="32" cy="32" r="5" fill="#22a447"/>
+      </svg>
+      OpenGym
+    </a>
+    <div class="top-meta" id="top-meta">Enkät till boxägare · 5–7 minuter</div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section id="intro" class="card" aria-labelledby="intro-title">
+    <div class="eyebrow">Enkät till boxägare · Fem till sju minuter · Anonym</div>
+    <h1 id="intro-title">Så driver du <em>din box</em> 2026.</h1>
+    <p class="lede">
+      Jag heter Daniel. Min sambo och jag drev ReShape CrossFit, och jag bygger nu OpenGym, ett affärssystem för boxar inom CrossFit och HYROX. Innan vi bygger vill vi veta hur ni faktiskt driver era boxar: system, priser, betalningar, fasta grupper, dörren, coacher och vad som får medlemmar att stanna.
+    </p>
+    <p class="lede">
+      Alla som svarar får <strong>Boxrapporten 2026</strong> med sammanställningen: vad boxar betalar för system, vilka priser som gäller, hur betalningarna fördelar sig och hur retention ser ut. Den bilden finns inte någon annanstans. Dessutom tre platser som pilotgym.
+    </p>
+    <ul class="facts">
+      <li><span>01</span><div>24 frågor i sju delar, de flesta kryss. Fem till sju minuter.</div></li>
+      <li><span>02</span><div>Anonymt. E-post lämnar du bara om du vill ha rapporten eller bli pilotgym, och den sparas separat från svaren.</div></li>
+      <li><span>03</span><div>Svaren sparas efter varje del. Du kan pausa och fortsätta senare i samma webbläsare.</div></li>
+    </ul>
+    <div class="actions" id="intro-actions"></div>
+    <p class="fine" id="intro-fine">Skriven av en boxägare till en annan. Inga säljord, inga systemtermer.</p>
+  </section>
+
+  <form id="survey" class="card" hidden novalidate aria-labelledby="step-title">
+    <div class="progress" aria-hidden="true"><div class="progress-bar" id="progress-bar"></div></div>
+    <div class="step-head">
+      <div class="eyebrow" id="step-eyebrow">Del 1 av 7</div>
+      <h2 id="step-title" tabindex="-1">Din box</h2>
+      <p class="step-lead" id="step-lead" hidden></p>
+    </div>
+    <div id="step-body"></div>
+    <!-- Honeypot mot robotar: fältet syns inte och ska lämnas tomt -->
+    <input type="text" name="website" id="hp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <div class="nav">
+      <button type="button" class="btn-ghost" id="btn-back">Tillbaka</button>
+      <div class="save-status" id="save-status" aria-live="polite"></div>
+      <button type="submit" class="btn-primary" id="btn-next">Nästa</button>
+    </div>
+    <p id="submit-error" class="form-error" role="alert" hidden></p>
+  </form>
+
+  <section id="done" class="card" hidden aria-labelledby="done-title">
+    <div class="done-mark" aria-hidden="true">✓</div>
+    <h2 id="done-title">Tack. Dina svar är sparade.</h2>
+    <ul class="done-list" id="done-list"></ul>
+    <p class="lede">Känner du en annan boxägare som borde svara? Skicka länken.</p>
+    <div class="share">
+      <code id="share-url">opengym.se/enkat</code>
+      <button type="button" class="btn-ghost" id="btn-copy">Kopiera länk</button>
+      <a href="/" class="btn-text">Till opengym.se</a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    © 2026 OpenGym · <a href="/">opengym.se</a><br>
+    Svaren sammanställs anonymt. E-post sparas separat och används bara för Boxrapporten eller för kontakt om piloten. Svara på mejlet från oss så raderar vi dina uppgifter.
+  </div>
+</footer>
+
+<script>
+  // ========== INSTÄLLNINGAR ==========
+  // Samma Apps Script-webbapp som leadformuläret på startsidan (se leads/Code.gs).
+  const SIGNUP_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxPglyMzV0wkGIdYgHi6klVZgD0HrMnpro9UOOiqHTz3YAYYAlymyS8pxQFypTt4gtVKg/exec';
+  // PostHog: klistra in projektets API-nyckel (phc_...). Tom nyckel = ingen mätning alls.
+  const POSTHOG_KEY = '';
+  const POSTHOG_HOST = 'https://eu.i.posthog.com';
+
+  const STORAGE_KEY = 'opengym_enkat_v1';
+  const TOTAL_LABEL = '7';
+
+  // ========== MÄTNING (PostHog utan kakor) ==========
+  const phQueue = [];
+  let phReady = false;
+  function track(event, props) {
+    if (!POSTHOG_KEY) return;
+    if (phReady && window.posthog) window.posthog.capture(event, props || {});
+    else phQueue.push([event, props || {}]);
+  }
+  (function loadPostHog() {
+    if (!POSTHOG_KEY) return;
+    const s = document.createElement('script');
+    s.async = true;
+    s.crossOrigin = 'anonymous';
+    s.src = POSTHOG_HOST.replace('.i.posthog.com', '-assets.i.posthog.com') + '/static/array.js';
+    s.onload = function () {
+      window.posthog.init(POSTHOG_KEY, {
+        api_host: POSTHOG_HOST,
+        persistence: 'memory',          // inga kakor, inget lagrat id
+        person_profiles: 'identified_only',
+        autocapture: false,
+        capture_pageview: true,
+        capture_pageleave: true,
+        disable_session_recording: true,
+      });
+      phReady = true;
+      phQueue.splice(0).forEach(function (item) { window.posthog.capture(item[0], item[1]); });
+    };
+    document.head.appendChild(s);
+  })();
+
+  // ========== FRÅGORNA ==========
+  const LAN = ['Blekinge', 'Dalarna', 'Gotland', 'Gävleborg', 'Halland', 'Jämtland', 'Jönköping', 'Kalmar', 'Kronoberg', 'Norrbotten', 'Skåne', 'Stockholm', 'Södermanland', 'Uppsala', 'Värmland', 'Västerbotten', 'Västernorrland', 'Västmanland', 'Västra Götaland', 'Örebro', 'Östergötland'];
+  const hasFixedGroups = s => /^(Fasta grupper|Både och)/.test(s.answers.q10_modell || '');
+
+  const STEPS = [
+    { id: 'box', title: 'Din box', lead: 'Fem snabba om er.', questions: [
+      { code: 'q01_lan', type: 'select', label: 'Var ligger boxen?', options: LAN, placeholder: 'Välj län', required: true },
+      { code: 'q02_typ', type: 'multi', label: 'Vad är ni?', options: ['CrossFit-affiliate', 'HYROX-träningsklubb', 'Funktionell träning utan affiliering'], other: true, required: true },
+      { code: 'q03_medlemmar', type: 'single', label: 'Ungefär hur många aktiva betalande medlemmar?', options: ['Under 80', '80–150', '150–250', '250–400', 'Över 400'], cols: true, required: true },
+      { code: 'q04_anlaggningar', type: 'single', label: 'Hur många anläggningar?', options: ['1', '2–3', '4 eller fler'], cols: true, required: true },
+      { code: 'q05_coacher', type: 'multi', label: 'Vem coachar passen?', options: ['Jag själv på heltid', 'Jag själv plus deltidscoacher', 'Anställda coacher', 'Frilansande coacher som fakturerar', 'Coacher som även jobbar på andra gym'], required: true },
+    ] },
+    { id: 'system', title: 'System i dag', questions: [
+      { code: 'q06_system', type: 'single', label: 'Vilket system kör ni för medlemskap och bokning?', options: ['Zoezi', 'Wondr', 'BRP Systems', 'Mana', 'Zenamu', 'TeamUp', 'Wodify', 'PushPress', 'Eget eller Excel'], other: true, cols: true, required: true },
+      { code: 'q07_logg', type: 'multi', label: 'Hur loggar medlemmarna sin träning?', options: ['SugarWOD', 'BTWB', 'Wodify', 'Whiteboard och foto', 'Instagram eller Facebook-grupp', 'Inte alls'], other: true, cols: true, required: true },
+      { code: 'q08_kostnad', type: 'single', label: 'Ungefär vad betalar ni per månad för alla system tillsammans, exklusive transaktionsavgifter?', options: ['Under 1 000 kr', '1 000–2 500 kr', '2 500–5 000 kr', '5 000–10 000 kr', 'Över 10 000 kr', 'Vet inte'], cols: true },
+      { code: 'q09_irriterande', type: 'text', label: 'Vad är det mest irriterande du gör varje vecka i något av systemen?', placeholder: 'Ett par meningar räcker.', lines: 3, maxlength: 600, required: true },
+    ] },
+    { id: 'traning', title: 'Medlemskap och hur ni tränar', questions: [
+      { code: 'q10_modell', type: 'single', label: 'Hur organiserar ni träningen?', help: 'Med fasta grupper menar vi att medlemskapet är en plats i en grupp med samma medlemmar, samma tider och samma coach, inte fri bokning.', options: ['Bara öppen passbokning', 'Fasta grupper där samma medlemmar tränar samma tider med samma coach', 'Både och'], other: true, required: true },
+      { code: 'q11_utebliven', type: 'multi', label: 'Fasta grupper: hur hanterar ni att någon uteblir utan att avboka?', options: ['Ingenting', 'Vi hör av oss', 'Varning', 'Avgift', 'Förlorad plats i gruppen'], other: true, cols: true, showIf: hasFixedGroups },
+      { code: 'q12_fungerat', type: 'text', label: 'Fasta grupper: vad har fungerat och vad har inte fungerat?', lines: 4, maxlength: 1500, showIf: hasFixedGroups },
+      { code: 'q13_pris', type: 'single', label: 'Vad kostar ert vanligaste löpande medlemskap per månad?', options: ['Under 700 kr', '700–900 kr', '900–1 100 kr', '1 100–1 300 kr', 'Över 1 300 kr'], cols: true, required: true },
+      { code: 'q14_offpeak', type: 'single', label: 'Har ni billigare medlemskap för dagtid eller andra lågt belagda tider?', options: ['Ja', 'Nej', 'Har haft men slutat'], cols: true },
+      { code: 'q15', type: 'percent', label: 'Ungefär hur fördelar sig medlemmarna på träningsfrekvens?', help: 'Andel i procent per grupp. Summan ska bli ungefär 100, gissa hellre än att räkna.', fields: [
+        { code: 'q15_3plus', label: 'Tre pass i veckan eller mer' },
+        { code: 'q15_1till2', label: 'Ett till två pass i veckan' },
+        { code: 'q15_sallan', label: 'Mer sällan än en gång i veckan' },
+      ], required: true },
+      { code: 'q16_opengym', type: 'single', label: 'Har ni Open Gym, alltså tider där medlemmar tränar själva utan pass?', options: ['Ja, bemannat', 'Ja, obemannat', 'Nej'], cols: true, required: true },
+    ] },
+    { id: 'betalningar', title: 'Betalningar', questions: [
+      { code: 'q17_betalsatt', type: 'multi', label: 'Hur betalar era medlemmar i dag?', options: ['Autogiro via banken', 'Kort', 'Swish', 'Faktura', 'Friskvårdsportal (Epassi, Benify, Wellnet)', 'Klarna'], other: true, cols: true, required: true },
+      { code: 'q17b_storst', type: 'single', label: 'Vilket betalsätt är störst?', optionsFrom: 'q17_betalsatt', cols: true, required: true, showIf: s => (s.answers.q17_betalsatt || []).length > 1 },
+      { code: 'q18_betalkostnad', type: 'single', label: 'Vet ni vad betalningarna kostar er per år?', options: ['Nej', 'Under 1 % av omsättningen', '1–2 %', '2–3 %', 'Över 3 %'], cols: true },
+      { code: 'q19_swish', type: 'single', label: 'Skulle ni låta Swish återkommande vara standardvalet för era medlemmar?', help: 'Swish har sedan i år återkommande betalningar: medlemmen godkänner en gång med BankID i Swish-appen, sedan dras avgiften automatiskt.', options: ['Ja', 'Nej', 'Vet inte'], cols: true, required: true },
+      { code: 'q19b_varfor', type: 'text', label: 'Varför?', lines: 2, maxlength: 600 },
+      { code: 'q20_omregistrering', type: 'single', label: 'Om ni bytte system och medlemmarna behövde registrera om sitt betalsätt med BankID i en app, hur stor andel tror du gör det inom en månad?', options: ['Under 50 %', '50–70 %', '70–90 %', 'Över 90 %'], cols: true, required: true },
+    ] },
+    { id: 'dorren', title: 'Dörren och driften', questions: [
+      { code: 'q21_dorr', type: 'multi', label: 'Hur kommer medlemmarna in?', options: ['Parakey', 'KiiOn', 'Axema', 'RCO', 'ASSA ARX', 'Salto', 'Nimly', 'Yale Doorman', 'Vanlig tagg eller kod utan system', 'Coachen låser upp'], other: true, cols: true, required: true },
+      { code: 'q22_automation', type: 'single', label: 'Styr ni belysning eller ventilation automatiskt efter närvaro?', options: ['Ja', 'Nej', 'Har funderat'], cols: true },
+    ] },
+    { id: 'medlemmar', title: 'Medlemmar som stannar, och coacher', questions: [
+      { code: 'q23_retention', type: 'single', label: 'Vet ni hur stor andel av de som börjar som fortfarande är medlemmar efter tolv månader?', options: ['Vet inte', 'Under 50 %', '50–65 %', '65–80 %', 'Över 80 %'], cols: true, required: true },
+      { code: 'q24_avhopp', type: 'multi', label: 'Hur märker ni att någon är på väg att sluta?', options: ['Vi märker det inte förrän uppsägningen', 'Coachen ser det på golvet', 'Rapport i systemet', 'Vi hör av oss vid frånvaro'], other: true, required: true },
+      { code: 'q25_vikarie', type: 'single', label: 'Hur ofta behöver ni en vikarie?', options: ['Sällan', 'Någon gång i månaden', 'Varje vecka'], cols: true },
+      { code: 'q25b_hitta', type: 'multi', label: 'Hur hittar ni en vikarie?', options: ['Egna kontakter', 'Facebook-grupp', 'Coacher på andra gym', 'Ställer in passet'], cols: true },
+      { code: 'q26', type: 'matrix', label: 'Skulle ni släppa in en coach ni inte känner?', rows: [
+        { code: 'q26_pass', label: 'Till ett vanligt pass' },
+        { code: 'q26_grupp', label: 'Till en fast grupp' },
+      ], options: ['Ja', 'Kanske', 'Nej'] },
+    ] },
+    { id: 'byta', title: 'Byta system', questions: [
+      { code: 'q27_byta', type: 'multi', label: 'Vad skulle få er att byta system?', help: 'Välj upp till tre.', maxSelect: 3, options: ['Träningslogg, PR och leaderboard i samma system som medlemskapen', 'Riktigt stöd för fasta grupper', 'Lägre kostnad', 'Bättre app för medlemmarna', 'Assistenter som sköter påminnelser, leads och uppföljning åt mig', 'Svensk support', 'Att någon flyttar all data åt oss', 'Passersystem inbyggt', 'Swish återkommande', 'Inget, vi är nöjda'], required: true },
+      { code: 'q28_gratis', type: 'single', label: 'Ett system som är gratis och i stället tar cirka en och en halv procent av betalningarna, med tak på vad det får kosta per månad. Jämfört med fast månadsavgift plus transaktionsavgifter, är det …', options: ['Mer attraktivt', 'Lika', 'Mindre attraktivt', 'Vet inte'], cols: true, required: true },
+      { code: 'q28b_varfor', type: 'text', label: 'Varför?', lines: 2, maxlength: 600 },
+      { code: 'q29_pilot', type: 'single', label: 'Vill du vara ett av tre pilotgym när vi startar, med allt gratis under piloten och direkt inflytande över vad som byggs?', options: ['Ja', 'Kanske, berätta mer', 'Nej'], cols: true },
+      { code: 'contact_pilot', type: 'contact', kind: 'pilot', label: 'Så når vi dig om piloten', showIf: s => /^(Ja|Kanske)/.test(s.answers.q29_pilot || '') },
+      { code: 'q30_rapport', type: 'single', label: 'Vill du ha Boxrapporten 2026 när svaren är sammanställda?', options: ['Ja, skicka till min e-post', 'Nej tack'], cols: true },
+      { code: 'contact_report', type: 'contact', kind: 'report', label: 'Vart skickar vi Boxrapporten?', showIf: s => /^Ja/.test(s.answers.q30_rapport || '') },
+    ] },
+  ];
+  const CONSENT = 'Din e-post används bara för att skicka rapporten och, om du svarat ja på pilotfrågan, för att kontakta dig om piloten. Den sparas separat från svaren. Svaren i övrigt sammanställs anonymt. Du kan när som helst be oss radera dina uppgifter genom att svara på mejlet. Ansvarig: OpenGym, opengym.se.';
+
+  // ========== TILLSTÅND ==========
+  let state = null;
+
+  function freshState() {
+    return { v: 1, rid: makeId(), startedAt: new Date().toISOString(), step: 0, maxStep: 0, answers: {}, contact: {}, source: getSource(), completedAt: null };
+  }
+  function makeId() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'r' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
+  }
+  function getSource() {
+    const p = new URLSearchParams(location.search);
+    const k = p.get('k') || p.get('utm_source');
+    if (k) return k.slice(0, 60);
+    if (document.referrer) { try { return ('ref:' + new URL(document.referrer).hostname).slice(0, 60); } catch (_) {} }
+    return 'direkt';
+  }
+  function loadSaved() {
+    try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch (_) { return null; }
+  }
+  function persist() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) {}
+  }
+  function persistCompleted() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ v: 1, rid: state.rid, completedAt: state.completedAt })); } catch (_) {}
+  }
+
+  // ========== HJÄLPARE ==========
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const otherCode = code => code.replace(/_[a-z0-9]+$/, '_annat');
+  const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || '').trim());
+  const isShown = q => !q.showIf || q.showIf(state);
+  const currentStep = () => STEPS[state.step];
+  const visibleQuestions = () => currentStep().questions.filter(isShown);
+
+  function optionsFor(q) {
+    if (!q.optionsFrom) return q.options;
+    const sel = state.answers[q.optionsFrom] || [];
+    const other = (state.answers[otherCode(q.optionsFrom)] || '').trim();
+    return sel.map(v => (v === 'Annat' && other) ? 'Annat: ' + other : v);
+  }
+
+  // ========== RENDERING ==========
+  function renderQuestion(q) {
+    if (!isShown(q)) return '';
+    let body = '';
+    switch (q.type) {
+      case 'single': body = renderChoices(q, 'radio'); break;
+      case 'multi': body = renderChoices(q, 'checkbox'); break;
+      case 'select': body = renderSelect(q); break;
+      case 'text': body = renderText(q); break;
+      case 'percent': body = renderPercent(q); break;
+      case 'matrix': body = renderMatrix(q); break;
+      case 'contact': body = renderContact(q); break;
+    }
+    const optional = !q.required && q.type !== 'contact';
+    return `<fieldset class="q" data-code="${q.code}" id="q-${q.code}">
+      <legend><span class="q-label">${esc(q.label)}</span>${optional ? '<span class="q-opt">Valfritt</span>' : ''}</legend>
+      ${q.help ? `<p class="q-help">${esc(q.help)}</p>` : ''}
+      ${body}
+      <p class="q-error" id="err-${q.code}" hidden></p>
+    </fieldset>`;
+  }
+
+  function renderChoices(q, kind) {
+    const opts = optionsFor(q).slice();
+    if (q.other) opts.push('Annat');
+    const val = state.answers[q.code];
+    const selected = kind === 'checkbox' ? (Array.isArray(val) ? val : []) : (val == null ? '' : String(val));
+    const oc = otherCode(q.code);
+    const otherOn = kind === 'checkbox' ? selected.includes('Annat') : selected === 'Annat';
+    const full = kind === 'checkbox' && q.maxSelect && selected.length >= q.maxSelect;
+    const html = opts.map((o, i) => {
+      const id = `${q.code}__${i}`;
+      const checked = kind === 'checkbox' ? selected.includes(o) : selected === o;
+      const disabled = full && !checked;
+      return `<label class="opt" for="${id}"><input type="${kind}" id="${id}" name="${q.code}" value="${esc(o)}"${checked ? ' checked' : ''}${disabled ? ' disabled' : ''}><span class="opt-mark" aria-hidden="true"></span><span class="opt-text">${esc(o)}</span></label>`;
+    }).join('');
+    const other = (q.other && otherOn)
+      ? `<div class="other"><label class="sr-only" for="${oc}">Vad då?</label><input type="text" id="${oc}" name="${oc}" placeholder="Vad då?" maxlength="200" value="${esc(state.answers[oc] || '')}"></div>`
+      : '';
+    return `<div class="opts${q.cols ? ' cols' : ''}">${html}</div>${other}`;
+  }
+
+  function renderSelect(q) {
+    const val = state.answers[q.code] || '';
+    return `<label class="sr-only" for="${q.code}">${esc(q.label)}</label><select id="${q.code}" name="${q.code}"><option value="">${esc(q.placeholder || 'Välj')}</option>${q.options.map(o => `<option value="${esc(o)}"${val === o ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+  }
+
+  function renderText(q) {
+    return `<label class="sr-only" for="${q.code}">${esc(q.label)}</label><textarea id="${q.code}" name="${q.code}" rows="${q.lines || 3}" maxlength="${q.maxlength || 1000}" placeholder="${esc(q.placeholder || '')}">${esc(state.answers[q.code] || '')}</textarea>`;
+  }
+
+  function percentSum(q) {
+    return q.fields.reduce((s, f) => s + (Number(state.answers[f.code]) || 0), 0);
+  }
+  function renderPercent(q) {
+    const sum = percentSum(q);
+    const rows = q.fields.map(f => `<label class="pct-row"><span>${esc(f.label)}</span><span class="pct-in"><input type="number" inputmode="numeric" min="0" max="100" step="1" id="${f.code}" name="${f.code}" value="${esc(state.answers[f.code] ?? '')}"><span class="unit">%</span></span></label>`).join('');
+    return `<div class="pct">${rows}<div class="pct-sum${sum >= 95 && sum <= 105 ? ' ok' : ''}" id="sum-${q.code}">Summa: ${sum} %</div></div>`;
+  }
+
+  function renderMatrix(q) {
+    const head = `<div class="m-head"><span></span>${q.options.map(o => `<span>${esc(o)}</span>`).join('')}</div>`;
+    const rows = q.rows.map(r => `<div class="m-row" role="radiogroup" aria-label="${esc(r.label)}"><span class="m-label">${esc(r.label)}</span>${q.options.map((o, i) => `<label class="m-cell" for="${r.code}__${i}"><input type="radio" name="${r.code}" id="${r.code}__${i}" value="${esc(o)}"${state.answers[r.code] === o ? ' checked' : ''}><span class="opt-mark" aria-hidden="true"></span><span class="sr-only">${esc(o)}</span></label>`).join('')}</div>`).join('');
+    return `<div class="matrix">${head}${rows}</div>`;
+  }
+
+  function renderContact(q) {
+    const c = state.contact;
+    if (q.kind === 'pilot') {
+      return `<div class="contact">
+        <div class="field"><label for="c_pilot_email">E-post</label><input type="email" id="c_pilot_email" name="c_pilot_email" autocomplete="email" inputmode="email" placeholder="du@dinbox.se" value="${esc(c.c_pilot_email || '')}"></div>
+        <div class="field"><label for="c_pilot_box">Boxens namn (valfritt)</label><input type="text" id="c_pilot_box" name="c_pilot_box" autocomplete="organization" maxlength="120" value="${esc(c.c_pilot_box || '')}"></div>
+      </div>`;
+    }
+    if (!c.c_report_email && c.c_pilot_email) { c.c_report_email = c.c_pilot_email; schedulePersist(); }
+    const prefill = c.c_report_email || '';
+    return `<div class="contact">
+      <div class="field"><label for="c_report_email">E-post</label><input type="email" id="c_report_email" name="c_report_email" autocomplete="email" inputmode="email" placeholder="du@dinbox.se" value="${esc(prefill)}"></div>
+    </div>`;
+  }
+
+  function renderStep() {
+    const step = currentStep();
+    const n = state.step + 1;
+    $('step-eyebrow').textContent = `Del ${n} av ${TOTAL_LABEL} · ${step.title}`;
+    $('step-title').textContent = step.title;
+    const lead = $('step-lead');
+    if (step.lead) { lead.textContent = step.lead; lead.hidden = false; } else { lead.hidden = true; }
+    $('progress-bar').style.width = Math.round((state.step / STEPS.length) * 100) + '%';
+    $('top-meta').textContent = `Del ${n} av ${TOTAL_LABEL}`;
+    const isLast = state.step === STEPS.length - 1;
+    $('btn-next').textContent = isLast ? 'Skicka svaren' : 'Nästa';
+    $('btn-back').style.visibility = state.step === 0 ? 'hidden' : 'visible';
+    $('submit-error').hidden = true;
+
+    let html = step.questions.map(renderQuestion).join('');
+    if (isLast) html += `<p class="consent">${esc(CONSENT)}</p>`;
+    $('step-body').innerHTML = html;
+  }
+
+  function rerenderStep(focusId) {
+    const scrollY = window.scrollY;
+    renderStep();
+    window.scrollTo(0, scrollY);
+    if (focusId) { const el = $(focusId); if (el) el.focus({ preventScroll: true }); }
+  }
+
+  function showScreen(id) {
+    ['intro', 'survey', 'done'].forEach(s => { $(s).hidden = s !== id; });
+    window.scrollTo(0, 0);
+  }
+
+  // ========== INMATNING ==========
+  let persistTimer = null;
+  function schedulePersist() { clearTimeout(persistTimer); persistTimer = setTimeout(persist, 150); }
+  function flushPersist() { clearTimeout(persistTimer); if (state && !state.completedAt) persist(); }
+
+  function questionFor(name) {
+    for (const q of currentStep().questions) {
+      if (q.code === name) return q;
+      if (q.other && otherCode(q.code) === name) return q;
+      if (q.fields && q.fields.some(f => f.code === name)) return q;
+      if (Array.isArray(q.rows) && q.rows.some(r => r.code === name)) return q;
+    }
+    return null;
+  }
+
+  function orderLike(q, values) {
+    const order = optionsFor(q).concat(q.other ? ['Annat'] : []);
+    return order.filter(o => values.includes(o));
+  }
+
+  $('step-body').addEventListener('change', e => {
+    const el = e.target;
+    if (!el.name) return;
+    const q = questionFor(el.name);
+    if (el.type === 'checkbox') {
+      const cur = new Set(state.answers[el.name] || []);
+      if (el.checked) {
+        if (q && q.maxSelect && cur.size >= q.maxSelect) {
+          el.checked = false;
+          setError(q.code, `Välj högst ${q.maxSelect === 3 ? 'tre' : q.maxSelect}.`);
+          return;
+        }
+        cur.add(el.value);
+      } else {
+        cur.delete(el.value);
+      }
+      state.answers[el.name] = q ? orderLike(q, [...cur]) : [...cur];
+      if (q) setError(q.code, '');
+      schedulePersist();
+      rerenderStep(el.id);
+      return;
+    }
+    if (el.type === 'radio') {
+      state.answers[el.name] = el.value;
+      if (q) setError(q.code, '');
+      schedulePersist();
+      rerenderStep(el.id);
+      return;
+    }
+    if (el.tagName === 'SELECT') {
+      state.answers[el.name] = el.value;
+      if (q) setError(q.code, '');
+      schedulePersist();
+    }
+  });
+
+  $('step-body').addEventListener('input', e => {
+    const el = e.target;
+    if (!el.name || el.type === 'checkbox' || el.type === 'radio' || el.tagName === 'SELECT') return;
+    if (el.name.startsWith('c_')) {
+      state.contact[el.name] = el.value;
+    } else {
+      state.answers[el.name] = el.value;
+      const q = questionFor(el.name);
+      if (q && q.type === 'percent') {
+        const sum = percentSum(q);
+        const sumEl = $('sum-' + q.code);
+        if (sumEl) { sumEl.textContent = `Summa: ${sum} %`; sumEl.classList.toggle('ok', sum >= 95 && sum <= 105); }
+      }
+      // Ta bort ett visat fel så fort svaret blivit giltigt, men lägg inte till nya medan man skriver.
+      if (q && !validateQuestion(q)) setError(q.code, '');
+    }
+    schedulePersist();
+  });
+
+  // ========== VALIDERING ==========
+  function setError(code, msg) {
+    const fs = $('q-' + code);
+    const err = $('err-' + code);
+    if (!fs || !err) return;
+    fs.classList.toggle('has-error', !!msg);
+    err.textContent = msg || '';
+    err.hidden = !msg;
+  }
+
+  function validateQuestion(q) {
+    const a = state.answers;
+    switch (q.type) {
+      case 'single':
+      case 'select': {
+        const v = a[q.code];
+        if (q.required && !v) return 'Välj ett alternativ.';
+        if (q.other && v === 'Annat' && !(a[otherCode(q.code)] || '').trim()) return 'Skriv vad du menar med Annat.';
+        return '';
+      }
+      case 'multi': {
+        const v = a[q.code] || [];
+        if (q.required && v.length === 0) return 'Välj minst ett alternativ.';
+        if (q.maxSelect && v.length > q.maxSelect) return `Välj högst ${q.maxSelect === 3 ? 'tre' : q.maxSelect}.`;
+        if (q.other && v.includes('Annat') && !(a[otherCode(q.code)] || '').trim()) return 'Skriv vad du menar med Annat.';
+        return '';
+      }
+      case 'text':
+        return (q.required && !(a[q.code] || '').trim()) ? 'Skriv ett kort svar.' : '';
+      case 'percent': {
+        const vals = q.fields.map(f => a[f.code]);
+        const empty = vals.some(v => v === '' || v == null);
+        if (empty) return q.required ? 'Fyll i alla tre. Ungefär räcker.' : '';
+        if (vals.some(v => Number(v) < 0 || Number(v) > 100 || Number.isNaN(Number(v)))) return 'Ange tal mellan 0 och 100.';
+        const sum = percentSum(q);
+        if (sum < 95 || sum > 105) return `Summan bör bli ungefär 100 %, nu ${sum} %.`;
+        return '';
+      }
+      case 'contact': {
+        const email = q.kind === 'pilot' ? state.contact.c_pilot_email : state.contact.c_report_email;
+        return isEmail(email) ? '' : 'Skriv en giltig e-postadress.';
+      }
+      default:
+        return '';
+    }
+  }
+
+  function validateStep() {
+    const errors = [];
+    visibleQuestions().forEach(q => {
+      const msg = validateQuestion(q);
+      setError(q.code, msg);
+      if (msg) errors.push(q.code);
+    });
+    return errors;
+  }
+
+  function focusError(code) {
+    const fs = $('q-' + code);
+    if (!fs) return;
+    fs.scrollIntoView({ block: 'center' });
+    const el = fs.querySelector('input:not([type="hidden"]), select, textarea');
+    if (el) el.focus({ preventScroll: true });
+  }
+
+  // ========== SPARA ==========
+  function snapshot() {
+    const out = {};
+    STEPS.forEach(step => step.questions.forEach(q => {
+      if (q.type === 'contact') return;
+      const shown = isShown(q);
+      if (q.type === 'percent') { q.fields.forEach(f => { out[f.code] = shown ? (state.answers[f.code] ?? '') : ''; }); return; }
+      if (q.type === 'matrix') { q.rows.forEach(r => { out[r.code] = shown ? (state.answers[r.code] || '') : ''; }); return; }
+      let v = shown ? state.answers[q.code] : '';
+      if (q.code === 'q17b_storst' && !shown) {
+        const only = optionsFor(q);
+        v = only.length === 1 ? only[0] : '';
+      }
+      out[q.code] = v == null ? '' : v;
+      if (q.other) {
+        const oc = otherCode(q.code);
+        const hasOther = Array.isArray(v) ? v.includes('Annat') : v === 'Annat';
+        out[oc] = (shown && hasOther) ? (state.answers[oc] || '') : '';
+      }
+    }));
+    return out;
+  }
+
+  async function save(completed) {
+    if (!SIGNUP_ENDPOINT) throw new Error('Endpoint saknas');
+    const body = new URLSearchParams();
+    body.append('action', 'survey');
+    body.append('rid', state.rid);
+    body.append('step', String(state.maxStep));
+    body.append('completed', completed ? '1' : '0');
+    body.append('started_at', state.startedAt);
+    body.append('duration_sec', completed ? String(Math.max(0, Math.round((Date.now() - Date.parse(state.startedAt)) / 1000))) : '');
+    body.append('source', state.source || '');
+    body.append('answers', JSON.stringify(snapshot()));
+    body.append('website', $('hp').value);
+    if (completed) {
+      if (/^(Ja|Kanske)/.test(state.answers.q29_pilot || '')) {
+        body.append('pilot_email', state.contact.c_pilot_email || '');
+        body.append('pilot_box', state.contact.c_pilot_box || '');
+      }
+      if (/^Ja/.test(state.answers.q30_rapport || '')) {
+        body.append('report_email', state.contact.c_report_email || '');
+      }
+    }
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 20000);
+    try {
+      // Formulärkodat utan egna headers: enkel förfrågan, ingen CORS-preflight mot Apps Script.
+      const res = await fetch(SIGNUP_ENDPOINT, { method: 'POST', body, keepalive: !completed, signal: ctrl.signal });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      let json = null;
+      try { json = await res.json(); } catch (_) {}
+      if (json && json.ok === false) throw new Error(json.error || 'script_error');
+      return true;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  function setSaveStatus(text, isError) {
+    const el = $('save-status');
+    el.textContent = text || '';
+    el.classList.toggle('err', !!isError);
+  }
+
+  function savePartial() {
+    setSaveStatus('Sparar…');
+    save(false).then(() => {
+      const t = new Date();
+      setSaveStatus(`Sparat ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`);
+    }).catch(err => {
+      console.warn('OpenGym enkät: kunde inte spara delsvar', err);
+      setSaveStatus('Kunde inte spara nu, försöker igen vid nästa steg', true);
+      track('enkat_fel', { steg: state.maxStep, fel: String(err && err.message || err) });
+    });
+  }
+
+  // ========== FLÖDE ==========
+  function startFresh() {
+    state = freshState();
+    state.step = 0;
+    persist();
+    track('enkat_start', { kalla: state.source, aterupptagen: false });
+    showScreen('survey');
+    renderStep();
+    $('step-title').focus({ preventScroll: true });
+  }
+
+  function resume(saved) {
+    state = saved;
+    if (!state.contact) state.contact = {};
+    if (!state.answers) state.answers = {};
+    state.step = Math.min(state.step || 0, STEPS.length - 1);
+    track('enkat_fortsatt', { steg: state.step + 1, kalla: state.source });
+    showScreen('survey');
+    renderStep();
+    $('step-title').focus({ preventScroll: true });
+  }
+
+  function goBack() {
+    if (state.step === 0) return;
+    state.step -= 1;
+    persist();
+    renderStep();
+    window.scrollTo(0, 0);
+    $('step-title').focus({ preventScroll: true });
+  }
+
+  async function goNext() {
+    const errors = validateStep();
+    if (errors.length) {
+      track('enkat_validering', { steg: state.step + 1, fragor: errors });
+      focusError(errors[0]);
+      return;
+    }
+    const isLast = state.step === STEPS.length - 1;
+    state.maxStep = Math.max(state.maxStep || 0, state.step + 1);
+    track('enkat_steg', { steg: state.step + 1, del: currentStep().id });
+
+    if (isLast) { await submitAll(); return; }
+
+    persist();
+    savePartial();
+    state.step += 1;
+    persist();
+    renderStep();
+    window.scrollTo(0, 0);
+    $('step-title').focus({ preventScroll: true });
+  }
+
+  async function submitAll() {
+    const btn = $('btn-next');
+    const errEl = $('submit-error');
+    btn.disabled = true;
+    btn.textContent = 'Skickar';
+    errEl.hidden = true;
+    setSaveStatus('');
+    try {
+      await save(true);
+      state.completedAt = new Date().toISOString();
+      track('enkat_klar', {
+        tid_sek: Math.round((Date.now() - Date.parse(state.startedAt)) / 1000),
+        pilot: state.answers.q29_pilot || '',
+        rapport: /^Ja/.test(state.answers.q30_rapport || ''),
+        kalla: state.source,
+      });
+      renderDone();
+      persistCompleted();
+      showScreen('done');
+      $('done-title').focus({ preventScroll: true });
+    } catch (err) {
+      console.error('OpenGym enkät: kunde inte skicka', err);
+      track('enkat_fel', { steg: 'inskick', fel: String(err && err.message || err) });
+      errEl.textContent = 'Kunde inte skicka svaren just nu. Dina svar finns kvar här, försök igen om en stund.';
+      errEl.hidden = false;
+      btn.disabled = false;
+      btn.textContent = 'Skicka svaren';
+    }
+  }
+
+  function renderDone() {
+    const items = [];
+    if (/^Ja/.test(state.answers.q30_rapport || '')) items.push('Boxrapporten 2026 skickas till din e-post när svaren är sammanställda.');
+    if (/^(Ja|Kanske)/.test(state.answers.q29_pilot || '')) items.push('Vi hör av oss om piloten.');
+    items.push('Svaren sammanställs anonymt och används för att bygga rätt saker i OpenGym.');
+    $('done-list').innerHTML = items.map(t => `<li><span>✓</span><div>${esc(t)}</div></li>`).join('');
+    $('top-meta').textContent = 'Tack för dina svar';
+  }
+
+  function renderIntroActions() {
+    const saved = loadSaved();
+    const box = $('intro-actions');
+    const fine = $('intro-fine');
+    if (saved && saved.completedAt) {
+      const d = new Date(saved.completedAt);
+      const when = isNaN(d) ? '' : ` ${d.toLocaleDateString('sv-SE')}`;
+      box.innerHTML = `<div class="notice" style="flex-basis:100%">Du skickade in dina svar${when}. Tack! Vill du svara igen, till exempel för en annan box, går det bra.</div>
+        <button type="button" class="btn-ghost" id="btn-again">Svara igen</button>
+        <a href="/" class="btn-text">Till opengym.se</a>`;
+      $('btn-again').addEventListener('click', () => { track('enkat_omstart', { efter: 'klar' }); startFresh(); });
+      return;
+    }
+    if (saved && saved.rid && (saved.step > 0 || Object.keys(saved.answers || {}).length > 0)) {
+      const done = Math.min(saved.maxStep || saved.step || 0, STEPS.length);
+      box.innerHTML = `<div class="notice" style="flex-basis:100%">Du har påbörjat enkäten${done ? `, ${done} av ${TOTAL_LABEL} delar är klara` : ''}. Fortsätt där du slutade eller börja om.</div>
+        <button type="button" class="btn-primary" id="btn-resume">Fortsätt</button>
+        <button type="button" class="btn-ghost" id="btn-restart">Börja om</button>`;
+      $('btn-resume').addEventListener('click', () => resume(saved));
+      $('btn-restart').addEventListener('click', () => { track('enkat_omstart', { efter: 'paus' }); startFresh(); });
+      return;
+    }
+    box.innerHTML = `<button type="button" class="btn-primary" id="btn-start">Starta enkäten</button>`;
+    $('btn-start').addEventListener('click', startFresh);
+    fine.hidden = false;
+  }
+
+  $('survey').addEventListener('submit', e => { e.preventDefault(); goNext(); });
+  $('btn-back').addEventListener('click', goBack);
+  $('btn-copy').addEventListener('click', async () => {
+    const url = 'https://opengym.se/enkat/';
+    try { await navigator.clipboard.writeText(url); $('btn-copy').textContent = 'Kopierad'; } catch (_) { $('btn-copy').textContent = url; }
+    track('enkat_delad', {});
+  });
+  // Skicka ett sista delsvar om fliken stängs mitt i.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'hidden') return;
+    flushPersist();
+    if (!state || state.completedAt || $('survey').hidden) return;
+    if (!SIGNUP_ENDPOINT || !(state.maxStep > 0)) return;
+    save(false).catch(() => {});
+  });
+  window.addEventListener('pagehide', flushPersist);
+
+  renderIntroActions();
+  if (!SIGNUP_ENDPOINT) console.warn('OpenGym enkät: SIGNUP_ENDPOINT är inte satt, svaren kan inte skickas.');
+</script>
+
+</body>
+</html>
