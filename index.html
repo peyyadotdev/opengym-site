@@ -62,11 +62,12 @@
     --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
     --gutter: clamp(20px, 4vw, 32px);
     --section-y: clamp(72px, 9vw, 120px);
+    --nav-h: 76px; /* nav.nav är sticky; matchar dess renderade höjd så ankarlänkar inte hamnar bakom den */
   }
 
   /* ========== BAS ========== */
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; scroll-padding-top: var(--nav-h); }
   body {
     background: var(--bg);
     color: var(--ink);
