@@ -4,9 +4,10 @@
   "description": "Landningssida och enkät för OpenGym. Statisk sajt, inga byggsteg. Paketet finns bara för testerna.",
   "scripts": {
     "serve": "python3 -m http.server 8000",
-    "test": "node tests/test-codegs.js && node tests/test-enkat.js",
+    "test": "node tests/test-codegs.js && node tests/test-landing.js && node tests/test-enkat.js",
     "test:codegs": "node tests/test-codegs.js",
-    "test:enkat": "node tests/test-enkat.js"
+    "test:enkat": "node tests/test-enkat.js",
+    "test:landing": "node tests/test-landing.js"
   },
   "devDependencies": {
     "playwright": "^1.56.0"

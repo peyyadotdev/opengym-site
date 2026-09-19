@@ -2,14 +2,18 @@
 
 Landningssidan för [OpenGym](https://github.com/peyyadotdev/opengym), ett AI-first affärssystem för boxar inom CrossFit, HYROX och funktionell träning i Sverige. En enda `index.html` utan byggsteg, med ett formulär som samlar intresseanmälningar från pilotgym.
 
+Designen görs i Claude Design-projektet ”OpenGym landningssida granskning” (`OpenGym Landningssida.dc.html`) tillsammans med OpenGym Design System. `index.html` är en handskriven implementation av den: designens inline-stilar är översatta till klasser med designsystemets tokens som CSS-variabler, `sc-for`-listor till statisk markup och formuläret kopplat till den riktiga endpointen. Regler för design och copy står i [`CLAUDE.md`](CLAUDE.md).
+
 ## Filer
 
 | Fil | Innehåll |
 |---|---|
-| `index.html` | Hela sidan: markup, CSS och det lilla skript som sköter scroll reveal och formuläret |
+| `index.html` | Landningssidan: sju sektioner, priskalkylator, pilotanmälan. Markup, CSS och skript i samma fil |
+| `assets/logo.svg` | Logotypmärket: viktskiva på gummigolv med limeprick |
 | `enkat/index.html` | Enkäten ”Så driver du din box 2026”: sju delar, en per skärm, autospar efter varje del, återupptagning i samma webbläsare |
 | `leads/Code.gs` | Google Apps Script som tar emot både anmälningar och enkätsvar och skriver dem i ett Google Sheet, med stegen för att publicera den |
 | `.nojekyll` | Får GitHub Pages att servera sidan som den är |
+| `tests/` | Testerna, se nedan |
 
 ## Förhandsgranska lokalt
 
@@ -28,6 +32,7 @@ npm test
 ```
 
 - `tests/test-codegs.js` kör `leads/Code.gs` i Node mot ett låtsas-ark. Ingen Google-inloggning behövs.
+- `tests/test-landing.js` kör landningssidan i Chromium: copyregler (inget ”hen”, ingen systemjargong, inga skogsgröna färger), hero-variant, platta på betonade ord, kalkylatorn, formuläret mot en mockad endpoint, overflow på mobil.
 - `tests/test-enkat.js` startar en egen lokal server, kör hela enkäten i Chromium på desktop och mobil mot en mockad endpoint (validering, hopplogik, inskick, paus och återupptagning, overflow) och sparar skärmdumpar i `tests/screenshots/`.
 - Manuellt: `npm run serve` och öppna `http://localhost:8000/enkat/`. Sidan skickar då på riktigt till webbappen, så testsvar hamnar i arket. Ta bort dem efteråt, eller sätt `SIGNUP_ENDPOINT` tillfälligt till `''` för att klicka runt utan att skicka.
 

@@ -3,33 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OpenGym – Ett system. Inte fem.</title>
-<meta name="description" content="OpenGym är ett AI-first affärssystem för boxar inom CrossFit, HYROX och funktionell träning i Sverige. Medlemskap, bokning, betalningar, WOD, resultat och community i en produkt. Ingen systemavgift.">
+<title>OpenGym – Fler som stannar. Färre adminkvällar.</title>
+<meta name="description" content="OpenGym är gjort för att behålla medlemmarna du har. Fasta grupper, medlemskap, bokning, betalningar och WOD i en app, med kvällens admin förberedd när du kommer från golvet. För CrossFit-, HYROX- och funktionella boxar i Sverige. Pilotgym sökes.">
 <meta name="author" content="OpenGym">
 
 <!-- Open Graph / delning -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://opengym.se/">
-<meta property="og:title" content="OpenGym – Ett system. Inte fem.">
-<meta property="og:description" content="AI-first affärssystem för boxar inom CrossFit, HYROX och funktionell träning. Medlemskap, bokning, betalningar, WOD, resultat och community i en produkt. Ingen systemavgift.">
+<meta property="og:title" content="OpenGym – Fler som stannar. Färre adminkvällar.">
+<meta property="og:description" content="Ingen startar en box för att jaga nya medlemmar. OpenGym är gjort för att behålla dem du har: fasta grupper, medlemskap, bokning, betalningar och WOD i en app. Pilotgym sökes.">
 <meta property="og:site_name" content="OpenGym">
 <meta property="og:locale" content="sv_SE">
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="OpenGym – Ett system. Inte fem.">
-<meta name="twitter:description" content="AI-first affärssystem för boxar inom CrossFit, HYROX och funktionell träning. Medlemskap, bokning, betalningar, WOD, resultat och community i en produkt. Ingen systemavgift.">
+<meta name="twitter:title" content="OpenGym – Fler som stannar. Färre adminkvällar.">
+<meta name="twitter:description" content="Ingen startar en box för att jaga nya medlemmar. OpenGym är gjort för att behålla dem du har. Pilotgym sökes.">
 
-<!-- Favicon (inline SVG: en viktskiva på mörk botten) -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23121311'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%23f4f2ec' stroke-width='6'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%2322a447'/%3E%3C/svg%3E">
+<!-- Favicon: viktskiva på gummigolv, limeprick -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23121311'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%23f4f2ec' stroke-width='6'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23a6ff1f'/%3E%3C/svg%3E">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,100..900&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+  /* ========== TOKENS (OpenGym Design System) ========== */
   :root {
     --bg: #f4f2ec;            /* krita */
     --bg-alt: #eae7dd;
+    --paper: #faf9f5;
     --bg-dark: #121311;       /* gummigolv */
     --bg-dark-soft: #1b1c19;
     --ink: #131311;
@@ -40,19 +42,24 @@
     --line: #d5d1c5;
     --line-soft: #e2ded3;
     --line-dark: #2b2c28;
-    --accent: #22a447;        /* turf */
-    --accent-deep: #14732f;   /* text på ljus botten */
-    --accent-bright: #9fe870; /* text på mörk botten */
-    --accent-soft: #d7f2cb;
-    --paper: #faf9f5;
+    --accent: #a6ff1f;        /* neon-lime, bara som fyllning */
+    --plate: #e9ffc2;         /* plattan bakom betonade ord på ljus botten */
+    --accent-bright: #c9ff5c; /* text på mörk botten */
+    --accent-tint: rgba(166, 255, 31, 0.10);
+    --plate-tint: rgba(233, 255, 194, 0.45);
+    --error: #9a2f12;
+    --error-soft: #f1c6b6;
+    --error-tint: rgba(241, 198, 182, 0.25);
     --display: 'Anybody', 'Inter Tight', system-ui, sans-serif;
     --sans: 'Inter Tight', system-ui, -apple-system, sans-serif;
     --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    --gutter: clamp(20px, 4vw, 32px);
+    --section-y: clamp(72px, 9vw, 120px);
   }
 
+  /* ========== BAS ========== */
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
-
   body {
     background: var(--bg);
     color: var(--ink);
@@ -61,244 +68,62 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
-    counter-reset: section;
   }
+  a { color: inherit; text-decoration: none; transition: color 0.2s, background 0.2s; }
+  a:hover { color: var(--ink); background: var(--plate); }
+  input, button { font: inherit; }
+  input[type="range"] { accent-color: var(--accent); }
+  ::selection { background: var(--plate); color: var(--ink); }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  [hidden] { display: none !important; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  .container { max-width: 1240px; margin: 0 auto; padding: 0 var(--gutter); position: relative; }
+  p, h1, h2, h3 { text-wrap: pretty; }
 
-  .container {
-    max-width: 1240px;
-    margin: 0 auto;
-    padding: 0 32px;
-    position: relative;
-    z-index: 2;
-  }
-  @media (max-width: 600px) {
-    .container { padding: 0 20px; }
-  }
-
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
-  :focus-visible {
-    outline: 2px solid var(--accent-deep);
-    outline-offset: 3px;
-  }
-
-  /* NAV */
-  nav {
-    padding: 24px 0;
-    border-bottom: 1px solid var(--line);
-    position: relative;
-    z-index: 10;
-  }
-  .nav-inner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .logo {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    font-family: var(--display);
-    font-weight: 700;
-    font-stretch: 110%;
-    font-size: 21px;
-    letter-spacing: -0.01em;
-    text-decoration: none;
-    color: var(--ink);
-  }
-  .logo svg { width: 26px; height: 26px; }
-  .nav-links {
-    display: flex;
-    gap: 32px;
-    font-size: 14px;
-    color: var(--ink-soft);
-    align-items: center;
-  }
-  .nav-links a {
-    color: inherit;
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  .nav-links a:hover { color: var(--accent-deep); }
-  .nav-links a.nav-cta {
-    font-family: var(--mono);
-    font-size: 12px;
-    padding: 9px 18px;
-    border: 1px solid var(--ink);
-    border-radius: 2px;
-    background: var(--ink);
-    color: var(--paper);
-    letter-spacing: 0.02em;
-    transition: all 0.2s;
-  }
-  .nav-links a.nav-cta:hover {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--ink);
-  }
-  @media (max-width: 820px) {
-    .nav-links a:not(.nav-cta) { display: none; }
-  }
-
-  /* HERO */
-  .hero {
-    padding: 128px 0 144px;
-    position: relative;
-    overflow: hidden;
-  }
-  .hero::before {
-    /* rutnät som på en whiteboard, tonar ut mot höger */
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background-image:
-      linear-gradient(var(--line-soft) 1px, transparent 1px),
-      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
-    background-size: 56px 56px;
-    -webkit-mask-image: radial-gradient(ellipse 70% 80% at 30% 40%, #000 20%, transparent 75%);
-    mask-image: radial-gradient(ellipse 70% 80% at 30% 40%, #000 20%, transparent 75%);
-    opacity: 0.9;
-  }
-  .hero-label {
-    font-family: var(--mono);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    color: var(--ink-muted);
-    margin-bottom: 44px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    opacity: 0;
-    animation: fadeUp 0.8s 0.1s forwards;
-  }
-  .hero-label::before {
-    content: '';
-    width: 32px;
-    height: 1px;
-    background: var(--accent-deep);
-    flex: none;
-  }
   h1, h2, h3, h4 {
     font-family: var(--display);
     font-weight: 700;
     font-stretch: 105%;
     letter-spacing: -0.025em;
   }
-  h1 em, h2 em, h3 em, .display em {
+  /* Plattan: målad som gradient så att den täcker cirka 82 % av em-rutan och aldrig
+     nuddar raden ovanför eller under. Kloner per rad, bryter aldrig ordet. */
+  h1 em, h2 em, h3 em, .pull em, .og-plate {
     font-style: normal;
     font-weight: 600;
     font-stretch: 135%;
-    color: var(--accent-deep);
-  }
-  .hero h1 {
-    font-size: clamp(52px, 8.4vw, 118px);
-    line-height: 0.94;
-    margin-bottom: 40px;
-    max-width: 12ch;
-    opacity: 0;
-    animation: fadeUp 1s 0.25s forwards;
-  }
-  .hero-sub {
-    font-size: clamp(18px, 1.6vw, 22px);
-    line-height: 1.45;
-    color: var(--ink-soft);
-    max-width: 56ch;
-    margin-bottom: 52px;
-    opacity: 0;
-    animation: fadeUp 1s 0.45s forwards;
-  }
-  .hero-ctas {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-    flex-wrap: wrap;
-    opacity: 0;
-    animation: fadeUp 1s 0.6s forwards;
-  }
-  .btn-primary {
-    font-family: var(--sans);
-    font-size: 15px;
-    font-weight: 500;
-    padding: 16px 32px;
-    background: var(--ink);
-    color: var(--paper);
-    border: 1px solid var(--ink);
-    border-radius: 2px;
-    text-decoration: none;
-    transition: all 0.25s;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-  }
-  .btn-primary:hover {
-    background: var(--accent);
-    border-color: var(--accent);
     color: var(--ink);
-    transform: translateY(-1px);
+    background: linear-gradient(var(--plate), var(--plate)) no-repeat 0 58% / 100% 82%;
+    padding: 0 0.06em;
+    margin: 0 -0.06em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: keep-all;
   }
-  .btn-primary::after {
-    content: '→';
-    transition: transform 0.25s;
+  /* Mörka ytor: ingen platta, bara ljus lime-text */
+  .og-dark h1 em, .og-dark h2 em, .og-dark h3 em, .og-dark .pull em, .og-dark .og-plate {
+    color: var(--accent-bright);
+    background: none;
+    padding: 0;
+    margin: 0;
   }
-  .btn-primary:hover::after { transform: translateX(4px); }
-  .btn-text {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--ink-soft);
-    text-decoration: none;
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 2px;
-    transition: all 0.2s;
+  h2 { font-size: clamp(36px, 5vw, 64px); line-height: 1.04; margin-bottom: 24px; max-width: 18ch; overflow-wrap: anywhere; }
+  .lede { font-size: clamp(17px, 1.3vw, 19px); line-height: 1.6; color: var(--ink-soft); max-width: 60ch; }
+  .lede + .lede { margin-top: 20px; }
+  .pull {
+    font-family: var(--display);
+    font-weight: 600;
+    font-stretch: 105%;
+    font-size: clamp(22px, 2vw, 28px);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    max-width: 30ch;
   }
-  .btn-text:hover {
-    color: var(--accent-deep);
-    border-bottom-color: var(--accent-deep);
-  }
-  .hero-ornament {
-    position: absolute;
-    top: 96px;
-    right: -20px;
-    width: 440px;
-    height: 440px;
-    pointer-events: none;
-    opacity: 0;
-    animation: fadeIn 1.5s 0.8s forwards;
-  }
-  .hero-ornament svg {
-    width: 100%;
-    height: 100%;
-    animation: spin 90s linear infinite;
-  }
-  @media (max-width: 1024px) {
-    .hero-ornament { display: none; }
-  }
-  @media (max-width: 600px) {
-    .hero { padding: 88px 0 104px; }
-  }
+  .pull em { font-weight: 600; font-stretch: 130%; }
 
-  /* SEKTIONSBAS */
-  section {
-    padding: 120px 0;
-    position: relative;
-    border-top: 1px solid var(--line);
-  }
-  @media (max-width: 600px) {
-    section { padding: 80px 0; }
-  }
-  .section-label {
+  .eyebrow {
     font-family: var(--mono);
     font-size: 11px;
     text-transform: uppercase;
@@ -308,1291 +133,965 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    flex-wrap: wrap;
   }
-  .section-label::before {
-    content: counter(section, decimal-leading-zero);
-    counter-increment: section;
-    color: var(--accent-deep);
-  }
-  .section-label.dark { color: var(--ink-inverse-soft); }
-  .section-label.dark::before { color: var(--accent-bright); }
-
-  h2 {
-    font-size: clamp(36px, 5vw, 64px);
-    line-height: 1.02;
-    margin-bottom: 32px;
-    max-width: 18ch;
-  }
-
-  .lede {
-    font-size: clamp(17px, 1.3vw, 19px);
-    line-height: 1.6;
-    color: var(--ink-soft);
-    max-width: 62ch;
-  }
-  .lede + .lede { margin-top: 20px; }
-  .lede strong { color: var(--ink); font-weight: 500; }
-
-  .pull {
-    margin-top: 32px;
-    font-family: var(--display);
-    font-weight: 600;
-    font-stretch: 105%;
-    font-size: clamp(22px, 2vw, 28px);
-    line-height: 1.25;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    max-width: 30ch;
-  }
-  .pull em { font-style: normal; color: var(--accent-deep); font-stretch: 130%; }
-
-  /* VARDAGEN */
-  .problem .container {
-    display: grid;
-    grid-template-columns: 1fr 1.2fr;
-    gap: 100px;
-    align-items: start;
-  }
-  .problem-mark {
-    font-family: var(--display);
-    font-weight: 800;
-    font-stretch: 120%;
-    font-size: clamp(96px, 13vw, 170px);
-    line-height: 0.9;
-    color: var(--accent);
-    letter-spacing: -0.05em;
-    margin-top: -8px;
-  }
-  .problem-mark-caption {
+  .chip { color: var(--ink); background: var(--plate); padding: 2px 6px; }
+  .og-dark .eyebrow { color: var(--ink-inverse-soft); }
+  .og-dark .chip { color: var(--accent-bright); background: none; padding: 0; }
+  .label {
     font-family: var(--mono);
-    font-size: 12px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
     color: var(--ink-muted);
-    margin-top: 16px;
-    max-width: 24ch;
-    line-height: 1.5;
-  }
-  .stack-list {
-    list-style: none;
-    margin-top: 40px;
-    border-top: 1px solid var(--line);
-  }
-  .stack-list li {
-    display: grid;
-    grid-template-columns: 1fr 1.3fr;
-    gap: 16px;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--line);
-    font-size: 14px;
-  }
-  .stack-list li span:first-child { color: var(--ink); font-weight: 500; }
-  .stack-list li span:last-child { font-family: var(--mono); font-size: 12px; color: var(--ink-muted); line-height: 1.5; }
-  @media (max-width: 900px) {
-    .problem .container { grid-template-columns: 1fr; gap: 40px; }
-    .problem-mark { font-size: 96px; }
-  }
-
-  /* ALLT I ETT */
-  .tiles-section { background: var(--bg-alt); }
-  .tiles {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    margin-top: 72px;
-    border-top: 1px solid var(--line);
-    border-left: 1px solid var(--line);
-    background: var(--paper);
-  }
-  .tile {
-    padding: 40px 36px 44px;
-    border-right: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-    transition: background 0.3s;
-  }
-  .tile:hover { background: rgba(34, 164, 71, 0.06); }
-  .tile-num {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--ink-muted);
-    margin-bottom: 26px;
-  }
-  .tile h3 {
-    font-size: 24px;
-    line-height: 1.15;
     margin-bottom: 16px;
   }
-  .tile p {
-    font-size: 15px;
-    line-height: 1.6;
-    color: var(--ink-soft);
-  }
-  @media (max-width: 900px) {
-    .tiles { grid-template-columns: 1fr 1fr; }
-  }
-  @media (max-width: 600px) {
-    .tiles { grid-template-columns: 1fr; }
-    .tile { padding: 32px 24px 36px; }
-  }
 
-  /* FASTA GRUPPER */
-  .team-grid {
-    display: grid;
-    grid-template-columns: 1.1fr 1fr;
-    gap: 80px;
-    align-items: start;
+  /* Knappar */
+  .btn-primary {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 500;
+    padding: 16px 32px;
+    background: var(--ink);
+    color: var(--paper);
+    border: 1px solid var(--ink);
+    border-radius: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.25s;
   }
-  .stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0;
-    border-top: 1px solid var(--line);
-    border-left: 1px solid var(--line);
-    margin-top: 8px;
-  }
-  .stat {
-    padding: 32px 28px 28px;
-    border-right: 1px solid var(--line);
+  .btn-primary:hover { background: var(--plate); border-color: var(--ink); color: var(--ink); transform: translateY(-1px); }
+  .btn-primary .arrow { transition: transform 0.25s; }
+  .btn-primary:hover .arrow { transform: translateX(4px); }
+  .btn-primary.small { padding: 14px 26px; }
+  .btn-text {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-soft);
     border-bottom: 1px solid var(--line);
-    background: var(--paper);
+    padding-bottom: 2px;
   }
-  .stat.industry { background: transparent; }
-  .stat-num {
+  .btn-text:hover { color: var(--ink); border-bottom-color: var(--ink); background: none; }
+
+  /* Cellrutnät: behållaren har kant upptill och till vänster, varje cell till höger och nedtill */
+  .cellgrid { display: grid; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+  .cell { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .cell.hover { transition: background 0.3s; }
+  .cell.hover:hover { background: var(--accent-tint); }
+  .numeral {
     font-family: var(--display);
     font-weight: 750;
     font-stretch: 110%;
-    font-size: clamp(48px, 5.6vw, 76px);
     line-height: 1;
     letter-spacing: -0.045em;
-    color: var(--accent-deep);
     font-variant-numeric: tabular-nums;
   }
-  .stat.industry .stat-num { color: var(--ink-muted); }
-  .stat-label {
-    margin-top: 14px;
-    font-size: 14px;
+  .numeral.plated {
+    display: inline;
+    color: var(--ink);
+    background: linear-gradient(var(--plate), var(--plate)) no-repeat 0 58% / 100% 82%;
+    padding: 0 0.06em;
+    margin: 0 -0.06em;
+  }
+
+  /* ========== NAV ========== */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-bottom: 1px solid var(--line);
+    background: rgba(244, 242, 236, 0.92);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .nav-inner { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 18px; padding-bottom: 18px; }
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--display);
+    font-weight: 700;
+    font-stretch: 110%;
+    font-size: 21px;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .logo:hover { background: none; }
+  .logo svg { width: 26px; height: 26px; display: block; }
+  .nav-links { display: flex; gap: clamp(14px, 2.5vw, 32px); align-items: center; font-size: 14px; color: var(--ink-soft); }
+  .nav-links a:hover { color: var(--ink); background: var(--plate); }
+  .btn-nav {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 9px 18px;
+    border: 1px solid var(--ink);
+    border-radius: 2px;
+    background: var(--ink);
+    color: var(--paper);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .nav-links a.btn-nav:hover { background: var(--plate); border-color: var(--ink); color: var(--ink); }
+  @media (max-width: 720px) {
+    .nav-links a:not(.btn-nav) { display: none; }
+  }
+
+  /* ========== HERO ========== */
+  .hero { position: relative; overflow: hidden; padding: clamp(72px, 10vw, 128px) 0; }
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: linear-gradient(var(--line-soft) 1px, transparent 1px), linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 80% at 30% 40%, #000 20%, transparent 75%);
+    mask-image: radial-gradient(ellipse 70% 80% at 30% 40%, #000 20%, transparent 75%);
+  }
+  .hero .eyebrow { margin-bottom: clamp(28px, 4vw, 44px); gap: 14px; animation: fadeUp 0.8s 0.1s both; }
+  .hero .eyebrow::before { content: ''; width: 32px; height: 1px; background: var(--ink); flex: none; }
+  .hero .eyebrow .chip { padding: 3px 8px; }
+  .hero h1 {
+    font-size: clamp(46px, 8.4vw, 118px);
+    line-height: 1.04;
+    margin-bottom: clamp(28px, 4vw, 40px);
+    max-width: 13ch;
+    overflow-wrap: anywhere;
+    animation: fadeUp 1s 0.25s both;
+  }
+  .hero-sub {
+    font-size: clamp(17px, 1.6vw, 22px);
     line-height: 1.45;
     color: var(--ink-soft);
+    max-width: 56ch;
+    margin-bottom: clamp(36px, 5vw, 52px);
+    animation: fadeUp 1s 0.45s both;
   }
-  .stat-source {
-    grid-column: 1 / -1;
-    padding: 16px 28px;
-    border-right: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
+  .hero-ctas { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; animation: fadeUp 1s 0.6s both; }
+  .hero-fine {
+    margin-top: clamp(28px, 4vw, 40px);
     font-family: var(--mono);
-    font-size: 11.5px;
-    line-height: 1.55;
+    font-size: 12px;
+    line-height: 1.6;
     color: var(--ink-muted);
+    max-width: 52ch;
+    animation: fadeUp 1s 0.7s both;
   }
-  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
-  .tag {
-    font-family: var(--mono);
-    font-size: 11px;
-    padding: 6px 12px;
+
+  /* ========== SEKTIONER ========== */
+  section { border-top: 1px solid var(--line); padding: var(--section-y) 0; position: relative; }
+  .alt { background: var(--bg-alt); }
+  .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: clamp(40px, 6vw, 96px); align-items: start; }
+
+  /* 01 Fasta grupper */
+  .stats { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
+  .stat { padding: 32px 28px 28px; background: var(--paper); }
+  .stat .numeral { font-size: clamp(48px, 5.6vw, 76px); }
+  .stat-label { margin-top: 14px; font-size: 14px; line-height: 1.45; color: var(--ink-soft); }
+  .stat-source { grid-column: 1 / -1; padding: 16px 28px; font-family: var(--mono); font-size: 11.5px; line-height: 1.55; color: var(--ink-muted); }
+  .stat-bench { grid-column: 1 / -1; padding: 28px; display: flex; gap: 20px; align-items: baseline; flex-wrap: wrap; }
+  .stat-bench .numeral { font-size: clamp(36px, 4vw, 52px); color: var(--ink-muted); }
+  .stat-bench p { font-size: 14px; line-height: 1.45; color: var(--ink-soft); flex: 1 1 220px; }
+  .how { margin-top: clamp(48px, 6vw, 80px); grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); background: var(--paper); }
+  .how .cell { padding: 32px 28px 36px; }
+  .how-kicker { font-family: var(--mono); font-size: 12px; color: var(--ink-muted); margin-bottom: 20px; min-height: 18px; }
+  .how h3 { font-size: 22px; line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 12px; }
+  .how p { font-size: 15px; line-height: 1.6; color: var(--ink-soft); }
+
+  /* 02 I appen: mockups */
+  .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: clamp(20px, 3vw, 32px); margin-top: clamp(40px, 5vw, 64px); }
+  figure { margin: 0; }
+  .shot {
+    background: var(--paper);
     border: 1px solid var(--line);
     border-radius: 2px;
-    color: var(--ink-soft);
-    background: var(--paper);
+    padding: 18px 18px 22px;
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-size: 13px;
   }
-  .tag.accent {
-    border-color: var(--accent-soft);
-    background: rgba(215, 242, 203, 0.4);
-  }
-  @media (max-width: 900px) {
-    .team-grid { grid-template-columns: 1fr; gap: 48px; }
-  }
-  @media (max-width: 600px) {
-    .stat { padding: 24px 18px 22px; }
-    .stat-num { font-size: clamp(40px, 12vw, 76px); }
-    .stat-source { padding: 14px 18px; }
-  }
-  @media (max-width: 360px) {
-    .stats { grid-template-columns: 1fr; }
-  }
+  .shot.og-dark { background: var(--bg-dark); color: var(--ink-inverse); border-color: var(--line-dark); }
+  .shot-head { display: flex; justify-content: space-between; gap: 8px; font-family: var(--mono); font-size: 10px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.12em; }
+  .og-dark .shot-head { color: var(--ink-inverse-soft); }
+  .shot-title { font-family: var(--display); font-weight: 700; font-stretch: 105%; letter-spacing: -0.02em; font-size: 20px; line-height: 1.1; }
+  .shot-title .wide { font-weight: 600; font-stretch: 125%; }
+  .shot-title .plate-tag { color: var(--ink); background: var(--plate); padding: 0 6px; font-weight: 600; font-stretch: 125%; }
+  .og-dark .shot-title .wide { color: var(--accent-bright); }
+  .shot-sub { font-family: var(--mono); font-size: 11px; color: var(--ink-muted); }
+  .og-dark .shot-sub { color: var(--ink-inverse-soft); }
+  .shot-rule { border-top: 1px solid var(--line); }
+  .og-dark .shot-rule { border-top-color: var(--line-dark); }
+  .shot-list { display: grid; gap: 10px; }
+  .shot-item { border: 1px solid var(--line); padding: 12px; display: grid; gap: 8px; }
+  .shot-item.mine { border-color: var(--ink); background: var(--plate-tint); }
+  .shot-item.row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .shot-item strong { font-weight: 500; line-height: 1.35; }
+  .shot-item .dim { color: var(--ink-muted); font-size: 12px; line-height: 1.45; }
+  .shot-item .flag { font-size: 12px; color: var(--ink); background: var(--plate); display: inline-block; padding: 1px 6px; }
+  .shot-btns { display: flex; gap: 8px; }
+  .mini { font-family: var(--mono); font-size: 11px; padding: 6px 10px; border-radius: 2px; white-space: nowrap; }
+  .mini.fill { background: var(--ink); color: var(--paper); }
+  .mini.line { border: 1px solid var(--line); color: var(--ink-soft); }
+  .mini.lime { background: var(--accent-bright); color: var(--ink); padding: 8px 12px; flex: 1; text-align: center; }
+  .roster div { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line-dark); }
+  .roster .mono { font-family: var(--mono); font-size: 11px; color: var(--ink-inverse-soft); }
+  .roster .warn { color: var(--error-soft); }
+  .roster .pr { color: var(--accent-bright); }
+  .roster .more { color: var(--ink-inverse-soft); }
+  .shot-kpis { display: flex; gap: 16px; align-items: baseline; }
+  .shot-kpis .numeral { font-size: 34px; letter-spacing: -0.04em; }
+  .shot-kpis small { display: block; font-size: 11px; color: var(--ink-muted); margin-top: 4px; }
+  .shot-kicker { font-family: var(--mono); font-size: 10px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.12em; }
+  .pr-card { border: 1px solid var(--line); padding: 12px; display: grid; gap: 6px; }
+  .pr-card .top { display: flex; justify-content: space-between; gap: 8px; }
+  .pr-card .top strong { font-weight: 500; }
+  .pr-card .val { font-family: var(--mono); color: var(--ink); background: var(--plate); padding: 0 6px; }
+  .pr-card .dim { font-size: 12px; color: var(--ink-muted); }
+  .reacts { display: flex; gap: 6px; margin-top: 4px; }
+  .react { font-family: var(--mono); font-size: 11px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 2px; }
+  .react.hot { border-color: var(--plate); background: var(--plate-tint); }
+  .chat { display: grid; gap: 6px; font-size: 12px; line-height: 1.4; }
+  .chat strong { font-weight: 500; }
+  .chat span { color: var(--ink-soft); }
+  figcaption { margin-top: 14px; }
+  figcaption h3 { font-size: 18px; letter-spacing: -0.02em; margin-bottom: 4px; }
+  figcaption p { font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
 
-  /* Små skärmar: smalare betonade ord och mindre rubriker så att långa ord
-     som ”förstklassiga” får plats. overflow-wrap är sista utvägen. */
-  h1, h2, h3, .pull, .formats-footer { overflow-wrap: anywhere; }
-  @media (max-width: 600px) {
-    h1 em, h2 em, h3 em, .display em, .pull em, .formats-footer em,
-    .assist-body p.accent em { font-stretch: 112%; }
-    .formats-headline { font-size: clamp(34px, 6vw, 80px); }
-    .format-card h3 { font-size: 28px; }
-  }
-
-  /* MÖRK: ASSISTENTER */
-  .assist {
-    background: var(--bg-dark);
-    color: var(--ink-inverse);
-    border-top: none;
-    padding: 150px 0;
-    overflow: hidden;
-  }
-  .assist::before {
-    content: '';
-    position: absolute;
-    top: -220px;
-    right: -220px;
-    width: 640px;
-    height: 640px;
-    background: radial-gradient(circle, rgba(159, 232, 112, 0.16) 0%, transparent 70%);
+  /* 03 En dag med OpenGym (mörk) */
+  .day-section { background: var(--bg-dark); color: var(--ink-inverse); border-top: none; padding: clamp(80px, 10vw, 150px) 0; overflow: hidden; }
+  .day-section .glow {
+    position: absolute; top: -220px; right: -220px; width: 640px; height: 640px;
+    background: radial-gradient(circle, rgba(201, 255, 92, 0.14) 0%, transparent 70%);
     pointer-events: none;
   }
-  .assist::after {
-    content: '';
-    position: absolute;
-    bottom: -320px;
-    left: -220px;
-    width: 720px;
-    height: 720px;
-    background: radial-gradient(circle, rgba(34, 164, 71, 0.10) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .assist h2 { color: var(--ink-inverse); max-width: 20ch; }
-  .assist h2 em { color: var(--accent-bright); }
-  .assist-body {
+  .day-head {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 80px;
-    margin-top: 48px;
-    align-items: start;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: clamp(24px, 4vw, 64px);
+    align-items: end;
+    margin-bottom: clamp(40px, 5vw, 72px);
   }
-  .assist-body p {
-    font-size: clamp(16px, 1.15vw, 18px);
-    line-height: 1.65;
-    color: var(--ink-inverse-soft);
-    margin-bottom: 20px;
+  .day-head h2 { margin: 0; }
+  .day-head p { font-size: clamp(16px, 1.15vw, 18px); line-height: 1.65; color: var(--ink-inverse-soft); max-width: 48ch; }
+  .day { border: 1px solid var(--line-dark); background: var(--bg-dark-soft); }
+  .step {
+    display: grid;
+    grid-template-columns: minmax(56px, 72px) 1fr;
+    gap: clamp(12px, 2vw, 24px);
+    padding: clamp(20px, 2.5vw, 28px) clamp(18px, 3vw, 40px);
+    border-bottom: 1px solid var(--line-dark);
   }
-  .assist-body p.accent {
-    color: var(--ink-inverse);
+  .step:last-child { border-bottom: none; }
+  .step-time { font-family: var(--mono); font-size: 13px; color: var(--accent-bright); padding-top: 4px; font-variant-numeric: tabular-nums; }
+  .step-who { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-inverse-soft); margin-bottom: 6px; }
+  .step-title { font-family: var(--display); font-weight: 600; font-stretch: 105%; letter-spacing: -0.015em; font-size: clamp(18px, 1.5vw, 22px); line-height: 1.25; color: var(--ink-inverse); margin-bottom: 8px; }
+  .step-detail { font-size: 15px; color: var(--ink-inverse-soft); line-height: 1.6; max-width: 68ch; }
+  .day-pull {
+    margin-top: clamp(32px, 4vw, 48px);
     font-family: var(--display);
     font-weight: 500;
     font-stretch: 105%;
     font-size: clamp(20px, 1.6vw, 26px);
     line-height: 1.3;
     letter-spacing: -0.015em;
+    max-width: 40ch;
   }
-  .assist-body p.accent em { font-style: normal; color: var(--accent-bright); font-stretch: 125%; }
-  .mandate {
-    list-style: none;
-    margin-top: 8px;
-    border-top: 1px solid var(--line-dark);
-  }
-  .mandate li {
-    display: grid;
-    grid-template-columns: 28px 1fr;
-    gap: 14px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--line-dark);
-    font-size: 14px;
-    color: var(--ink-inverse-soft);
-    line-height: 1.5;
-  }
-  .mandate li span:first-child { font-family: var(--mono); font-size: 12px; color: var(--accent-bright); padding-top: 2px; }
-  .mandate li strong { color: var(--ink-inverse); font-weight: 500; }
+  .day-pull em { font-style: normal; color: var(--accent-bright); font-stretch: 125%; }
 
-  .day {
-    margin-top: 96px;
-    border: 1px solid var(--line-dark);
-    background: var(--bg-dark-soft);
-  }
-  .day-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 24px 40px;
-    border-bottom: 1px solid var(--line-dark);
-  }
-  .day-head h4 {
-    font-size: 22px;
-    letter-spacing: -0.02em;
-  }
-  .day-head .tag-dark {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--ink-inverse-soft);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-  }
-  .day-steps { padding: 16px 40px 28px; }
-  .step {
-    display: grid;
-    grid-template-columns: 64px 32px 1fr;
-    gap: 20px;
-    padding: 22px 0;
-    position: relative;
-  }
-  .step::before {
-    content: '';
-    position: absolute;
-    left: 99px;
-    top: 44px;
-    bottom: -22px;
-    width: 1px;
-    background: var(--line-dark);
-  }
-  .step:last-child::before { display: none; }
-  .step-time {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--ink-inverse-soft);
-    padding-top: 7px;
-    font-variant-numeric: tabular-nums;
-  }
-  .step-dot {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: 1px solid var(--line-dark);
-    background: var(--bg-dark);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    z-index: 2;
-  }
-  .step-dot::after {
-    content: '';
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--ink-inverse-soft);
-  }
-  .step.act .step-dot { border-color: var(--accent); }
-  .step.act .step-dot::after { background: var(--accent-bright); }
-  .step-content { padding-top: 4px; }
-  .step-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: var(--accent-bright);
-    margin-bottom: 6px;
-  }
-  .step-title {
-    font-weight: 500;
-    font-size: 16px;
-    color: var(--ink-inverse);
-    margin-bottom: 6px;
-    letter-spacing: -0.01em;
-  }
-  .step-detail {
-    font-size: 14px;
-    color: var(--ink-inverse-soft);
-    line-height: 1.55;
-    max-width: 70ch;
-  }
-  .assist-stack {
-    margin-top: 72px;
-    padding-top: 40px;
-    border-top: 1px solid var(--line-dark);
-  }
-  .assist-stack-label {
-    font-family: var(--mono);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    color: var(--ink-inverse-soft);
-    margin-bottom: 28px;
-  }
-  .stack-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px 40px;
-    align-items: center;
-  }
-  .stack-item {
-    font-family: var(--display);
-    font-weight: 600;
-    font-stretch: 105%;
-    font-size: 22px;
-    letter-spacing: -0.01em;
-    color: var(--ink-inverse);
-    opacity: 0.75;
-    transition: all 0.3s;
-    cursor: default;
-  }
-  .stack-item:hover { opacity: 1; color: var(--accent-bright); }
-  @media (max-width: 900px) {
-    .assist { padding: 100px 0; }
-    .assist-body { grid-template-columns: 1fr; gap: 24px; }
-    .day-head, .day-steps { padding-left: 24px; padding-right: 24px; }
-    .step { grid-template-columns: 48px 1fr; }
-    .step .step-dot { display: none; }
-    .step::before { display: none; }
-    .stack-row { gap: 12px 24px; }
-    .stack-item { font-size: 18px; }
-  }
+  /* 04 Vad ingår */
+  .tiles { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); background: var(--paper); margin-top: clamp(40px, 5vw, 64px); }
+  .tile { padding: 36px 32px 40px; }
+  .tile-num { font-family: var(--mono); font-size: 12px; color: var(--ink-muted); margin-bottom: 22px; }
+  .tile h3 { font-size: 23px; line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 14px; }
+  .tile p { font-size: 15px; line-height: 1.6; color: var(--ink-soft); }
+  .also { margin-top: clamp(32px, 4vw, 48px); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: clamp(24px, 4vw, 64px); }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag { font-family: var(--mono); font-size: 11px; padding: 6px 12px; border: 1px solid var(--plate); background: var(--plate-tint); border-radius: 2px; color: var(--ink-soft); }
+  .tag.soon { border: 1px dashed var(--line); background: none; color: var(--ink-muted); }
 
-  /* FORMAT */
-  .formats { padding: 150px 0; }
-  .formats-headline {
-    font-size: clamp(40px, 6vw, 80px);
-    line-height: 1.02;
-    max-width: 21ch;
-    margin-bottom: 72px;
-  }
-  .formats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 80px;
-  }
-  .format-card {
-    padding: 40px 0;
-    border-top: 2px solid var(--ink);
-  }
-  .format-card.hyrox { border-top-color: var(--accent); }
-  .format-label {
-    font-family: var(--mono);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    color: var(--ink-muted);
-    margin-bottom: 20px;
-  }
-  .format-card h3 {
-    font-size: 32px;
-    line-height: 1.12;
-    margin-bottom: 24px;
-  }
-  .format-card p {
-    font-size: 16px;
-    line-height: 1.6;
-    color: var(--ink-soft);
-    margin-bottom: 24px;
-  }
-  .format-card .tags { margin-top: 0; }
-  .formats-footer {
-    text-align: center;
-    margin-top: 72px;
-    font-family: var(--display);
-    font-weight: 500;
-    font-stretch: 105%;
-    font-size: 20px;
-    color: var(--ink-soft);
-    letter-spacing: -0.01em;
-  }
-  .formats-footer em { font-style: normal; color: var(--accent-deep); font-stretch: 125%; }
-  @media (max-width: 900px) {
-    .formats { padding: 100px 0; }
-    .formats-grid { grid-template-columns: 1fr; gap: 48px; }
-  }
+  /* 05 Pris */
+  .price-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: clamp(40px, 6vw, 80px); }
+  .price-grid h2 { max-width: 16ch; }
+  .price-points { list-style: none; border-top: 1px solid var(--line); margin-top: 32px; }
+  .price-points li { padding: 18px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 32px 1fr; gap: 14px; }
+  .price-points .chip { font-family: var(--mono); font-size: 12px; align-self: start; }
+  .price-points strong { display: block; font-weight: 500; font-size: 16px; line-height: 1.35; margin-bottom: 4px; }
+  .price-points p { font-size: 14.5px; line-height: 1.55; color: var(--ink-soft); }
+  .calc { background: var(--paper); border: 1px solid var(--ink); padding: clamp(24px, 3vw, 36px); }
+  .calc .label { margin-bottom: 20px; }
+  .calc label { display: block; margin-bottom: 22px; }
+  .calc-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+  .calc-row span:first-child { font-weight: 500; }
+  .calc-row output { font-family: var(--mono); font-size: 14px; font-variant-numeric: tabular-nums; }
+  .calc input[type="range"] { width: 100%; display: block; cursor: pointer; }
+  .calc-lines { border-top: 1px solid var(--line); margin-top: 6px; }
+  .calc-line { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px; }
+  .calc-line:last-child { border-bottom-color: var(--line); }
+  .calc-line span:first-child { color: var(--ink-soft); }
+  .calc-line output { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .calc-total { padding: 20px 0 8px; display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  .calc-total span:first-child { font-weight: 500; }
+  .calc-total .numeral { font-size: clamp(34px, 3.4vw, 44px); letter-spacing: -0.04em; }
+  .calc-zero { margin-top: 8px; font-size: 14px; color: var(--ink-soft); line-height: 1.55; }
+  .calc-fine { margin-top: 16px; font-family: var(--mono); font-size: 11.5px; line-height: 1.6; color: var(--ink-muted); }
 
-  /* SVENSKT */
-  .swedish { background: var(--bg-alt); }
-  .swedish-header {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 80px;
-    margin-bottom: 72px;
-    align-items: end;
-  }
-  .swedish-header p {
-    font-size: clamp(17px, 1.3vw, 19px);
-    line-height: 1.55;
-    color: var(--ink-soft);
-  }
-  .rails {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    border-top: 1px solid var(--line);
-    border-left: 1px solid var(--line);
-    background: var(--paper);
-  }
-  .rail {
-    padding: 34px 28px;
-    border-right: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-    transition: background 0.3s;
-  }
-  .rail:hover { background: rgba(34, 164, 71, 0.06); }
-  .rail-name {
-    font-family: var(--display);
-    font-weight: 700;
-    font-stretch: 105%;
-    font-size: 21px;
-    letter-spacing: -0.02em;
-    margin-bottom: 6px;
-  }
-  .rail-kind {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--ink-muted);
-    margin-bottom: 18px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-  .rail-desc {
-    font-size: 14px;
-    line-height: 1.55;
-    color: var(--ink-soft);
-  }
-  @media (max-width: 900px) {
-    .swedish-header { grid-template-columns: 1fr; gap: 24px; }
-    .rails { grid-template-columns: 1fr 1fr; }
-  }
-  @media (max-width: 560px) {
-    .rails { grid-template-columns: 1fr; }
-  }
+  /* 06 Bytet */
+  .faq-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: clamp(32px, 5vw, 80px); }
+  .faq-grid h2 { max-width: 14ch; }
+  .faq-grid .lede { max-width: 44ch; }
+  .faq { border-top: 1px solid var(--line); }
+  .faq-item { padding: 24px 0; border-bottom: 1px solid var(--line); }
+  .faq-item h3 { font-size: clamp(20px, 1.6vw, 24px); line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 10px; }
+  .faq-item p { font-size: 16px; line-height: 1.6; color: var(--ink-soft); max-width: 60ch; }
 
-  /* PRIS */
-  .price-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 80px;
-    align-items: start;
-  }
-  .price-zero {
-    font-family: var(--display);
-    font-weight: 800;
-    font-stretch: 115%;
-    font-size: clamp(88px, 12vw, 176px);
-    line-height: 0.9;
-    letter-spacing: -0.05em;
-    color: var(--ink);
-    margin: 8px 0 12px;
-  }
-  .price-zero small {
-    font-size: 0.32em;
-    font-weight: 600;
-    font-stretch: 110%;
-    letter-spacing: -0.02em;
-    color: var(--accent-deep);
-    margin-left: 0.15em;
-  }
-  .price-zero-caption {
-    font-family: var(--mono);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: var(--ink-muted);
-  }
-  .price-points {
-    list-style: none;
-    border-top: 1px solid var(--line);
-  }
-  .price-points li {
-    padding: 22px 0;
-    border-bottom: 1px solid var(--line);
-    display: grid;
-    grid-template-columns: 36px 1fr;
-    gap: 16px;
-  }
-  .price-points li span:first-child {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--accent-deep);
-    padding-top: 4px;
-  }
-  .price-points h3 {
-    font-size: 21px;
-    line-height: 1.15;
-    margin-bottom: 8px;
-  }
-  .price-points p {
-    font-size: 15px;
-    line-height: 1.6;
-    color: var(--ink-soft);
-  }
-  @media (max-width: 900px) {
-    .price-grid { grid-template-columns: 1fr; gap: 40px; }
-  }
+  /* 07 Pilotgym */
+  .pilot { padding: clamp(80px, 10vw, 150px) 0; }
+  .pilot-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: clamp(40px, 6vw, 80px); }
+  .pilot h2 { font-size: clamp(44px, 7vw, 96px); max-width: 12ch; margin-bottom: 28px; }
+  .pilot .lede { max-width: 50ch; margin-bottom: 32px; }
+  .pilot-steps { list-style: none; border-top: 1px solid var(--line); max-width: 52ch; }
+  .pilot-steps li { padding: 16px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 32px 1fr; gap: 14px; font-size: 15px; line-height: 1.55; color: var(--ink-soft); }
+  .pilot-steps .chip { font-family: var(--mono); font-size: 12px; align-self: start; }
+  .pilot-steps strong { color: var(--ink); font-weight: 500; }
 
-  /* CTA / PILOT */
-  .cta {
-    padding: 170px 0;
-    text-align: center;
-  }
-  .cta .section-label { justify-content: center; display: inline-flex; }
-  .cta h2 {
-    font-size: clamp(44px, 7vw, 96px);
-    margin: 0 auto 40px;
-    max-width: 16ch;
-    text-align: center;
-  }
-  .cta p.cta-lede {
-    font-size: 18px;
-    color: var(--ink-soft);
-    max-width: 56ch;
-    margin: 0 auto 52px;
-    line-height: 1.55;
-  }
-  .cta-form {
-    display: grid;
-    grid-template-columns: 1.15fr 1fr auto;
-    max-width: 720px;
-    margin: 0 auto;
-    border: 1px solid var(--ink);
-    background: var(--paper);
-    text-align: left;
-  }
-  .cta-form input {
+  .signup { display: grid; border: 1px solid var(--ink); background: var(--paper); }
+  .signup input {
     width: 100%;
     min-width: 0;
     padding: 18px 20px;
     border: none;
+    border-bottom: 1px solid var(--line);
     background: transparent;
-    font-family: var(--sans);
     font-size: 15px;
     color: var(--ink);
     outline: none;
   }
-  .cta-form input:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--accent-deep); }
-  .cta-form input::placeholder { color: var(--ink-muted); }
-  .cta-form input + input { border-left: 1px solid var(--line); }
-  .cta-form button {
+  .signup input + input { border-bottom-color: var(--ink); }
+  .signup input:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--ink); }
+  .signup input::placeholder { color: var(--ink-muted); }
+  .signup button {
     padding: 18px 28px;
     background: var(--ink);
     color: var(--paper);
     border: none;
-    border-left: 1px solid var(--ink);
     font-family: var(--mono);
     font-size: 13px;
     letter-spacing: 0.04em;
     cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.25s;
-  }
-  .cta-form button:hover {
-    background: var(--accent);
-    color: var(--ink);
-  }
-  .cta-form button:disabled {
-    opacity: 0.6;
-    cursor: wait;
-  }
-  .hp {
-    /* honeypot: syns inte för människor, fylls bara i av robotar */
-    position: absolute;
-    left: -10000px;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-  }
-  @media (max-width: 640px) {
-    .cta { padding: 110px 0; }
-    .cta-form { grid-template-columns: 1fr; }
-    .cta-form input + input { border-left: none; border-top: 1px solid var(--line); }
-    .cta-form button { border-left: none; border-top: 1px solid var(--ink); }
-  }
-
-  .signup-message {
-    margin: 20px auto 0;
-    font-family: var(--mono);
-    font-size: 13px;
-    max-width: 720px;
     text-align: left;
-  }
-  .signup-error {
-    color: #9a2f12;
-    padding: 12px 16px;
-    border: 1px solid #f1c6b6;
-    background: rgba(241, 198, 182, 0.25);
-    border-radius: 2px;
-  }
-  .signup-consent {
-    margin: 18px auto 0;
-    max-width: 62ch;
-    font-size: 12.5px;
-    line-height: 1.55;
-    color: var(--ink-muted);
-  }
-  [hidden] { display: none !important; }
-
-  .signup-success {
-    max-width: 560px;
-    margin: 0 auto;
-    padding: 48px 32px;
-    text-align: center;
-    border: 1px solid var(--line);
-    background: var(--paper);
-    animation: fadeUp 0.6s ease forwards;
-  }
-  .success-mark {
-    width: 48px;
-    height: 48px;
-    margin: 0 auto 20px;
-    border-radius: 50%;
-    background: var(--accent);
-    color: var(--ink);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    font-weight: 500;
-  }
-  .success-headline {
-    font-family: var(--display);
-    font-weight: 700;
-    font-stretch: 105%;
-    font-size: 28px;
-    color: var(--ink);
-    margin-bottom: 8px;
-    letter-spacing: -0.02em;
-  }
-  .success-detail {
-    font-size: 15px;
-    color: var(--ink-soft);
-    line-height: 1.5;
-  }
-
-  /* FOOTER */
-  footer {
-    padding: 56px 0 40px;
-    border-top: 1px solid var(--line);
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--ink-muted);
-  }
-  .footer-inner {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
+    gap: 12px;
+    transition: all 0.25s;
   }
-  .footer-links { display: flex; gap: 28px; }
-  .footer-links a { color: inherit; text-decoration: none; }
-  .footer-links a:hover { color: var(--accent-deep); }
+  .signup button:hover { background: var(--plate); color: var(--ink); }
+  .signup button:disabled { opacity: 0.6; cursor: wait; }
+  .hp { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; }
+  .signup-error {
+    margin-top: 12px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--error);
+    padding: 12px 16px;
+    border: 1px solid var(--error-soft);
+    background: var(--error-tint);
+    border-radius: 2px;
+  }
+  .signup-consent { margin-top: 18px; font-size: 12.5px; line-height: 1.55; color: var(--ink-muted); max-width: 56ch; }
+  .signup-done { padding: 40px 32px; border: 1px solid var(--line); background: var(--paper); animation: fadeUp 0.6s ease both; }
+  .done-mark { width: 48px; height: 48px; margin-bottom: 20px; border-radius: 50%; background: var(--accent); color: var(--ink); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 500; }
+  .done-title { font-family: var(--display); font-weight: 700; font-stretch: 105%; letter-spacing: -0.02em; font-size: 28px; margin-bottom: 8px; }
+  .done-detail { font-size: 15px; color: var(--ink-soft); line-height: 1.5; }
+  .promo { margin-top: clamp(32px, 4vw, 48px); padding: clamp(22px, 3vw, 30px); border: 1px solid var(--ink); background: var(--bg); }
+  .promo .label { margin-bottom: 12px; }
+  .promo h3 { font-size: clamp(22px, 2vw, 28px); line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 10px; }
+  .promo p { margin-bottom: 18px; font-size: 15px; line-height: 1.55; color: var(--ink-soft); max-width: 50ch; }
 
-  /* ANIMATIONER */
+  /* ========== FOOTER ========== */
+  footer { border-top: 1px solid var(--line); padding: 48px 0 40px; font-family: var(--mono); font-size: 12px; color: var(--ink-muted); }
+  .footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+  .footer-links { display: flex; gap: 28px; flex-wrap: wrap; }
+  .footer-links a:hover { color: var(--ink); }
+
+  /* ========== RÖRELSE ========== */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
   }
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  @media (max-width: 600px) {
+    h1 em, h2 em, h3 em, .pull em { font-stretch: 112%; }
+    .shot { min-height: 0; }
   }
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  html.js .reveal {
-    opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 0.9s ease, transform 0.9s ease;
-  }
-  html.js .reveal.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      animation-delay: 0s !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0s !important; transition-duration: 0.01ms !important; }
     html { scroll-behavior: auto; }
-    html.js .reveal { opacity: 1; transform: none; }
-  }
-
-  ::selection {
-    background: var(--accent-soft);
-    color: var(--ink);
   }
 </style>
-<script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
 
-<nav aria-label="Huvudmeny">
+<nav class="nav" aria-label="Huvudmeny">
   <div class="container nav-inner">
-    <a href="#" class="logo" aria-label="OpenGym, till toppen">
+    <a href="#top" class="logo" aria-label="OpenGym, till toppen">
       <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
         <rect width="64" height="64" rx="12" fill="#121311"/>
         <circle cx="32" cy="32" r="18" fill="none" stroke="#f4f2ec" stroke-width="6"/>
-        <circle cx="32" cy="32" r="5" fill="#22a447"/>
+        <circle cx="32" cy="32" r="5" fill="#a6ff1f"/>
       </svg>
       OpenGym
     </a>
     <div class="nav-links">
-      <a href="#allt-i-ett">Allt i ett</a>
-      <a href="#fasta-grupper">Fasta grupper</a>
-      <a href="#assistenter">Assistenter</a>
+      <a href="#sa-funkar-det">Så funkar det</a>
       <a href="#pris">Pris</a>
-      <a href="#pilot" class="nav-cta">Bli pilotgym</a>
+      <a href="https://opengym.se/enkat/">Enkäten</a>
+      <a href="#pilot" class="btn-nav">Bli pilotgym</a>
     </div>
   </div>
 </nav>
 
-<header class="hero">
-  <div class="container" style="position: relative;">
-    <div class="hero-label">Affärssystem för CrossFit, HYROX och funktionell träning</div>
-    <h1>Ett system. Inte <em>fem</em>.</h1>
+<header class="hero" id="top">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="container">
+    <div class="eyebrow">
+      <span>För CrossFit-, HYROX- och funktionella boxar i Sverige</span>
+      <span class="chip">Pilotgym sökes</span>
+    </div>
+    <!-- Hero-variant E enligt copy-dokumentet. Alternativen finns i designprojektet:
+         A "Samma grupp. Samma coach. Varje vecka." · B "Du står på golvet. Adminet är förberett."
+         C "Fler som stannar. Färre adminkvällar." · D "Fler medlemmar. Utan att jaga nya." -->
+    <h1>Ingen startar en box för att jaga <em>nya</em> medlemmar.</h1>
     <p class="hero-sub">
-      OpenGym är affärssystemet för boxar. Medlemskap, bokning, betalningar, WOD, PR och community i en produkt, med assistenter som gör adminjobbet åt dig. Svenskt från grunden. Och det kostar inget att använda: OpenGym tjänar pengar först när din box får betalt.
+      Att jaga nya medlemmar är inget mål. Det är ett tecken på att du redan har tappat några. OpenGym är gjort för att behålla dem du har. Sättet vi gör det på är fasta grupper: samma personer, samma coach, samma tider varje vecka. Det är så man tränar när man stannar. Resten av boxen, medlemskap, bokning, betalningar och WOD, ligger i samma app, med kvällens admin förberedd när du kommer från golvet.
     </p>
     <div class="hero-ctas">
-      <a href="#pilot" class="btn-primary">Bli pilotgym</a>
-      <a href="#vardagen" class="btn-text">Se hur det funkar</a>
+      <a href="#pilot" class="btn-primary">Bli pilotgym <span class="arrow" aria-hidden="true">→</span></a>
+      <a href="#sa-funkar-det" class="btn-text">Se hur det funkar</a>
     </div>
-
-    <div class="hero-ornament" aria-hidden="true">
-      <!-- En viktskiva med tolv atleter runt: laget -->
-      <svg viewBox="0 0 440 440" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="220" cy="220" r="210" stroke="#d5d1c5" stroke-width="1" stroke-dasharray="2 6"/>
-        <circle cx="220" cy="220" r="150" stroke="#22a447" stroke-width="1" opacity="0.7"/>
-        <circle cx="220" cy="220" r="120" fill="#d7f2cb" opacity="0.35"/>
-        <circle cx="220" cy="220" r="120" stroke="#14732f" stroke-width="1.2"/>
-        <circle cx="220" cy="220" r="52" stroke="#14732f" stroke-width="1.2"/>
-        <circle cx="220" cy="220" r="22" fill="#f4f2ec" stroke="#131311" stroke-width="1.2"/>
-        <g fill="#131311">
-          <circle cx="220" cy="10" r="6" fill="#22a447" stroke="#131311" stroke-width="1"/>
-          <circle cx="325" cy="38" r="4"/>
-          <circle cx="402" cy="115" r="4"/>
-          <circle cx="430" cy="220" r="5" fill="#22a447"/>
-          <circle cx="402" cy="325" r="4"/>
-          <circle cx="325" cy="402" r="4"/>
-          <circle cx="220" cy="430" r="5" fill="#22a447"/>
-          <circle cx="115" cy="402" r="4"/>
-          <circle cx="38" cy="325" r="4"/>
-          <circle cx="10" cy="220" r="5" fill="#22a447"/>
-          <circle cx="38" cy="115" r="4"/>
-          <circle cx="115" cy="38" r="4"/>
-        </g>
-      </svg>
-    </div>
+    <p class="hero-fine">Pilotgym betalar ingenting under piloten, och det ni saknar fixar vi först. Ingen säljare. Ingen demo att boka.</p>
   </div>
 </header>
 
-<section class="problem" id="vardagen">
-  <div class="container reveal">
-    <div>
-      <div class="section-label">Vardagen i dag</div>
-      <div class="problem-mark">3–5</div>
-      <p class="problem-mark-caption">system parallellt på en typisk svensk box</p>
-      <ul class="stack-list" aria-label="Vad boxar löser med vilka system i dag">
-        <li><span>Medlemskap, bokning, autogiro</span><span>Medlemssystemet</span></li>
-        <li><span>WOD, resultat, PR, leaderboard</span><span>Träningsappen, eller whiteboard och Instagram</span></li>
-        <li><span>Kommunikation och community</span><span>Instagram, Facebook-grupp, Mailchimp, SMS</span></li>
-        <li><span>Ekonomi</span><span>Fortnox, plus Excel för att förstå siffrorna</span></li>
-        <li><span>Sälj och uppföljning</span><span>Ägarens huvud och en anteckningsapp</span></li>
-      </ul>
-    </div>
-    <div>
-      <h2>Fem system, en ägare, <em>noll</em> överblick.</h2>
-      <p class="lede">
-        Systemen pratar inte med varandra. Ägaren är samtidigt head coach, säljare, ekonomiansvarig och support, och lägger tio timmar i veckan på administration som ingen ser.
-      </p>
-      <p class="lede">
-        Under tiden tappar branschen var tredje medlem per år. De flesta försvinner under de första 90 dagarna, ofta utan att någon hann märka det. Gymägare vill nästan alltid ha fler medlemmar. Hävstången är att behålla dem.
-      </p>
-      <p class="pull">
-        OpenGym ser hela boxen på ett ställe: <em>medlemmen</em>, laget och pengarna.
-      </p>
-    </div>
-  </div>
-</section>
-
-<section class="tiles-section" id="allt-i-ett">
-  <div class="container reveal">
-    <div class="section-label">Vad som ingår</div>
-    <h2>Hela boxen. <em>En</em> produkt.</h2>
-    <p class="lede">
-      Från första kontakt till bokföring, med träningen i mitten. Allt ingår från dag ett, oavsett hur stor boxen är. Inga nivåer, inga tillval.
-    </p>
-
-    <div class="tiles">
-      <div class="tile">
-        <div class="tile-num">01 · Medlemmar</div>
-        <h3>Medlemmar &amp; medlemskap</h3>
-        <p>Ett kundkort per person. Löpande medlemskap, klippkort, kurser som On-Ramp, prova-på, frysning och avtal på svenska. Byten och uppsägningar räknas rätt av systemet, inte i huvudet.</p>
-      </div>
-      <div class="tile">
-        <div class="tile-num">02 · Schema</div>
-        <h3>Schema &amp; bokning</h3>
-        <p>Öppna pass, fasta grupper, Open Gym, kurser och PT i samma schema. Medlemmen bokar på tio sekunder från soffan. Väntelistan fyller sig själv och coachen ser vilka som kommer.</p>
-      </div>
-      <div class="tile">
-        <div class="tile-num">03 · Pengar</div>
-        <h3>Betalningar &amp; ekonomi</h3>
-        <p>OpenGym Pay med Swish, kort och återkommande dragning godkänd med BankID. Misslyckade dragningar följs upp automatiskt. Friskvårdskvitton, rätt moms och export till Fortnox utan handpåläggning.</p>
-      </div>
-      <div class="tile">
-        <div class="tile-num">04 · Dörren</div>
-        <h3>Inpassering &amp; närvaro</h3>
-        <p>Vem som är i lokalen och vem som var på passet. Incheckning med telefonen, koppling till passersystemet på dörren, obemannat Open Gym och spärr först efter frist när något är obetalt.</p>
-      </div>
-      <div class="tile">
-        <div class="tile-num">05 · Träning</div>
-        <h3>WOD, resultat &amp; PR</h3>
-        <p>Programmering med rörelsebibliotek, Rx och Scaled, benchmarks, 1RM och leaderboard per pass, box och grupp. Resultat loggas på golvet, med röst eller ett foto av whiteboarden.</p>
-      </div>
-      <div class="tile">
-        <div class="tile-num">06 · Laget</div>
-        <h3>Community &amp; retention</h3>
-        <p>Gruppens egen yta med chatt, PR-tavla och streaks som lag. Systemet ser vem som är på väg bort innan uppsägningen kommer, med förklaring, och coachen får veta det först.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
 <section id="fasta-grupper">
-  <div class="container reveal">
-    <div class="section-label">Träna som ett lag</div>
-    <div class="team-grid">
+  <div class="container">
+    <div class="two-col">
       <div>
-        <h2>Fasta grupper. Samma lag, samma coach, <em>varje vecka</em>.</h2>
-        <p class="lede">
-          En box som tränar i fasta grupper, som ett idrottslag, behåller sina medlemmar långt bättre än en box med fri bokning. Grundarna drev ReShape CrossFit på det sättet, med small group och fasta tider.
-        </p>
-        <p class="lede">
-          Inget system stödjer arbetssättet i dag. OpenGym gör det från dag ett: medlemskapet är en plats i en namngiven grupp med roster och fast coach, frånvaro blir ett byte till en annan grupps tid i stället för en avgift, och en ledig plats syns för väntelistan och för nya leads. Hybrid är standard: fasta grupper på de attraktiva tiderna, öppen bokning på resten.
-        </p>
-        <div class="tags" aria-label="Vad fasta grupper kräver">
-          <span class="tag accent">Fast plats</span>
-          <span class="tag accent">Roster</span>
-          <span class="tag accent">Fast coach</span>
-          <span class="tag">Byt tid vid frånvaro</span>
-          <span class="tag">Gästpass</span>
-          <span class="tag">Väntelista per grupp</span>
-          <span class="tag">Hybrid med öppen bokning</span>
-          <span class="tag">Off-peak</span>
-        </div>
+        <div class="eyebrow"><span class="chip">01</span><span>Fler medlemmar</span></div>
+        <h2>Var tredje medlem slutar varje år. De flesta innan dag <em>90</em>.</h2>
+        <p class="lede">Fråga en ägare vad som skulle göra störst skillnad och svaret är fler medlemmar. Men en box med 150 medlemmar behöver hitta 50 nya varje år bara för att stå still. Varje ny kostar annonser, prova-på och On-Ramp-timmar. Den som stannar kostar inget extra. Därför är OpenGym gjort för att behålla, inte för att jaga.</p>
+        <p class="lede">Det märks sällan i tid. Någon bokar lite glesare, sedan inte alls. Med öppen bokning är det ingen som märker det.</p>
+        <p class="lede">En box som tränar i fasta grupper fungerar som ett idrottslag. Samma tio–tolv personer, samma coach, samma tider varje vecka. Gruppen märker när någon inte kommer, och gruppen är skälet att komma även de dagar man inte känner för att träna.</p>
+        <p class="pull" style="margin-top: 32px;">Fasta grupper är sättet att träna som får folk att stanna. Inget bokningssystem är gjort för det. <em>OpenGym</em> är det.</p>
       </div>
       <div>
-        <div class="stats" role="group" aria-label="Retention i fasta grupper jämfört med branschen">
-          <div class="stat">
-            <div class="stat-num">97&nbsp;%</div>
-            <div class="stat-label">av medlemmarna kvar efter 90 dagar, i fasta grupper på ReShape CrossFit</div>
+        <div class="cellgrid stats" role="group" aria-label="Hur många som stannar i fasta grupper jämfört med branschen">
+          <div class="cell stat">
+            <div class="numeral plated">97&nbsp;%</div>
+            <div class="stat-label">kvar efter 90 dagar, i fasta grupper på ReShape CrossFit</div>
           </div>
-          <div class="stat">
-            <div class="stat-num">76&nbsp;%</div>
-            <div class="stat-label">kvar efter 18 månader, bland medlemmar som tränade tre pass i veckan eller mer</div>
+          <div class="cell stat">
+            <div class="numeral plated">76&nbsp;%</div>
+            <div class="stat-label">kvar efter 18 månader, i samma grupper</div>
           </div>
-          <div class="stat industry">
-            <div class="stat-num">2/3</div>
-            <div class="stat-label">är branschens riktmärke efter tolv månader, och då räcker ett besök i månaden för att räknas</div>
+          <div class="cell stat-source">Båda siffrorna gäller medlemmar som tränade tre pass i veckan eller mer. Boxen drevs av grundarna.</div>
+          <div class="cell stat-bench">
+            <div class="numeral">2/3</div>
+            <p>är branschens riktmärke efter tolv månader. Där räcker ett besök i månaden för att räknas som kvar. Siffrorna är inte jämförbara rakt av.</p>
           </div>
-          <div class="stat industry">
-            <div class="stat-num">1/3</div>
-            <div class="stat-label">av medlemmarna tappar en genomsnittlig box varje år, de flesta under de första 90 dagarna</div>
-          </div>
-          <div class="stat-source">Retention mätt som betalande och aktiva medlemmar. Branschsiffrorna är riktmärken från konkurrenternas och branschens egna uppgifter.</div>
         </div>
+      </div>
+    </div>
+
+    <div class="cellgrid how">
+      <div class="cell hover">
+        <div class="how-kicker">Så funkar det i OpenGym</div>
+        <h3>Medlemskapet är en plats i en grupp.</h3>
+        <p>Tisdag och torsdag 17:30 med Elin. Priset följer antal pass i veckan. Avtalet signeras med BankID.</p>
+      </div>
+      <div class="cell hover">
+        <div class="how-kicker" aria-hidden="true"></div>
+        <h3>Kan du inte komma? Ett tryck i appen.</h3>
+        <p>Platsen blir ledig, först för gruppen och sedan för alla andra. Den som inte kommer får ett klipp till ett öppet pass. Gruppen ser vem som kommer.</p>
+      </div>
+      <div class="cell hover">
+        <div class="how-kicker" aria-hidden="true"></div>
+        <h3>Fasta grupper på 17:30. Öppna pass på resten.</h3>
+        <p>De populära tiderna går till grupperna. Lunch och förmiddag bokas fritt, gärna med ett billigare off-peak-medlemskap för timmarna som annars står tomma. Allt i samma schema.</p>
       </div>
     </div>
   </div>
 </section>
 
-<section class="assist" id="assistenter">
-  <div class="container reveal">
-    <div class="section-label dark">Systemet jobbar åt dig</div>
-    <h2>Assistenter som gör jobbet. <em>Du</em> fattar besluten.</h2>
+<section id="appen" class="alt">
+  <div class="container">
+    <div class="eyebrow"><span class="chip">02</span><span>I appen</span></div>
+    <h2>En app med boxens namn på. För <em>dig</em>, dina coacher och dina medlemmar.</h2>
+    <p class="lede">Du ser hur boxen mår. Coachen ser passet. Medlemmen ser sin grupp, sina pass och sina PR.</p>
 
-    <div class="assist-body">
-      <div>
-        <p class="accent">
-          Inte en chattknapp i hörnet. Assistenterna svarar leads dygnet runt, bokar prova-på, påminner om betalningar, flaggar medlemmar i riskzonen och skriver utkasten, <em>med förklaring och källa</em> till varje förslag.
-        </p>
-        <p>
-          Ägaren öppnar inte systemet för att leta. Systemet berättar vad som kräver ett beslut i dag och har förberett åtgärden. Föreslå, godkänn, lär: assistenten föreslår, du godkänner, systemet lär av utfallet.
-        </p>
-      </div>
-      <div>
-        <p>Mandatet sätter du själv, per assistent, i fyra nivåer. Ett nytt gym startar på nivå 1.</p>
-        <ul class="mandate">
-          <li><span>0</span><div><strong>Informera.</strong> Visar och förklarar. ”Beläggningen på 06:00-passet har sjunkit 40 % sedan september.”</div></li>
-          <li><span>1</span><div><strong>Föreslå.</strong> Förbereder en åtgärd som du godkänner med ett klick. Utkast till SMS till fem riskmedlemmar, färdigt att skicka.</div></li>
-          <li><span>2</span><div><strong>Agera med kvitto.</strong> Utför inom tydliga regler och rapporterar. Svarar en lead, bokar prova-på, meddelar dig.</div></li>
-          <li><span>3</span><div><strong>Agera autonomt.</strong> Inom budget och regler. Flyttar upp från väntelistan, skickar bokningspåminnelser.</div></li>
-        </ul>
-        <p style="margin-top: 20px; font-size: 14px;">Pengar ut, avtal, radering av personuppgifter och dörren ligger alltid hos en människa. Allt loggas med vad, varför och vilket underlag.</p>
-      </div>
+    <div class="shots">
+      <figure>
+        <div class="shot" aria-label="Skiss: att göra i dag för ägaren">
+          <div class="shot-head"><span>Tisdag 06:10</span><span>Att göra i dag</span></div>
+          <div class="shot-title">Tre saker väntar på dig.</div>
+          <div class="shot-rule"></div>
+          <div class="shot-list">
+            <div class="shot-item">
+              <strong>Två Swish-dragningar misslyckades i natt.</strong>
+              <div class="dim">Påminnelser till Hanna och Erik ligger klara.</div>
+              <div class="shot-btns"><span class="mini fill">Skicka</span><span class="mini line">Ändra</span></div>
+            </div>
+            <div class="shot-item">
+              <strong>Sara och Marcus har inte synts på tolv dagar.</strong>
+              <div class="dim">Båda i tisdagsgruppen. Ett meddelande till Elin, deras coach, är skrivet.</div>
+              <div class="shot-btns"><span class="mini fill">Skicka till Elin</span></div>
+            </div>
+            <div class="shot-item" style="gap: 4px;">
+              <strong>07:00 är fullt. Tre på väntelista.</strong>
+              <div class="dim">Fjärde veckan i rad. Vill du lägga till ett 06:00-pass?</div>
+            </div>
+          </div>
+        </div>
+        <figcaption>
+          <h3>Att göra i dag</h3>
+          <p>Det du behöver ta ställning till, med svaret färdigskrivet. Du trycker skicka, eller ändrar.</p>
+        </figcaption>
+      </figure>
+
+      <figure>
+        <div class="shot og-dark" aria-label="Skiss: coachläge före passet">
+          <div class="shot-head"><span>09:00 · WOD</span><span>Coachläge</span></div>
+          <div class="shot-title">Fran <span class="wide">21-15-9</span></div>
+          <div class="shot-sub">Thrusters 43/30 kg · Pull-ups · 14 bokade</div>
+          <div class="shot-rule"></div>
+          <div class="roster">
+            <div><span>Jonas</span><span class="mono warn">Axelskada · skala</span></div>
+            <div><span>Lisa</span><span class="mono pr">PR 4:36 · 4 s från</span></div>
+            <div><span>Amir</span><span class="mono">Ny · On-Ramp v.2</span></div>
+            <div><span>Frida</span><span class="mono">Ny · On-Ramp v.2</span></div>
+            <div><span>Oskar</span><span class="mono">Incheckad</span></div>
+            <div class="more"><span>+ 9 till</span><span class="mono">11 incheckade</span></div>
+          </div>
+          <div class="shot-btns" style="margin-top: auto;"><span class="mini lime">Logga resultat</span></div>
+        </div>
+        <figcaption>
+          <h3>Coachläge</h3>
+          <p>Vem kommer, vem är ny, vem är skadad, vem jagar PR. Trettio sekunder före passet.</p>
+        </figcaption>
+      </figure>
+
+      <figure>
+        <div class="shot" aria-label="Skiss: medlemmens bokning">
+          <div class="shot-head"><span>Vecka 38</span><span>Mina pass</span></div>
+          <div class="shot-title">Tisdagsgruppen <span class="plate-tag">2 pass/v</span></div>
+          <div class="shot-sub">Coach Elin · Ti och To 17:30</div>
+          <div class="shot-rule"></div>
+          <div class="shot-list" style="gap: 8px;">
+            <div class="shot-item row mine">
+              <div><strong>Ti 17:30 · Din plats</strong><div class="dim">11 av 12 kommer</div></div>
+              <span class="mini line">Anmäl frånvaro</span>
+            </div>
+            <div class="shot-item row mine">
+              <div><strong>To 17:30 · Din plats</strong><div class="dim">12 av 12 kommer</div></div>
+              <span class="mini line">Anmäl frånvaro</span>
+            </div>
+            <div class="shot-kicker" style="margin-top: 6px;">Öppna pass · 1 klipp kvar</div>
+            <div class="shot-item row">
+              <div><strong>Lö 10:00 · Öppet pass</strong><div class="dim">6 platser kvar</div></div>
+              <span class="mini fill">Boka</span>
+            </div>
+            <div class="shot-item row">
+              <div><strong>Må 18:30 · Måndagsgruppen</strong><div><span class="flag">1 ledig plats i kväll</span></div></div>
+              <span class="mini fill">Boka</span>
+            </div>
+          </div>
+        </div>
+        <figcaption>
+          <h3>Bokning</h3>
+          <p>Medlemmen ser sin grupp och sina tider. Anmäler frånvaro med ett tryck. Bokar extra pass när det passar.</p>
+        </figcaption>
+      </figure>
+
+      <figure>
+        <div class="shot" aria-label="Skiss: gruppens hörn i appen">
+          <div class="shot-head"><span>Tisdagsgruppen</span><span>12 medlemmar</span></div>
+          <div class="shot-kpis">
+            <div><div class="numeral plated">92&nbsp;%</div><small>har kommit på sina pass i höst</small></div>
+            <div><div class="numeral">6</div><small>PR den här veckan</small></div>
+          </div>
+          <div class="shot-rule"></div>
+          <div class="shot-kicker">PR-tavlan</div>
+          <div class="pr-card">
+            <div class="top"><strong>Lisa · Fran</strong><span class="val">4:32 Rx</span></div>
+            <div class="dim">Nytt PR med fyra sekunder.</div>
+            <div class="reacts"><span class="react hot">Starkt · 9</span><span class="react">Rx! · 4</span></div>
+          </div>
+          <div class="pr-card">
+            <div class="top"><strong>Oskar · Back squat</strong><span class="val">140 kg</span></div>
+            <div class="reacts"><span class="react">Starkt · 7</span></div>
+          </div>
+          <div class="shot-kicker" style="margin-top: 4px;">Chatt</div>
+          <div class="chat">
+            <div><strong>Elin</strong> <span>Torsdag: Grace. Ta med tejp.</span></div>
+            <div><strong>Marcus</strong> <span>Tillbaka på torsdag, har saknat er.</span></div>
+          </div>
+        </div>
+        <figcaption>
+          <h3>Gruppen</h3>
+          <p>Gruppens eget hörn i appen: PR-tavla, reaktioner, chatt och hur många som dykt upp.</p>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section id="sa-funkar-det" class="day-section og-dark">
+  <div class="glow" aria-hidden="true"></div>
+  <div class="container">
+    <div class="eyebrow"><span class="chip">03</span><span>Så funkar det</span></div>
+    <div class="day-head">
+      <h2>En dag med OpenGym. Du är på golvet <em>hela</em> dagen.</h2>
+      <p>Box med 220 medlemmar. Anna äger och coachar tolv pass i veckan. Elin coachar deltid. Ingen av dem sitter vid datorn på kvällen.</p>
     </div>
 
     <div class="day">
-      <div class="day-head">
-        <h4>En dag med OpenGym</h4>
-        <span class="tag-dark">Box med 220 medlemmar</span>
+      <div class="step">
+        <div class="step-time">06:10</div>
+        <div>
+          <div class="step-who">Anna, ägare</div>
+          <div class="step-title">Anna kollar telefonen vid frukosten.</div>
+          <div class="step-detail">Två Swish-dragningar gick inte igenom i natt, påminnelserna är redan skrivna. 07:00 är fullt med tre på väntelista. Sara och Marcus har inte synts på tolv dagar, ett meddelande till deras coach är skrivet. Anna trycker skicka på tre saker innan hon sätter sig i bilen.</div>
+        </div>
       </div>
-      <div class="day-steps">
-        <div class="step act">
-          <div class="step-time">06:10</div>
-          <div class="step-dot" aria-hidden="true"></div>
-          <div class="step-content">
-            <div class="step-label">Driftchefen</div>
-            <div class="step-title">Anna, ägare, får sin brief</div>
-            <div class="step-detail">Två autogiron misslyckades i natt och påminnelser är skickade. 07:00-passet är fullt med tre på väntelista. Sara och Marcus har inte synts på tolv dagar, utkast till meddelanden ligger klara. En lead skrev på Instagram 23:40 och har fått svar och en prova-på-tid på lördag.</div>
-          </div>
+      <div class="step">
+        <div class="step-time">08:50</div>
+        <div>
+          <div class="step-who">Elin, coach</div>
+          <div class="step-title">Elin öppnar coachläget tio minuter före passet.</div>
+          <div class="step-detail">Fjorton bokade, två nya från On-Ramp, Jonas har ont i axeln och det står i listan. Dagens WOD är Fran och Lisa ligger fyra sekunder från sitt PR.</div>
         </div>
-        <div class="step">
-          <div class="step-time">08:50</div>
-          <div class="step-dot" aria-hidden="true"></div>
-          <div class="step-content">
-            <div class="step-label">Coachbriefen</div>
-            <div class="step-title">Elin öppnar coachläget inför 09:00</div>
-            <div class="step-detail">Fjorton bokade, två nya från On-Ramp, Jonas har en axelskada flaggad, dagens WOD är Fran och Lisa ligger fyra sekunder från sitt PR.</div>
-          </div>
+      </div>
+      <div class="step">
+        <div class="step-time">10:05</div>
+        <div>
+          <div class="step-who">Elin, coach</div>
+          <div class="step-title">Elin skriver in resultaten innan nästa pass.</div>
+          <div class="step-detail">Lisa 4:32 Rx, nytt PR. Jonas körde ring rows. De nya klarade sig fint. Lisa hamnar på gruppens PR-tavla och har nio reaktioner innan lunch.</div>
         </div>
-        <div class="step act">
-          <div class="step-time">10:05</div>
-          <div class="step-dot" aria-hidden="true"></div>
-          <div class="step-content">
-            <div class="step-label">Resultat via röst</div>
-            <div class="step-title">”Lisa PR 4:32 Rx, Jonas körde ring rows, de nya klarade sig fint.”</div>
-            <div class="step-detail">Resultaten loggas, Lisa får ett grattis och hamnar på veckans tavla.</div>
-          </div>
+      </div>
+      <div class="step">
+        <div class="step-time">15:00</div>
+        <div>
+          <div class="step-who">Anna, ägare</div>
+          <div class="step-title">”Varför drog vi in mindre i augusti än i juni?”</div>
+          <div class="step-detail">Anna frågar rakt ut i appen. Svaret: 14 frysningar under semestern, 6 uppsägningar varav 4 flyttade, och hälften så många sålda klippkort. Med siffrorna bakom, inte en känsla.</div>
         </div>
-        <div class="step">
-          <div class="step-time">15:00</div>
-          <div class="step-dot" aria-hidden="true"></div>
-          <div class="step-content">
-            <div class="step-label">Fråga vad som helst</div>
-            <div class="step-title">”Varför var intäkterna lägre i augusti än i juni?”</div>
-            <div class="step-detail">14 frysningar under semestern, 6 uppsägningar varav 4 flyttade, och klippkortsförsäljningen halverades. Förslag: sommarkampanj för klippkort nästa år, med utkast.</div>
-          </div>
+      </div>
+      <div class="step">
+        <div class="step-time">21:00</div>
+        <div>
+          <div class="step-who">OpenGym</div>
+          <div class="step-title">Påminnelserna skickas. Anna sitter i soffan.</div>
+          <div class="step-detail">Hanna får en vänlig påminnelse med en länk att betala. Erik, som missat tre dragningar, får förslaget om delbetalning som Anna sa ja till i morse. I morgon ser Anna om de har betalat.</div>
         </div>
-        <div class="step act">
-          <div class="step-time">21:00</div>
-          <div class="step-dot" aria-hidden="true"></div>
-          <div class="step-content">
-            <div class="step-label">Påminnaren</div>
-            <div class="step-title">Rätt kanal, rätt ton, rätt tidpunkt</div>
-            <div class="step-detail">En vänlig påminnelse till den ena medlemmen vars dragning misslyckades. Den andra, med tre missade dragningar, erbjuds en avbetalningsplan. Anna ser det i morgondagens brief.</div>
-          </div>
+      </div>
+      <div class="step">
+        <div class="step-time">Den 1:a</div>
+        <div>
+          <div class="step-who">Anna, ägare</div>
+          <div class="step-title">Månadsskiftet. Bokföringen är klar.</div>
+          <div class="step-detail">Alla intäkter är bokförda med rätt moms och stämmer mot bankkontot. Anna kollar igenom och skickar till Fortnox. Revisorn får siffror som stämmer.</div>
         </div>
       </div>
     </div>
 
-    <div class="assist-stack">
-      <div class="assist-stack-label">Nio assistenter, en per roll i boxen</div>
-      <div class="stack-row">
-        <span class="stack-item">Driftchefen</span>
-        <span class="stack-item">Coachbriefen</span>
-        <span class="stack-item">Receptionen</span>
-        <span class="stack-item">Retentionscoachen</span>
-        <span class="stack-item">Påminnaren</span>
-        <span class="stack-item">Programmeraren</span>
-        <span class="stack-item">Schemaläggaren</span>
-        <span class="stack-item">Lagledaren</span>
-        <span class="stack-item">Din box i fickan</span>
-      </div>
-    </div>
+    <p class="day-pull">OpenGym föreslår. <em>Du säger ja.</em> Ingen återbetalning, inget avtal och ingen spärr på dörren utan att en människa har bestämt det.</p>
   </div>
 </section>
 
-<section class="formats" id="format">
-  <div class="container reveal">
-    <div class="section-label">Byggt för funktionell träning</div>
-    <h2 class="formats-headline">CrossFit och HYROX som <em>förstklassiga</em> format. Inte ett tillval.</h2>
+<section id="vad-ingar">
+  <div class="container">
+    <div class="eyebrow"><span class="chip">04</span><span>Vad ingår</span></div>
+    <h2>Ett system i stället för <em>fem</em>.</h2>
+    <p class="lede">I dag: ett medlemssystem, en WOD-app, en Facebook-grupp, Fortnox och Excel. De pratar inte med varandra. Här ligger allt i ett, och allt ingår oavsett hur stor boxen är.</p>
 
-    <div class="formats-grid">
-      <div class="format-card crossfit">
-        <div class="format-label">CrossFit</div>
-        <h3>Där <em>whiteboarden</em> bor.</h3>
-        <p>WOD-byggare med rörelsebibliotek och tidsdomäner. Rx och Scaled. Girls, Heroes och Open-WODs som benchmarks, 1RM och procent av 1RM. Leaderboard per pass, box, grupp och vänner. CrossFit Open i egen regi i boxen, med heat, domare och poäng.</p>
-        <div class="tags">
-          <span class="tag">WOD</span>
-          <span class="tag">Rx / Scaled</span>
-          <span class="tag">Benchmarks</span>
-          <span class="tag">1RM</span>
-          <span class="tag">Leaderboard</span>
-          <span class="tag">CrossFit Open</span>
-        </div>
+    <div class="cellgrid tiles">
+      <div class="cell hover tile">
+        <div class="tile-num">01 · Medlemskap</div>
+        <h3>Fasta platser, öppen bokning eller båda.</h3>
+        <p>Off-peak, klippkort, drop-in och kurser som On-Ramp. Byten och uppsägningar räknas rätt. Avtal signeras med BankID.</p>
       </div>
-
-      <div class="format-card hyrox">
-        <div class="format-label">HYROX</div>
-        <h3>Där <em>racet</em> är målet.</h3>
-        <p>Stationstider, löpsplitar och Roxzone. Divisioner: Open, Pro, Doubles och Relay, med rätt vikter per division. Race-simulering och halvt race som benchmarks. Racekalendern i appen och en plan mot racedatumet, med pace-strategi per station.</p>
-        <div class="tags">
-          <span class="tag accent">Stationstider</span>
-          <span class="tag accent">Splitar</span>
-          <span class="tag accent">Roxzone</span>
-          <span class="tag accent">Doubles / Relay</span>
-          <span class="tag accent">Race-sim</span>
-          <span class="tag accent">Racekalender</span>
-        </div>
+      <div class="cell hover tile">
+        <div class="tile-num">02 · Schema</div>
+        <h3>Grupper och öppna pass i samma schema.</h3>
+        <p>Väntelista som fyller sig själv. Lediga platser när någon anmält frånvaro. Coachen ser vem som kommer.</p>
+      </div>
+      <div class="cell hover tile">
+        <div class="tile-num">03 · Dörren</div>
+        <h3>Incheckning med app, QR eller coach.</h3>
+        <p>Har ni lås från Parakey eller KiiOn öppnar dörren för den som har rätt medlemskap, på rätt tid. Närvaron prickas av utan att någon behöver göra det.</p>
+      </div>
+      <div class="cell hover tile">
+        <div class="tile-num">04 · Pengar</div>
+        <h3>OpenGym Pay. Swish som standard.</h3>
+        <p>Medlemskapet dras med Swish varje månad, kort för den som hellre vill det. Drop-in och merch swishas. Dragningar som inte går igenom följs upp utan att du behöver jaga någon.</p>
+      </div>
+      <div class="cell hover tile">
+        <div class="tile-num">05 · Bokföring</div>
+        <h3>Rätt moms. Klart för Fortnox.</h3>
+        <p>Varje intäkt bokförs med rätt moms och stäms av mot bankkontot. Skicka till Fortnox med ett klick. Revisorn får siffror som stämmer.</p>
+      </div>
+      <div class="cell hover tile">
+        <div class="tile-num">06 · Träning</div>
+        <h3>WOD, resultat, PR och gruppen.</h3>
+        <p>Rx och Scaled, benchmarks, leaderboards, HYROX-stationer. PR-tavla, reaktioner och gruppchatt. Gamla PR följer med från SugarWOD, BTWB eller Wodify.</p>
       </div>
     </div>
 
-    <p class="formats-footer">
-      De flesta boxar kör båda. <em>OpenGym också.</em> Ett tredje format läggs till utan att kärnan byggs om.
-    </p>
-  </div>
-</section>
-
-<section class="swedish" id="svenskt">
-  <div class="container reveal">
-    <div class="swedish-header">
+    <div class="also">
       <div>
-        <div class="section-label">Svenskt från grunden</div>
-        <h2>Swish, BankID och Fortnox. <em>Inbyggt</em>, inte översatt.</h2>
+        <div class="label">Ingår också</div>
+        <div class="tags">
+          <span class="tag">Coachläge</span>
+          <span class="tag">App med boxens namn och logga</span>
+          <span class="tag">Drop-in på andra OpenGym-boxar</span>
+          <span class="tag">Fråga om boxens siffror</span>
+          <span class="tag">Hur många som stannar, grupp mot öppen bokning</span>
+          <span class="tag">Svenska och engelska</span>
+        </div>
       </div>
-      <p>
-        Vi bygger för hur svenska boxar faktiskt får betalt och håller ordning, inte för en generisk marknad med en svensk språkfil. Gränssnitt, avtal, support och assistenter på naturlig svenska, med de engelska termer som används på golvet.
-      </p>
-    </div>
-
-    <div class="rails">
-      <div class="rail">
-        <div class="rail-name">Swish</div>
-        <div class="rail-kind">Engångs och återkommande</div>
-        <div class="rail-desc">Drop-in, merch och klippkort med vanlig Swish. Medlemskap med Swish återkommande: medlemmen godkänner en gång med BankID, sedan sköter dragningen sig själv.</div>
-      </div>
-      <div class="rail">
-        <div class="rail-name">BankID</div>
-        <div class="rail-kind">Avtal och medgivanden</div>
-        <div class="rail-desc">Medlemsavtal, medgivande för återkommande betalning och byte av betalsätt signeras i appen på några sekunder. Inga bankfiler hos gymmet.</div>
-      </div>
-      <div class="rail">
-        <div class="rail-name">Friskvårdsbidrag</div>
-        <div class="rail-kind">Epassi, Benify, Wellnet, Edenred</div>
-        <div class="rail-desc">Kvitton som fungerar hos arbetsgivarnas portaler, direkt från appen. Januari blir enklare för både medlemmen och dig.</div>
-      </div>
-      <div class="rail">
-        <div class="rail-name">Fortnox</div>
-        <div class="rail-kind">Bokföring och moms</div>
-        <div class="rail-desc">6 % moms på träningen, rätt konton, periodisering och export till bokföringen. Underlaget till redovisningskonsulten är klart vid månadsskiftet.</div>
-      </div>
-      <div class="rail">
-        <div class="rail-name">Passersystem</div>
-        <div class="rail-kind">Dörren och driften</div>
-        <div class="rail-desc">Integrerar med låset ni redan har på dörren, från dag ett. Obemannat Open Gym, spärr vid obetalt först efter frist, upplåsning direkt när betalningen kommer in.</div>
-      </div>
-      <div class="rail">
-        <div class="rail-name">GDPR &amp; öppenhet</div>
-        <div class="rail-kind">Data i EU, API, MCP, export</div>
-        <div class="rail-desc">Gymmets data är gymmets, medlemmens är medlemmens. Lagring i EU, inget tränas på utan avtal, allt kan exporteras. API och MCP från dag ett, så att din egen assistent kan jobba mot OpenGym.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="pris">
-  <div class="container reveal">
-    <div class="section-label">Pris</div>
-    <div class="price-grid">
       <div>
-        <h2>Systemet kostar <em>ingenting</em>.</h2>
-        <div class="price-zero" aria-label="0 kronor per månad">0<small>kr/mån</small></div>
-        <div class="price-zero-caption">Ingen systemavgift · inga nivåer · inga tillval</div>
+        <div class="label">På väg, inte i första versionen</div>
+        <div class="tags">
+          <span class="tag soon">Friskvårdsportaler (Epassi, Benify m.fl.)</span>
+          <span class="tag soon">CrossFit Open i egen regi</span>
+          <span class="tag soon">HYROX race-simulering</span>
+          <span class="tag soon">Automatiska svar till nya som hör av sig, dygnet runt</span>
+          <span class="tag soon">Fler lås och passersystem</span>
+        </div>
       </div>
-      <ul class="price-points">
-        <li>
-          <span>01</span>
-          <div>
-            <h3>Vi tjänar när du tjänar</h3>
-            <p>OpenGym tar en liten del av det som betalas genom OpenGym Pay, cirka en och en halv procent, med fribelopp för de minsta och ett tak så att du aldrig betalar mer än en vanlig systemlicens. Vill du behålla din nuvarande betaltjänst går det också.</p>
-          </div>
-        </li>
-        <li>
-          <span>02</span>
-          <div>
-            <h3>Vi håller aldrig pengarna</h3>
-            <p>Betalningarna går genom licensierade betalleverantörer till boxens eget konto. OpenGym initierar dragningarna, äger ordningen och tar sin del i flödet. Du ser varje månad exakt vad OpenGym kostade och vad automationen sparade.</p>
-          </div>
-        </li>
-        <li>
-          <span>03</span>
-          <div>
-            <h3>Byt utan att tappa historiken</h3>
-            <p>Migreringsassistenten flyttar medlemmar, avtal, bokningar och resultat från Zoezi, Wondr, SugarWOD, BTWB, Wodify eller Excel. Dina medlemmar behåller sina PR. Kör du bara WOD, resultat och community i OpenGym och har medlemskapen kvar där de är, kostar det inget alls.</p>
-          </div>
-        </li>
-      </ul>
     </div>
   </div>
 </section>
 
-<section class="cta" id="pilot">
-  <div class="container reveal">
-    <div class="section-label">Pilotgym</div>
-    <h2>Driver du en box? <em>Bygg</em> den här med oss.</h2>
-    <p class="cta-lede">
-      Vi öppnar OpenGym för ett litet antal pilotgym: CrossFit-affiliates, HYROX-träningsklubbar och funktionella studios med ungefär 80 till 500 medlemmar. Allt gratis under piloten, och direkt inflytande över vad som byggs. Lämna din e-post så hör vi av oss.
-    </p>
+<section id="pris" class="alt">
+  <div class="container">
+    <div class="eyebrow"><span class="chip">05</span><span>Pris</span></div>
+    <div class="two-col price-grid">
+      <div>
+        <h2>Du betalar när du får <em>betalt</em>.</h2>
+        <p class="lede" style="max-width: 56ch;">Ingen månadsavgift. Inga paket eller tillval. Allt ingår från dag ett. Vi tar i stället en liten del av det medlemmarna betalar dig genom OpenGym Pay. Så tjänar vi pengar, och bara så.</p>
+        <ul class="price-points">
+          <li><span class="chip">01</span><div><strong>60 dagar utan avgifter.</strong><p>Flytta över i din takt. Inget tickar under tiden.</p></div></li>
+          <li><span class="chip">02</span><div><strong>Därefter cirka 1,5 % på det som går genom OpenGym Pay.</strong><p>Dras direkt när medlemmen betalar. Ingen faktura från oss att hålla reda på.</p></div></li>
+          <li><span class="chip">03</span><div><strong>Den som sköter själva betalningen tar sin avgift ovanpå, som i dag.</strong><p>Med kort landar totalen kring 3 %. Med Swish blir det lägre. Vi säger det rakt ut, för annars känns det som finstilt.</p></div></li>
+          <li><span class="chip">04</span><div><strong>De första 25 000 kr per månad är fria.</strong><p>En liten box betalar noll till oss.</p></div></li>
+          <li><span class="chip">05</span><div><strong>Vår del blir aldrig högre än vad ett vanligt medlemssystem kostar i månaden.</strong><p>Exakt summa sätter vi tillsammans med pilotgymmen.</p></div></li>
+          <li><span class="chip">06</span><div><strong>Vill du behålla din betallösning som den är?</strong><p>Då betalar du en månadsavgift i stället, räknad på det medlemmarna betalar dig. Nivån är inte satt än.</p></div></li>
+          <li><span class="chip">07</span><div><strong>Kör du bara WOD, resultat och gruppen?</strong><p>Och behåller medlemssystemet? Då kostar det ingenting.</p></div></li>
+          <li><span class="chip">08</span><div><strong>Vi rör aldrig pengarna.</strong><p>Medlemmarnas pengar går till boxens konto via en betalleverantör med tillstånd från Finansinspektionen. De passerar aldrig oss.</p></div></li>
+        </ul>
+      </div>
 
-    <div id="signup-wrapper">
-      <form id="signup-form" class="cta-form" novalidate>
-        <label class="sr-only" for="signup-email">E-postadress</label>
-        <input type="email" id="signup-email" name="email" placeholder="du@dinbox.se" autocomplete="email" inputmode="email" required>
-        <label class="sr-only" for="signup-box">Boxens namn (valfritt)</label>
-        <input type="text" id="signup-box" name="box" placeholder="Boxens namn (valfritt)" autocomplete="organization" maxlength="120">
-        <!-- Honeypot mot robotar: fältet syns inte och ska lämnas tomt -->
-        <input type="text" id="signup-website" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-        <button type="submit" id="signup-button">Ställ mig i kön</button>
-      </form>
-      <p id="signup-error" class="signup-message signup-error" role="alert" hidden></p>
-      <p class="signup-consent">
-        Vi använder din e-post bara för att kontakta dig om OpenGym och piloten. Inga nyhetsbrev, ingen vidareförmedling. Svara på mejlet så raderar vi dina uppgifter.
-      </p>
+      <div class="calc" id="kalkyl">
+        <div class="label">Räkna på din box</div>
+        <label>
+          <div class="calc-row"><span>Medlemmar</span><output id="members-out" for="members">150</output></div>
+          <input type="range" id="members" min="30" max="500" step="10" value="150" aria-label="Antal medlemmar">
+        </label>
+        <label style="margin-bottom: 28px;">
+          <div class="calc-row"><span>Snittpris per månad</span><output id="price-out" for="price">950 kr</output></div>
+          <input type="range" id="price" min="400" max="1500" step="50" value="950" aria-label="Snittpris per medlem och månad">
+        </label>
+        <div class="calc-lines">
+          <div class="calc-line"><span>Medlemmarna betalar per månad</span><output id="volume-out">142 500 kr</output></div>
+          <div class="calc-line"><span>Avgiftsfritt varje månad</span><output>− 25 000 kr</output></div>
+          <div class="calc-line"><span>Vår del, cirka 1,5 % på resten</span><output id="fee-out">1 763 kr</output></div>
+        </div>
+        <div class="calc-total">
+          <span>Till OpenGym per månad</span>
+          <span class="numeral plated" id="fee-big">1 763 kr</span>
+        </div>
+        <p class="calc-zero" id="calc-zero" hidden>Under 25 000 kr i månaden. Din box betalar ingenting till oss.</p>
+        <p class="calc-fine">Avgiften till den som sköter själva betalningen tillkommer, som i dag. Med kort blir totalen kring 3 %, med Swish lägre. Vår del har ett tak i nivå med vad ett vanligt medlemssystem kostar, exakt summa sätts med pilotgymmen. De första 60 dagarna kostar inget alls.</p>
+      </div>
     </div>
+  </div>
+</section>
 
-    <div id="signup-success" class="signup-success" role="status" hidden>
-      <div class="success-mark" aria-hidden="true">✓</div>
-      <p class="success-headline">Du står på listan.</p>
-      <p class="success-detail">Vi hör av oss när vi öppnar för fler pilotgym. Håll utkik i inkorgen.</p>
+<section id="bytet">
+  <div class="container">
+    <div class="two-col faq-grid">
+      <div>
+        <div class="eyebrow"><span class="chip">06</span><span>Bytet</span></div>
+        <h2>Byt i din takt. Börja med <em>träningen</em>.</h2>
+        <p class="lede">Det du undrar innan du byter system. Rakt svarat.</p>
+      </div>
+      <div class="faq">
+        <div class="faq-item"><h3>Måste jag byta allt på en gång?</h3><p>Nej. Börja gratis med WOD, resultat och gruppen. Behåll medlemssystemet. Flytta medlemskap och betalningar när du är redo.</p></div>
+        <div class="faq-item"><h3>Vad händer med autogirot?</h3><p>Autogiromedgivanden går inte att flytta mellan system, oavsett vart du byter. Medlemmarna godkänner i stället Swish eller kort med BankID i appen, det tar några sekunder. Appen påminner dem som inte gjort det, och du ser hur många som är klara.</p></div>
+        <div class="faq-item"><h3>Tappar medlemmarna sin historik?</h3><p>Nej. PR, resultat och medlemshistorik flyttas över från Zoezi, Wondr, SugarWOD, BTWB, Wodify eller Excel.</p></div>
+        <div class="faq-item"><h3>Gratis. Var är haken?</h3><p>Vi tjänar när du får betalt, och bara då. Varje månad ser du exakt vad OpenGym kostade och vad det gav.</p></div>
+        <div class="faq-item"><h3>Tar AI:n beslut åt mig?</h3><p>Nej. Den föreslår, du säger ja eller nej. Återbetalningar, avtal och vem som kommer in genom dörren bestämmer alltid en människa.</p></div>
+        <div class="faq-item"><h3>Vilka står bakom?</h3><p>Folk som har drivit box. Fasta grupper är så vi själva drev ReShape CrossFit.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pilot" class="alt pilot">
+  <div class="container">
+    <div class="two-col pilot-grid">
+      <div>
+        <div class="eyebrow"><span class="chip">07</span><span>Pilotgym</span></div>
+        <h2>Var med från <em>start</em>.</h2>
+        <p class="lede">Vi söker ägarledda boxar med 80–500 medlemmar som vill köra OpenGym först av alla. Pilotgym betalar ingenting under piloten, och det ni saknar fixar vi först.</p>
+        <ol class="pilot-steps">
+          <li><span class="chip">1</span><span><strong>Du får ett mejl från oss.</strong> Från en människa, inte ett automatiskt svar.</span></li>
+          <li><span class="chip">2</span><span><strong>Vi pratar om din box.</strong> Vilka system du kör, hur ni tränar, hur ni får betalt.</span></li>
+          <li><span class="chip">3</span><span><strong>Passar det åt båda håll kör vi igång.</strong> Gratis under piloten, och det din box saknar fixar vi först.</span></li>
+        </ol>
+      </div>
+
+      <div>
+        <div id="signup-wrapper">
+          <form id="signup-form" class="signup" novalidate>
+            <label class="sr-only" for="signup-email">E-post</label>
+            <input type="email" id="signup-email" name="email" placeholder="Din e-post" autocomplete="email" inputmode="email" required>
+            <label class="sr-only" for="signup-box">Boxens namn</label>
+            <input type="text" id="signup-box" name="box" placeholder="Boxens namn" autocomplete="organization" maxlength="120">
+            <!-- Honeypot mot robotar: fältet syns inte och ska lämnas tomt -->
+            <input type="text" id="signup-website" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <button type="submit" id="signup-button"><span id="signup-label">Bli pilotgym</span><span aria-hidden="true">→</span></button>
+          </form>
+          <p id="signup-error" class="signup-error" role="alert" hidden></p>
+          <p class="signup-consent">Inga nyhetsbrev, ingen vidareförmedling. Svara på mejlet så raderar vi dina uppgifter.</p>
+        </div>
+
+        <div id="signup-success" class="signup-done" role="status" hidden>
+          <div class="done-mark" aria-hidden="true">✓</div>
+          <div class="done-title">Du står på listan.</div>
+          <div class="done-detail" id="signup-done-detail">Vi hör av oss från en riktig adress inom några dagar.</div>
+        </div>
+
+        <div class="promo">
+          <div class="label">Inte redo för pilot? Hjälp oss ändå.</div>
+          <h3>Hur driver du din box? Svara på 30 frågor.</h3>
+          <p>Fem till sju minuter, de flesta är kryss. Alla som svarar får Boxrapporten 2026 först: hur svenska boxar tar betalt, schemalägger och tappar medlemmar. Anonymt.</p>
+          <a href="https://opengym.se/enkat/" class="btn-primary small">Svara på enkäten <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
 <footer>
   <div class="container footer-inner">
-    <div>© 2026 OpenGym · Byggt i Sverige, av folk som drivit box</div>
+    <span>© 2026 OpenGym · Byggt av folk som har drivit box</span>
     <div class="footer-links">
-      <!-- Aktivera när sidorna finns:
-      <a href="#">Enkäten</a>
-      <a href="#">Boxrapporten 2026</a>
-      <a href="#">Kontakt</a>
-      -->
+      <a href="#pris">Pris</a>
+      <a href="https://opengym.se/enkat/">Enkäten</a>
+      <a href="#pilot">Bli pilotgym</a>
     </div>
   </div>
 </footer>
 
 <script>
-  // Scroll reveal
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('visible');
-        io.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.12, rootMargin: '0px 0px -80px 0px' });
-
-  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-
-  // ========== LEADFORMULÄR ==========
-  // Klistra in webbappens URL från Google Apps Script här (se leads/Code.gs).
-  // Tom sträng = formuläret visar ett felmeddelande tills adressen är satt.
+  // ========== INSTÄLLNINGAR ==========
+  // Google Apps Script-webbappen som tar emot anmälningarna (se leads/Code.gs).
   const SIGNUP_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxPglyMzV0wkGIdYgHi6klVZgD0HrMnpro9UOOiqHTz3YAYYAlymyS8pxQFypTt4gtVKg/exec';
+  // PostHog utan kakor: klistra in projektets nyckel (phc_...). Tom nyckel = ingen mätning.
+  const POSTHOG_KEY = '';
+  const POSTHOG_HOST = 'https://eu.i.posthog.com';
 
+  // ========== MÄTNING ==========
+  const phQueue = [];
+  let phReady = false;
+  function track(event, props) {
+    if (!POSTHOG_KEY) return;
+    if (phReady && window.posthog) window.posthog.capture(event, props || {});
+    else phQueue.push([event, props || {}]);
+  }
+  (function loadPostHog() {
+    if (!POSTHOG_KEY) return;
+    const s = document.createElement('script');
+    s.async = true;
+    s.crossOrigin = 'anonymous';
+    s.src = POSTHOG_HOST.replace('.i.posthog.com', '-assets.i.posthog.com') + '/static/array.js';
+    s.onload = function () {
+      window.posthog.init(POSTHOG_KEY, {
+        api_host: POSTHOG_HOST,
+        persistence: 'memory',
+        person_profiles: 'identified_only',
+        autocapture: false,
+        capture_pageview: true,
+        capture_pageleave: true,
+        disable_session_recording: true,
+      });
+      phReady = true;
+      phQueue.splice(0).forEach(function (item) { window.posthog.capture(item[0], item[1]); });
+    };
+    document.head.appendChild(s);
+  })();
+
+  // ========== KALKYLATOR ==========
+  const FREE_PER_MONTH = 25000;
+  const SHARE = 0.015;
+  const fmtKr = n => new Intl.NumberFormat('sv-SE', { maximumFractionDigits: 0 }).format(n) + ' kr';
+  const membersEl = document.getElementById('members');
+  const priceEl = document.getElementById('price');
+  let calcTouched = false;
+
+  function recalc() {
+    const members = Number(membersEl.value);
+    const price = Number(priceEl.value);
+    const volume = members * price;
+    const fee = Math.round(Math.max(0, volume - FREE_PER_MONTH) * SHARE);
+    document.getElementById('members-out').textContent = String(members);
+    document.getElementById('price-out').textContent = fmtKr(price);
+    document.getElementById('volume-out').textContent = fmtKr(volume);
+    document.getElementById('fee-out').textContent = fmtKr(fee);
+    document.getElementById('fee-big').textContent = fmtKr(fee);
+    document.getElementById('calc-zero').hidden = fee !== 0;
+  }
+  membersEl.addEventListener('input', recalc);
+  priceEl.addEventListener('input', recalc);
+  [membersEl, priceEl].forEach(el => el.addEventListener('change', () => {
+    if (!calcTouched) { calcTouched = true; track('kalkylator_anvand', {}); }
+  }));
+  recalc();
+
+  // ========== PILOTANMÄLAN ==========
   const form = document.getElementById('signup-form');
   const emailInput = document.getElementById('signup-email');
   const boxInput = document.getElementById('signup-box');
   const honeypot = document.getElementById('signup-website');
   const button = document.getElementById('signup-button');
+  const buttonLabel = document.getElementById('signup-label');
   const errorEl = document.getElementById('signup-error');
   const wrapper = document.getElementById('signup-wrapper');
   const successEl = document.getElementById('signup-success');
-  const BUTTON_LABEL = button.textContent;
+  const doneDetail = document.getElementById('signup-done-detail');
 
-  if (!SIGNUP_ENDPOINT) {
-    console.warn('OpenGym: SIGNUP_ENDPOINT är inte satt. Anmälningar kan inte skickas förrän Apps Script-webbappens URL är inklistrad i index.html.');
-  }
+  if (!SIGNUP_ENDPOINT) console.warn('OpenGym: SIGNUP_ENDPOINT är inte satt. Anmälningar kan inte skickas.');
 
-  function showError(msg) {
-    errorEl.textContent = msg;
-    errorEl.hidden = false;
-  }
+  function showError(msg) { errorEl.textContent = msg; errorEl.hidden = false; }
+  function clearError() { errorEl.hidden = true; errorEl.textContent = ''; }
+  function isValidEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
 
-  function clearError() {
-    errorEl.hidden = true;
-    errorEl.textContent = '';
-  }
-
-  function isValidEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  }
-
-  function showSuccess() {
+  function showSuccess(box) {
+    doneDetail.textContent = 'Vi hör av oss från en riktig adress inom några dagar. ' + (box ? box + ' är noterad.' : 'Kolla skräpposten om det dröjer.');
     wrapper.hidden = true;
     successEl.hidden = false;
+    successEl.focus && successEl.setAttribute('tabindex', '-1');
+    successEl.focus({ preventScroll: true });
   }
+
+  emailInput.addEventListener('input', clearError);
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1601,25 +1100,14 @@
     const email = emailInput.value.trim().toLowerCase();
     const box = boxInput.value.trim();
 
-    if (!email) {
-      showError('Skriv in din e-postadress.');
-      emailInput.focus();
-      return;
-    }
-    if (!isValidEmail(email)) {
-      showError('Det där ser inte ut som en giltig e-postadress.');
-      emailInput.focus();
-      return;
-    }
+    if (!email) { showError('Skriv in din e-postadress.'); emailInput.focus(); return; }
+    if (!isValidEmail(email)) { showError('Det där ser inte ut som en giltig e-postadress.'); emailInput.focus(); return; }
 
     // En robot har fyllt i det dolda fältet: låtsas lyckas, skicka inget.
-    if (honeypot.value) {
-      showSuccess();
-      return;
-    }
+    if (honeypot.value) { showSuccess(box); return; }
 
     button.disabled = true;
-    button.textContent = 'Skickar…';
+    buttonLabel.textContent = 'Skickar…';
 
     try {
       if (!SIGNUP_ENDPOINT) throw new Error('Endpoint saknas');
@@ -1632,26 +1120,21 @@
       body.append('source', 'opengym_landing');
       body.append('timestamp', new Date().toISOString());
 
-      const res = await fetch(SIGNUP_ENDPOINT, {
-        method: 'POST',
-        body: body,
-      });
-
+      const res = await fetch(SIGNUP_ENDPOINT, { method: 'POST', body: body });
       if (!res.ok) throw new Error('Request failed: HTTP ' + res.status);
 
       // Apps Script svarar 200 även när skriptet misslyckas, så läs svaret.
-      // Går svaret inte att tolka räknas anmälan som lyckad (webbappen svarade 200).
       let result = null;
       try { result = await res.json(); } catch (_) {}
-      if (result && result.ok === false) {
-        throw new Error('Script error: ' + (result.error || 'unknown'));
-      }
+      if (result && result.ok === false) throw new Error('Script error: ' + (result.error || 'unknown'));
 
-      showSuccess();
+      track('pilot_anmald', { box_angiven: !!box });
+      showSuccess(box);
     } catch (err) {
       console.error('OpenGym signup:', err);
+      track('pilot_fel', { fel: String(err && err.message || err) });
       button.disabled = false;
-      button.textContent = BUTTON_LABEL;
+      buttonLabel.textContent = 'Bli pilotgym';
       showError('Något gick fel. Försök igen om en stund.');
     }
   });
