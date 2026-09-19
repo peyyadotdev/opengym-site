@@ -145,6 +145,7 @@ const digits = s => String(s).replace(/[^\d]/g, '');
     await page.waitForTimeout(1500);
     check(`mobil ${width} utan overflow`, (await overflow(page)) === 0);
     check(`mobil ${width}: bara CTA i menyn`, (await page.$$eval('.nav-links a', els => els.filter(e => getComputedStyle(e).display !== 'none').length)) === 1);
+    check(`mobil ${width}: rubrik och undertext före kortet i app-delen`, await page.$$eval('.shots figure', figs => figs.every(f => f.querySelector('figcaption').getBoundingClientRect().bottom <= f.querySelector('.shot').getBoundingClientRect().top)));
     if (width === 390) await page.screenshot({ path: `${OUT}/landing-mobil.png`, fullPage: true });
     await ctx.close();
   }

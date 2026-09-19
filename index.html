@@ -245,6 +245,11 @@
   .nav-links a.btn-nav:hover { background: var(--plate); border-color: var(--ink); color: var(--ink); }
   @media (max-width: 720px) {
     .nav-links a:not(.btn-nav) { display: none; }
+    /* Smal skärm: rubrik och undertext före kortet, så man vet vad man tittar på */
+    .shots { gap: 44px; }
+    figure { display: flex; flex-direction: column; }
+    figcaption { order: -1; margin: 0 0 14px; }
+    figcaption h3 { font-size: 20px; }
   }
 
   /* ========== HERO ========== */
