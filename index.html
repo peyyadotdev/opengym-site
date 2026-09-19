@@ -1637,10 +1637,19 @@
         body: body,
       });
 
-      if (!res.ok) throw new Error('Request failed');
+      if (!res.ok) throw new Error('Request failed: HTTP ' + res.status);
+
+      // Apps Script svarar 200 även när skriptet misslyckas, så läs svaret.
+      // Går svaret inte att tolka räknas anmälan som lyckad (webbappen svarade 200).
+      let result = null;
+      try { result = await res.json(); } catch (_) {}
+      if (result && result.ok === false) {
+        throw new Error('Script error: ' + (result.error || 'unknown'));
+      }
 
       showSuccess();
     } catch (err) {
+      console.error('OpenGym signup:', err);
       button.disabled = false;
       button.textContent = BUTTON_LABEL;
       showError('Något gick fel. Försök igen om en stund.');
