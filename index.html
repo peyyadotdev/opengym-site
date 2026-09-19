@@ -456,6 +456,7 @@
   .calc-total { padding: 20px 0 8px; display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
   .calc-total span:first-child { font-weight: 500; }
   .calc-total .numeral { font-size: clamp(34px, 3.4vw, 44px); letter-spacing: -0.04em; }
+  .calc-line.capped output { text-decoration: line-through; color: var(--ink-muted); }
   .calc-zero { margin-top: 8px; font-size: 14px; color: var(--ink-soft); line-height: 1.55; }
   .calc-fine { margin-top: 16px; font-family: var(--mono); font-size: 11.5px; line-height: 1.6; color: var(--ink-muted); }
 
@@ -939,7 +940,7 @@
           <li><span class="chip">02</span><div><strong>Därefter cirka 3 % på det som går genom OpenGym Pay, allt inräknat.</strong><p>Dras direkt när medlemmen betalar. Ingen faktura från oss att hålla reda på.</p></div></li>
           <li><span class="chip">03</span><div><strong>Avgiften till den som sköter själva betalningen ingår i procenten.</strong><p>Kort eller Swish, ingen avgift ovanpå. Vi säger det rakt ut, för annars känns det som finstilt.</p></div></li>
           <li><span class="chip">04</span><div><strong>De första 25 000 kr per månad är fria.</strong><p>En liten box betalar noll till oss.</p></div></li>
-          <li><span class="chip">05</span><div><strong>Vår del blir aldrig högre än vad ett vanligt medlemssystem kostar i månaden.</strong><p>Exakt summa sätter vi tillsammans med pilotgymmen.</p></div></li>
+          <li><span class="chip">05</span><div><strong>Aldrig mer än 4 500 kr i månaden.</strong><p>Taket gäller hur stor boxen än blir. Det är i nivå med vad ett vanligt medlemssystem kostar.</p></div></li>
           <li><span class="chip">06</span><div><strong>Vill du behålla din betallösning som den är?</strong><p>Då betalar du en månadsavgift i stället, räknad på det medlemmarna betalar dig. Nivån är inte satt än.</p></div></li>
           <li><span class="chip">07</span><div><strong>Kör du bara WOD, resultat och gruppen?</strong><p>Och behåller medlemssystemet? Då kostar det ingenting.</p></div></li>
           <li><span class="chip">08</span><div><strong>Vi rör aldrig pengarna.</strong><p>Medlemmarnas pengar går till boxens konto via en betalleverantör med tillstånd från Finansinspektionen. De passerar aldrig oss.</p></div></li>
@@ -959,14 +960,16 @@
         <div class="calc-lines">
           <div class="calc-line"><span>Medlemmarna betalar per månad</span><output id="volume-out">142 500 kr</output></div>
           <div class="calc-line"><span>Avgiftsfritt varje månad</span><output>− 25 000 kr</output></div>
-          <div class="calc-line"><span>OpenGym Pay, cirka 3 % på resten</span><output id="fee-out">3 525 kr</output></div>
+          <div class="calc-line" id="fee-line"><span>OpenGym Pay, cirka 3 % på resten</span><output id="fee-out">3 525 kr</output></div>
+          <div class="calc-line" id="cap-line" hidden><span>Taket per månad</span><output>4 500 kr</output></div>
         </div>
         <div class="calc-total">
           <span>Till OpenGym per månad</span>
           <span class="numeral plated" id="fee-big">3 525 kr</span>
         </div>
         <p class="calc-zero" id="calc-zero" hidden>Under 25 000 kr i månaden. Din box betalar ingenting till oss.</p>
-        <p class="calc-fine">Avgiften till den som sköter själva betalningen ingår, med kort eller Swish. Vår del har ett tak i nivå med vad ett vanligt medlemssystem kostar, exakt summa sätts med pilotgymmen. De första 60 dagarna kostar inget alls.</p>
+        <p class="calc-zero" id="calc-cap" hidden>Taket slår in. Din box betalar aldrig mer än 4 500 kr i månaden, hur stor den än blir.</p>
+        <p class="calc-fine">Avgiften till den som sköter själva betalningen ingår, med kort eller Swish. Taket är 4 500 kr i månaden, hur stor boxen än blir. De första 60 dagarna kostar inget alls.</p>
       </div>
     </div>
   </div>
@@ -1090,6 +1093,7 @@
   // ========== KALKYLATOR ==========
   const FREE_PER_MONTH = 25000;
   const SHARE = 0.03;
+  const CAP_PER_MONTH = 4500;
   const fmtKr = n => new Intl.NumberFormat('sv-SE', { maximumFractionDigits: 0 }).format(n) + ' kr';
   const membersEl = document.getElementById('members');
   const priceEl = document.getElementById('price');
@@ -1099,13 +1103,18 @@
     const members = Number(membersEl.value);
     const price = Number(priceEl.value);
     const volume = members * price;
-    const fee = Math.round(Math.max(0, volume - FREE_PER_MONTH) * SHARE);
+    const share = Math.round(Math.max(0, volume - FREE_PER_MONTH) * SHARE);
+    const capped = share > CAP_PER_MONTH;
+    const fee = capped ? CAP_PER_MONTH : share;
     document.getElementById('members-out').textContent = String(members);
     document.getElementById('price-out').textContent = fmtKr(price);
     document.getElementById('volume-out').textContent = fmtKr(volume);
-    document.getElementById('fee-out').textContent = fmtKr(fee);
+    document.getElementById('fee-out').textContent = fmtKr(share);
+    document.getElementById('fee-line').classList.toggle('capped', capped);
+    document.getElementById('cap-line').hidden = !capped;
     document.getElementById('fee-big').textContent = fmtKr(fee);
     document.getElementById('calc-zero').hidden = fee !== 0;
+    document.getElementById('calc-cap').hidden = !capped;
   }
   membersEl.addEventListener('input', recalc);
   priceEl.addEventListener('input', recalc);
