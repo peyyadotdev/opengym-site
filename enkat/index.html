@@ -13,7 +13,7 @@
 <meta property="og:site_name" content="OpenGym">
 <meta property="og:locale" content="sv_SE">
 
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23121311'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%23f4f2ec' stroke-width='6'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%2322a447'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23121311'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%23f4f2ec' stroke-width='6'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23a6ff1f'/%3E%3C/svg%3E">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,9 +27,11 @@
     --ink-muted: #6b6a63;
     --line: #d5d1c5;
     --line-soft: #e2ded3;
-    --accent: #22a447;
-    --accent-deep: #14732f;
-    --accent-soft: #d7f2cb;
+    --accent: #a6ff1f;        /* neon-lime, bara som fyllning */
+    --plate: #e9ffc2;         /* plattan bakom betonade ord */
+    --plate-tint: rgba(233, 255, 194, 0.45);
+    --accent-deep: #131311;   /* ink: accentfärg används aldrig som text på ljus botten */
+    --accent-soft: #e9ffc2;
     --paper: #faf9f5;
     --error: #9a2f12;
     --error-soft: #f1c6b6;
@@ -84,7 +86,12 @@
   }
   .eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--accent-deep); flex: none; }
   h1, h2, h3 { font-family: var(--display); font-weight: 700; font-stretch: 105%; letter-spacing: -0.025em; }
-  h1 em, h2 em { font-style: normal; font-weight: 600; font-stretch: 130%; color: var(--accent-deep); }
+  h1 em, h2 em {
+    font-style: normal; font-weight: 600; font-stretch: 135%; color: var(--ink);
+    background: linear-gradient(var(--plate), var(--plate)) no-repeat 0 58% / 100% 82%;
+    padding: 0 0.06em; margin: 0 -0.06em; -webkit-box-decoration-break: clone; box-decoration-break: clone;
+    hyphens: none; overflow-wrap: normal; word-break: keep-all;
+  }
   h1 { font-size: clamp(36px, 7vw, 56px); line-height: 1; margin-bottom: 24px; max-width: 14ch; }
   h2 { font-size: clamp(26px, 4.5vw, 34px); line-height: 1.1; margin-bottom: 8px; }
   h3 { font-size: 19px; line-height: 1.2; margin-bottom: 12px; }
@@ -92,11 +99,11 @@
   .lede + .lede { margin-top: 16px; }
   .facts { list-style: none; margin: 28px 0 32px; border-top: 1px solid var(--line); }
   .facts li { display: grid; grid-template-columns: 28px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 15px; color: var(--ink-soft); }
-  .facts li span:first-child { font-family: var(--mono); font-size: 12px; color: var(--accent-deep); padding-top: 3px; }
+  .facts li span:first-child { font-family: var(--mono); font-size: 12px; color: var(--ink); background: var(--plate); padding: 2px 4px; align-self: start; justify-self: start; }
   .fine { font-size: 13px; line-height: 1.55; color: var(--ink-muted); margin-top: 18px; max-width: 62ch; }
   .actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
   .notice {
-    padding: 14px 16px; border: 1px solid var(--accent-soft); background: rgba(215, 242, 203, 0.35);
+    padding: 14px 16px; border: 1px solid var(--plate); background: var(--plate-tint);
     border-radius: 2px; font-size: 15px; margin-bottom: 20px; line-height: 1.5;
   }
 
@@ -107,7 +114,7 @@
     text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; transition: all 0.2s;
   }
   .btn-primary::after { content: '→'; transition: transform 0.2s; }
-  .btn-primary:hover { background: var(--accent); border-color: var(--accent); color: var(--ink); }
+  .btn-primary:hover { background: var(--plate); border-color: var(--ink); color: var(--ink); }
   .btn-primary:hover::after { transform: translateX(4px); }
   .btn-primary:disabled { opacity: 0.6; cursor: wait; }
   .btn-primary:disabled::after { content: '…'; }
@@ -117,7 +124,7 @@
   }
   .btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
   .btn-text { font-family: var(--mono); font-size: 13px; color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid var(--line); padding-bottom: 2px; background: none; border-top: 0; border-left: 0; border-right: 0; cursor: pointer; }
-  .btn-text:hover { color: var(--accent-deep); border-bottom-color: var(--accent-deep); }
+  .btn-text:hover { color: var(--ink); border-bottom-color: var(--ink); }
 
   /* FÖRLOPP */
   .progress { height: 4px; background: var(--line-soft); margin: calc(-1 * var(--card-y)) calc(-1 * var(--card-x)) 28px; }
@@ -148,9 +155,9 @@
   .opt input:disabled { cursor: not-allowed; }
   .opt-mark { width: 20px; height: 20px; border: 1px solid var(--ink-muted); border-radius: 50%; background: var(--paper); margin-top: 1px; position: relative; flex: none; }
   .opt input[type="checkbox"] + .opt-mark { border-radius: 3px; }
-  .opt input:checked + .opt-mark { border-color: var(--accent-deep); background: var(--accent-deep); }
-  .opt input:checked + .opt-mark::after { content: ''; position: absolute; inset: 5px; background: var(--paper); border-radius: inherit; }
-  .opt:has(input:checked) { border-color: var(--accent-deep); background: rgba(215, 242, 203, 0.35); }
+  .opt input:checked + .opt-mark { border-color: var(--ink); background: var(--accent); }
+  .opt input:checked + .opt-mark::after { content: ''; position: absolute; inset: 5px; background: var(--ink); border-radius: inherit; }
+  .opt:has(input:checked) { border-color: var(--ink); background: var(--plate-tint); }
   .opt:has(input:focus-visible) { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
   .opt:has(input:disabled) { opacity: 0.45; cursor: not-allowed; }
   .other { margin-top: 10px; }
@@ -182,10 +189,10 @@
   .m-label { padding: 12px; font-size: 15px; }
   .m-cell { display: flex; justify-content: center; align-items: center; padding: 12px 6px; cursor: pointer; position: relative; border-left: 1px solid var(--line-soft); min-height: 48px; }
   .m-cell input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; margin: 0; cursor: pointer; z-index: 1; }
-  .m-cell:has(input:checked) { background: rgba(215, 242, 203, 0.35); }
+  .m-cell:has(input:checked) { background: var(--plate-tint); }
   .m-cell:has(input:focus-visible) { outline: 2px solid var(--accent-deep); outline-offset: -2px; }
 
-  .contact { padding: 18px 18px 6px; border: 1px solid var(--accent-soft); background: rgba(215, 242, 203, 0.2); border-radius: 2px; }
+  .contact { padding: 18px 18px 6px; border: 1px solid var(--plate); background: rgba(233, 255, 194, 0.25); border-radius: 2px; }
   .contact h3 { font-size: 17px; }
   .contact .field { margin-bottom: 12px; }
   .contact label { display: block; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-muted); margin-bottom: 6px; }
@@ -203,7 +210,7 @@
   .done-mark { width: 52px; height: 52px; border-radius: 50%; background: var(--accent); color: var(--ink); display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 22px; }
   .done-list { list-style: none; margin: 22px 0 28px; border-top: 1px solid var(--line); }
   .done-list li { padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 15px; color: var(--ink-soft); display: grid; grid-template-columns: 24px 1fr; gap: 10px; }
-  .done-list li span:first-child { color: var(--accent-deep); }
+  .done-list li span:first-child { color: var(--ink); background: var(--plate); text-align: center; align-self: start; }
   .share { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; }
   .share code { font-family: var(--mono); font-size: 13px; padding: 10px 12px; border: 1px solid var(--line); background: var(--bg); border-radius: 2px; }
 
@@ -225,7 +232,7 @@
     *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
     html { scroll-behavior: auto; }
   }
-  ::selection { background: var(--accent-soft); color: var(--ink); }
+  ::selection { background: var(--plate); color: var(--ink); }
 </style>
 </head>
 <body>
@@ -236,7 +243,7 @@
       <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
         <rect width="64" height="64" rx="12" fill="#121311"/>
         <circle cx="32" cy="32" r="18" fill="none" stroke="#f4f2ec" stroke-width="6"/>
-        <circle cx="32" cy="32" r="5" fill="#22a447"/>
+        <circle cx="32" cy="32" r="5" fill="#a6ff1f"/>
       </svg>
       OpenGym
     </a>
