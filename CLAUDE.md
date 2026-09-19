@@ -9,6 +9,7 @@ Statisk sajt för opengym.se: landningssida (`index.html`), enkät (`enkat/index
 - Primärknapp: ink-fyllning, hover blir platta som fyllning med ink-text och ink-kant. Fokusram och länk-hover i ink. Inga skuggor. Radie 2 px på kontroller, 0 på kort och rutnät.
 - Cellrutnät: behållaren har kant upptill och till vänster, varje cell till höger och nedtill.
 - Typsnitt från Google Fonts: Anybody (display, bredd-axel), Inter Tight (brödtext), JetBrains Mono (etiketter). Betonade ord i rubriker: vikt 600, bredd 135 % (112 % under 600 px).
+- Delningsbilderna (`og:image`, 1200 × 630) byggs från mallarna i `assets/og/` med `npm run og`. Ändra mallen och bygg om, rita aldrig om PNG:en för hand. Håll dem under 300 kB.
 
 ## Copy
 

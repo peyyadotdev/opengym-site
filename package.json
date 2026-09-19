@@ -7,7 +7,8 @@
     "test": "node tests/test-codegs.js && node tests/test-landing.js && node tests/test-enkat.js",
     "test:codegs": "node tests/test-codegs.js",
     "test:enkat": "node tests/test-enkat.js",
-    "test:landing": "node tests/test-landing.js"
+    "test:landing": "node tests/test-landing.js",
+    "og": "node assets/og/build.js"
   },
   "devDependencies": {
     "playwright": "^1.56.0"

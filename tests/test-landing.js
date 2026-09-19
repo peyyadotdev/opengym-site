@@ -59,6 +59,11 @@ const digits = s => String(s).replace(/[^\d]/g, '');
     const banned = ['systemlicens', 'dras i flödet', 'ligger hos en människa', 'plattform', 'träningslager', 'retention'];
     const hits = banned.filter(w => new RegExp(w, 'i').test(text));
     check('ingen systemjargong i copyn (' + banned.join(', ') + ')', hits.length === 0);
+    check('priset säger 3 % allt inräknat, inte 1,5 %', /cirka 3 % på det som går genom OpenGym Pay, allt inräknat/.test(text) && !/1,5 %/.test(text) && /SHARE = 0\.03;/.test(src));
+    const og = src.match(/<meta property="og:image" content="([^"]+)"/);
+    check('og:image och twitter:image pekar på delningsbilden', !!og && og[1] === 'https://opengym.se/assets/og/landing.png' && /<meta name="twitter:image" content="https:\/\/opengym.se\/assets\/og\/landing.png"/.test(src));
+    const png = fs.readFileSync(path.join(ROOT, 'assets', 'og', 'landing.png'));
+    check('delningsbilden är en 1200 × 630 png under 300 kB', png.toString('latin1', 1, 4) === 'PNG' && png.readUInt32BE(16) === 1200 && png.readUInt32BE(20) === 630 && png.length < 300 * 1024);
   }
 
   // ---------- Desktop ----------
@@ -78,14 +83,14 @@ const digits = s => String(s).replace(/[^\d]/g, '');
     check('desktop utan overflow', (await overflow(page)) === 0);
 
     // Kalkylatorn
-    check('kalkylator: standardvärden', digits(await page.textContent('#volume-out')) === '142500' && digits(await page.textContent('#fee-out')) === '1763' && digits(await page.textContent('#fee-big')) === '1763');
+    check('kalkylator: standardvärden', digits(await page.textContent('#volume-out')) === '142500' && digits(await page.textContent('#fee-out')) === '3525' && digits(await page.textContent('#fee-big')) === '3525');
     check('kalkylator: nollnoten dold som standard', await page.$eval('#calc-zero', el => el.hidden));
     await page.$eval('#members', el => { el.value = '30'; el.dispatchEvent(new Event('input', { bubbles: true })); });
     await page.$eval('#price', el => { el.value = '400'; el.dispatchEvent(new Event('input', { bubbles: true })); });
     check('kalkylator: liten box ger noll', digits(await page.textContent('#volume-out')) === '12000' && digits(await page.textContent('#fee-big')) === '0' && !(await page.$eval('#calc-zero', el => el.hidden)));
     await page.$eval('#members', el => { el.value = '500'; el.dispatchEvent(new Event('input', { bubbles: true })); });
     await page.$eval('#price', el => { el.value = '1500'; el.dispatchEvent(new Event('input', { bubbles: true })); });
-    check('kalkylator: stor box', digits(await page.textContent('#volume-out')) === '750000' && digits(await page.textContent('#fee-big')) === '10875');
+    check('kalkylator: stor box', digits(await page.textContent('#volume-out')) === '750000' && digits(await page.textContent('#fee-big')) === '21750');
 
     // Formuläret
     await page.locator('#pilot').scrollIntoViewIfNeeded();

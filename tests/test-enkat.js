@@ -65,6 +65,9 @@ function serve() {
     const hits = banned.filter(w => new RegExp(w, 'i').test(src));
     check('enkäten: ingen systemjargong i copyn' + (hits.length ? ' (träffar: ' + hits.join(', ') + ')' : ''), hits.length === 0);
     check('enkäten: inga skogsgröna färger kvar', !/#22a447|#14732f/i.test(raw));
+    check('enkäten: og:image och twitter:image pekar på delningsbilden', /<meta property="og:image" content="https:\/\/opengym.se\/assets\/og\/enkat.png"/.test(raw) && /<meta name="twitter:image" content="https:\/\/opengym.se\/assets\/og\/enkat.png"/.test(raw));
+    const png = fs.readFileSync(path.join(ROOT, 'assets', 'og', 'enkat.png'));
+    check('enkäten: delningsbilden är en 1200 × 630 png under 300 kB', png.toString('latin1', 1, 4) === 'PNG' && png.readUInt32BE(16) === 1200 && png.readUInt32BE(20) === 630 && png.length < 300 * 1024);
   }
 
   // ---------- Flöde A: hela enkäten på desktop ----------

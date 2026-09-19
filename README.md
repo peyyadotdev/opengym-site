@@ -10,6 +10,7 @@ Designen görs i Claude Design-projektet ”OpenGym landningssida granskning” 
 |---|---|
 | `index.html` | Landningssidan: åtta sektioner (varav ”Vår story” om Jessica och ReShape), priskalkylator, pilotanmälan. Markup, CSS och skript i samma fil |
 | `assets/logo.svg` | Logotypmärket: viktskiva på gummigolv med limeprick |
+| `assets/og/` | Delningsbilderna som visas när sidorna delas (`og:image`), 1200 × 630, med mallarna och skriptet som bygger dem |
 | `enkat/index.html` | Enkäten ”Så driver du din box 2026”: sju delar, en per skärm, autospar efter varje del, återupptagning i samma webbläsare |
 | `leads/Code.gs` | Google Apps Script som tar emot både anmälningar och enkätsvar och skriver dem i ett Google Sheet, med stegen för att publicera den |
 | `.nojekyll` | Får GitHub Pages att servera sidan som den är |
@@ -39,6 +40,12 @@ npm test
 ## Publicera
 
 GitHub Pages: Settings → Pages → Source: *Deploy from a branch*, branch `main`, mapp `/ (root)`. Sidan hamnar på `https://peyyadotdev.github.io/opengym-site/` tills en egen domän är kopplad. För opengym.se: lägg en `CNAME`-fil med domänen i repots rot och peka DNS enligt GitHubs guide.
+
+## Delningsbild
+
+Bilden som visas när en länk delas (Facebook, LinkedIn, X, WhatsApp, iMessage, Slack) är en egen bild, inte en skärmdump: `assets/og/landing.png` för landningssidan och `assets/og/enkat.png` för enkäten. De byggs från `assets/og/landing.html` och `assets/og/enkat.html` med `npm run og`, som renderar mallarna i Chromium till 1200 × 630 och stoppar om en bild blir större än 300 kB (gränsen för att WhatsApp ska visa stor förhandsvisning). Ändra i mallen, bygg om och committa PNG:en.
+
+Plattformarna cachar bilden per URL. Efter en ändring: kör sidan genom [Facebooks Sharing Debugger](https://developers.facebook.com/tools/debug/) och [LinkedIns Post Inspector](https://www.linkedin.com/post-inspector/), eller byt filnamn och uppdatera taggarna.
 
 ## Koppla formuläret
 

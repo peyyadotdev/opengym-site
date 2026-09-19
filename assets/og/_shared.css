@@ -1,0 +1,112 @@
+/* Gemensam stil för delningsbilderna (og:image), 1200 × 630.
+   Samma tokens som index.html. Ändra här eller i mallarna, bygg om med `npm run og`. */
+:root {
+  --bg: #f4f2ec;
+  --paper: #faf9f5;
+  --ink: #131311;
+  --ink-soft: #3a3a36;
+  --ink-muted: #6b6a63;
+  --line: #d5d1c5;
+  --line-soft: #e2ded3;
+  --accent: #a6ff1f;
+  --plate: #e9ffc2;
+  --display: 'Anybody', 'Inter Tight', system-ui, sans-serif;
+  --sans: 'Inter Tight', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1200px; height: 630px; overflow: hidden; }
+body {
+  position: relative;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+/* Samma rutnät som i hero-delen, tonat ut åt höger */
+.grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(var(--line-soft) 1px, transparent 1px), linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 80% at 30% 40%, #000 20%, transparent 75%);
+  mask-image: radial-gradient(ellipse 70% 80% at 30% 40%, #000 20%, transparent 75%);
+}
+.card {
+  position: absolute;
+  inset: 0;
+  padding: 60px 72px 64px;
+  display: flex;
+  flex-direction: column;
+}
+.top { display: flex; justify-content: space-between; align-items: center; }
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-stretch: 110%;
+  font-size: 34px;
+  letter-spacing: -0.01em;
+}
+.logo svg { width: 56px; height: 56px; display: block; }
+.domain {
+  font-family: var(--mono);
+  font-size: 18px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.eyebrow {
+  margin-top: auto;
+  font-family: var(--mono);
+  font-size: 17px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--ink-muted);
+  margin-bottom: 26px;
+}
+h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-stretch: 105%;
+  font-size: 88px;
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+  max-width: 1040px;
+  text-wrap: balance;
+}
+/* Plattan bakom det betonade ordet, som på sajten */
+h1 em {
+  font-style: normal;
+  font-weight: 600;
+  font-stretch: 135%;
+  color: var(--ink);
+  background: linear-gradient(var(--plate), var(--plate)) no-repeat 0 58% / 100% 82%;
+  padding: 0 0.06em;
+  margin: 0 -0.06em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  white-space: nowrap;
+}
+.sub {
+  margin-top: 30px;
+  font-size: 27px;
+  line-height: 1.35;
+  color: var(--ink-soft);
+  max-width: 920px;
+  text-wrap: pretty;
+}
+.bottom { margin-top: auto; display: flex; justify-content: space-between; align-items: center; }
+.chip {
+  font-family: var(--mono);
+  font-size: 17px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--plate);
+  padding: 10px 14px;
+  border-radius: 2px;
+}
+.note { font-family: var(--mono); font-size: 17px; letter-spacing: 0.06em; color: var(--ink-muted); }
