@@ -12,6 +12,8 @@ Designen görs i Claude Design-projektet ”OpenGym landningssida granskning” 
 | `assets/logo.svg` | Logotypmärket: viktskiva på gummigolv med limeprick |
 | `assets/og/` | Delningsbilderna som visas när sidorna delas (`og:image`), 1200 × 630, med mallarna och skriptet som bygger dem |
 | `enkat/index.html` | Enkäten ”Så driver du din box 2026”: sju delar, en per skärm, autospar efter varje del, återupptagning i samma webbläsare |
+| `intervju/index.html` | Intervjusidan: samtal med OpenGyms AI-assistent för boxägare som enkäten visar är typkund. Erbjuds på enkätens tacksida. Servern ligger i det privata repot opengym |
+| `tests/fall-typkund.json` | Testfallen för typkundsregeln, likadana som i repot opengym |
 | `leads/Code.gs` | Google Apps Script som tar emot både anmälningar och enkätsvar och skriver dem i ett Google Sheet, med stegen för att publicera den |
 | `.nojekyll` | Får GitHub Pages att servera sidan som den är |
 | `tests/` | Testerna, se nedan |
@@ -35,7 +37,9 @@ npm test
 - `tests/test-codegs.js` kör `leads/Code.gs` i Node mot ett låtsas-ark. Ingen Google-inloggning behövs.
 - `tests/test-landing.js` kör landningssidan i Chromium: copyregler (inget ”hen”, ingen systemjargong, inga skogsgröna färger), hero-variant, platta på betonade ord, kalkylatorn, formuläret mot en mockad endpoint, overflow på mobil.
 - `tests/test-enkat.js` startar en egen lokal server, kör hela enkäten i Chromium på desktop och mobil mot en mockad endpoint (validering, hopplogik, inskick, paus och återupptagning, overflow) och sparar skärmdumpar i `tests/screenshots/`.
+- `tests/test-intervju.js` kör intervjusidan i Chromium på desktop och mobil mot en låtsad server: copyregler, stängt läge, utan enkätsvar, start, turer, fel, text i stället för HTML, återupptagning och avslut.
 - Manuellt: `npm run serve` och öppna `http://localhost:8000/enkat/`. Sidan skickar då på riktigt till webbappen, så testsvar hamnar i arket. Ta bort dem efteråt, eller sätt `SIGNUP_ENDPOINT` tillfälligt till `''` för att klicka runt utan att skicka.
+- Intervjun lokalt: starta den lokala servern i repot opengym med `npm run dev:intervju`, kör `npm run serve` här, och öppna `http://127.0.0.1:8000/intervju/?api=http://127.0.0.1:8787/functions/v1/intervju-tur`. Enkätsvaren läggs i webbläsaren av enkätens tacksida när intervjun är öppen.
 
 ## Publicera
 
