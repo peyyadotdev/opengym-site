@@ -156,6 +156,17 @@ function serve() {
     const q17bOpts = await page.$$eval('input[name="q17b_storst"]', els => els.map(e => e.value));
     check('q17b har bara de valda betalsätten', q17bOpts.join('|') === 'Autogiro via banken|Swish');
     await page.check('input[name="q17b_storst"][value="Swish"]');
+    const q17cOpts = await page.$$eval('input[name="q17c_medlemskap"]', els => els.map(e => e.value));
+    check('q17c har de valda betalsätten plus Annat sätt', q17cOpts.join('|') === 'Autogiro via banken|Swish|Annat sätt');
+    check('q17d har Säljer vi inte sist', (await page.$$eval('input[name="q17d_dropin"]', els => els.map(e => e.value))).pop() === 'Säljer vi inte');
+    check('kanalfrågan dold innan någon försäljning angetts', !(await page.isVisible('#q-q17g_kanal')));
+    await page.check('input[name="q17c_medlemskap"][value="Autogiro via banken"]');
+    await page.check('input[name="q17d_dropin"][value="Säljer vi inte"]');
+    await page.check('input[name="q17e_pt"][value="Säljer vi inte"]');
+    check('kanalfrågan dold när allt är Säljer vi inte', !(await page.isVisible('#q-q17g_kanal')));
+    await page.check('input[name="q17f_butik"][value="Swish"]');
+    check('kanalfrågan visas när något säljs', await page.isVisible('#q-q17g_kanal'));
+    await page.check('input[name="q17g_kanal"][value="På plats i boxen"]');
     await page.check('input[name="q19_swish"][value="Ja"]');
     await page.check('input[name="q20_omregistrering"][value="70–90 %"]');
     await page.click('#btn-next');
@@ -202,6 +213,7 @@ function serve() {
     a = answersOf(fin);
     check('matris, max tre och tid med', a.q26_pass === 'Kanske' && a.q26_grupp === '' && a.q27_byta.length === 3 && Number(fin.body.duration_sec) >= 0);
     check('q17b explicit när två valda', a.q17b_storst === 'Swish');
+    check('betalsätt per sak med i svaren', a.q17c_medlemskap === 'Autogiro via banken' && a.q17d_dropin === 'Säljer vi inte' && a.q17e_pt === 'Säljer vi inte' && a.q17f_butik === 'Swish' && a.q17g_kanal === 'På plats i boxen');
     check('tacksidan listar rapport och pilot', (await page.textContent('#done-list')).includes('Boxrapporten') && (await page.textContent('#done-list')).includes('piloten'));
     check('stängd intervju: inget erbjudande på tacksidan', flaggaA.satt && !(await page.isVisible('#intervju-erbjudande')));
     check('stängd intervju: inga svar lämnas över', (await page.evaluate(() => localStorage.getItem('opengym_intervju_underlag_v1'))) === null);
