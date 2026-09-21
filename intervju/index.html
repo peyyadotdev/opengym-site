@@ -91,6 +91,8 @@
   .samtycke-godkann { font-size: 14px; line-height: 1.5; color: var(--ink-soft); max-width: 62ch; margin: 0 0 12px; }
   .actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
   .notice { flex-basis: 100%; padding: 14px 16px; border: 1px solid var(--plate); background: var(--plate-tint); border-radius: 2px; font-size: 15px; line-height: 1.5; }
+  /* Felvarianten: nekad mikrofon, tal till text som ligger nere, tappad anslutning. Samma toner som .form-error. */
+  .notice.notice-fel { border-color: var(--error-soft); background: rgba(241, 198, 182, 0.25); color: var(--error); }
 
   /* KNAPPAR */
   .btn-primary {
@@ -129,6 +131,27 @@
   textarea:disabled { opacity: 0.6; }
   .skriv-rad { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
   .tips { font-family: var(--mono); font-size: 12px; color: var(--ink-muted); }
+  /* PRATA: ordet i mono bredvid systemets ring med prick, inga ikoner. Under inspelning fylls pricken med lime. */
+  .btn-prata {
+    font-family: var(--mono); font-size: 14px; line-height: 1.5; padding: 14px 18px;
+    background: transparent; color: var(--ink); border: 1px solid var(--line); border-radius: 2px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 10px; transition: border-color 0.2s;
+  }
+  .btn-prata:hover:not(:disabled) { border-color: var(--ink); }
+  .btn-prata:disabled { opacity: 0.6; cursor: default; }
+  .prata-ring { width: 18px; height: 18px; border: 1px solid var(--ink); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .prata-prick { width: 10px; height: 10px; border: 1px solid var(--ink); border-radius: 50%; background: var(--ink); }
+  .btn-prata.spelar { border-color: var(--ink); }
+  .btn-prata.spelar .prata-prick { background: var(--accent); }
+  .prata-tid { font-variant-numeric: tabular-nums; color: var(--ink-muted); }
+  /* Under inspelningen väntar Skicka på ägaren, inte på servern: pilen står kvar i stället för … */
+  .btn-primary.vantar-rost:disabled { cursor: default; }
+  .btn-primary.vantar-rost:disabled::after { content: '→'; }
+  /* Originaltexten: det talmodellen hörde, under fältet. Knappen är systemets textknapp. */
+  .original { display: grid; gap: 8px; justify-items: start; }
+  button.btn-text { background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 0 0 2px; cursor: pointer; }
+  button.btn-text:hover { background: var(--plate); }
+  .originaltext { font-size: 15px; line-height: 1.55; color: var(--ink-soft); border-left: 2px solid var(--line); padding: 2px 0 2px 12px; }
   .avslutat { border-top: 1px solid var(--line); padding-top: 18px; display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-between; align-items: center; }
   .avslutat p { font-family: var(--mono); font-size: 13px; color: var(--ink-soft); }
   .form-error { margin-bottom: 12px; color: var(--error); font-family: var(--mono); font-size: 13px; padding: 12px 14px; border: 1px solid var(--error-soft); background: rgba(241, 198, 182, 0.25); border-radius: 2px; }
@@ -180,6 +203,9 @@
     .card { margin: 16px 0 28px; }
     .top-meta { display: none; }
     .tips { display: none; }
+    /* Prata får en egen rad över Avsluta och Skicka, så att knapparna inte bryts ojämnt. */
+    .skriv-rad .actions { width: 100%; }
+    .btn-prata { order: -1; flex-basis: 100%; justify-content: center; }
     .kort { padding: 16px 14px; }
     .kort-rad { grid-template-columns: minmax(0, 1fr); gap: 4px; }
     h1 em, h2 em { font-stretch: 112%; }
@@ -236,7 +262,7 @@
       <p class="samtycke-ingress">Under samtalet sammanfattar assistenten det du säger på små kort, som du godkänner eller rättar.</p>
       <details class="samtycke-mer">
         <summary>Läs mer om vad som sparas</summary>
-        <p>Det som sparas är korten du godkänner, ämnen du vill ta upp i slutet och ditt svar om pilotgym, ihop med dina enkätsvar. Det sparas i OpenGyms databas i EU, sammanställs anonymt till Boxrapporten 2026 och raderas senast den 30 juni 2027. Ditt namn och din e-post behövs inte, och assistenten skriver aldrig in namn på medlemmar eller coacher. Samtalet behandlas av Claude från Anthropic i USA, som inte tränar sina modeller på det och raderar det inom 30 dagar. För att stoppa missbruk räknar servern anrop per dygn, med din nätverksadress som kontrollsumma. Vill du att vi tar bort det som sparats, mejla <a href="mailto:daniel@opengym.se">daniel@opengym.se</a> med koden du får när samtalet är klart.</p>
+        <p>Det som sparas är korten du godkänner, ämnen du vill ta upp i slutet och ditt svar om pilotgym, ihop med dina enkätsvar. Det sparas i OpenGyms databas i EU, sammanställs anonymt till Boxrapporten 2026 och raderas senast den 30 juni 2027. Ditt namn och din e-post behövs inte, och assistenten skriver aldrig in namn på medlemmar eller coacher. Samtalet behandlas av Claude från Anthropic i USA, som inte tränar sina modeller på det och raderar det inom 30 dagar. Pratar du i stället för att skriva skickas ljudet till OpenAI i USA för att bli text. Varken vi eller OpenAI sparar ljudet, och OpenAI tränar inte på det. För att stoppa missbruk räknar servern anrop per dygn, med din nätverksadress som kontrollsumma. Vill du att vi tar bort det som sparats, mejla <a href="mailto:daniel@opengym.se">daniel@opengym.se</a> med koden du får när samtalet är klart.</p>
       </details>
     </div>
     <div id="intro-ny">
@@ -261,10 +287,16 @@
     <form id="skriv" class="skriv" novalidate>
       <label class="sr-only" for="text">Ditt svar</label>
       <textarea id="text" rows="3" maxlength="4000" placeholder="Skriv ditt svar"></textarea>
+      <div class="original" id="original" hidden>
+        <button type="button" class="btn-text" id="btn-original" aria-expanded="false" aria-controls="originaltext">Visa originaltext</button>
+        <p class="originaltext" id="originaltext" hidden></p>
+      </div>
+      <p class="notice" id="rost-notis" role="status" hidden></p>
       <div class="skriv-rad">
         <span class="tips">Cmd eller Ctrl + Enter skickar</span>
         <div class="actions">
           <button type="button" class="btn-ghost" id="btn-avsluta">Avsluta</button>
+          <button type="button" class="btn-prata" id="btn-prata" hidden><span class="prata-ring" aria-hidden="true"><span class="prata-prick"></span></span><span id="prata-ord">Prata</span><span class="prata-tid" id="prata-tid" hidden>0:00</span></button>
           <button type="submit" class="btn-primary" id="btn-skicka">Skicka</button>
         </div>
       </div>
@@ -312,6 +344,8 @@
   }
   // /intervju-block ligger bredvid, med samma adress och intervju-tur utbytt.
   function blockEndpoint() { return endpoint().replace(/intervju-tur\/?$/, 'intervju-block'); }
+  // /intervju-transkribera likaså. Gör ett ljudklipp till text.
+  function talEndpoint() { return endpoint().replace(/intervju-tur\/?$/, 'intervju-transkribera'); }
 
   // ========== MÄTNING (PostHog utan cookies) ==========
   // Bara events och räknare, aldrig text ur samtalet.
@@ -340,6 +374,13 @@
       });
       phReady = true;
       phQueue.splice(0).forEach(function (item) { window.posthog.capture(item[0], item[1]); });
+      // Feature flag för rösten. Flaggorna kommer strax efter init, så Prata kan dyka upp efter att sidan laddats.
+      if (typeof window.posthog.onFeatureFlags === 'function') {
+        window.posthog.onFeatureFlags(function () {
+          rostFlagga = window.posthog.isFeatureEnabled('intervju-rost') === true;
+          uppdateraRost();
+        });
+      }
     };
     document.head.appendChild(s);
   })();
@@ -533,6 +574,11 @@
     if (knapp) knapp.focus();
     return !!knapp;
   }
+  // Skrivfältet, Skicka och Prata låses och släpps tillsammans.
+  function lasSkriv(las) {
+    $('text').disabled = las;
+    uppdateraRost();
+  }
   // Medan ett kort väntar är allt ägaren skriver en rättning av kortet.
   function uppdateraFalt() {
     $('text').placeholder = vantandeKort() ? 'Skriv vad som ska ändras' : 'Skriv ditt svar';
@@ -588,7 +634,7 @@
   // Stämmer eller ett val. Med samtycke sparas blocket först, och först när det gått bra går svaret
   // till assistenten. Misslyckas sparandet står kortet kvar med felet och samtalet väntar.
   async function svaraKort(post, svar, knapp) {
-    if (skickar || post !== vantandeKort()) return;
+    if (skickar || rostLage !== 'vila' || post !== vantandeKort()) return;
     skickar = true;
     const arVal = 'val' in svar;
     const rot = kortEl.get(post.kort.id);
@@ -596,16 +642,15 @@
     if (knapp) knapp.classList.add('vald');
     rot.querySelector('.kort-fel').hidden = true;
     $('fel').hidden = true;
-    $('text').disabled = true;
-    $('btn-skicka').disabled = true;
+    $('rost-notis').hidden = true;
+    lasSkriv(true);
     const sparat = !samtycke || await sparaBlock(arVal
       ? { typ: 'block', block: post.kort.block, varden: { pilotintresse: svar.val }, kallor: { pilotintresse: 'samtal' } }
       : { typ: 'block', block: post.kort.block, varden: post.kort.varden, kallor: post.kort.kallor });
     skickar = false;
     if (!sparat) {
       ritaOmKort(post).querySelector('.kort-fel').hidden = false;
-      $('text').disabled = false;
-      $('btn-skicka').disabled = false;
+      lasSkriv(false);
       track('intervju_sparfel', { typ: 'block' });
       fokusKort();
       return;
@@ -649,11 +694,11 @@
     const vantande = vantandeKort();
     if (!kortsvar && vantande && text !== null) kortsvar = { id: vantande.kort.id, rattning: text };
     $('fel').hidden = true;
-    $('btn-skicka').disabled = true;
-    $('text').disabled = true;
+    $('rost-notis').hidden = true;
+    lasSkriv(true);
     lasKort(true);
     let duKropp = null;
-    if (text !== null) { duKropp = nyTur('du'); fyll(duKropp, text); $('text').value = ''; }
+    if (text !== null) { duKropp = nyTur('du'); fyll(duKropp, text); $('text').value = ''; $('original').hidden = true; }
     $('status').textContent = 'Skriver…';
     const aiKropp = nyTur('ai');
     let svarstext = '';
@@ -711,7 +756,8 @@
     }
     $('status').textContent = '';
     if (klar) {
-      if (text !== null) visning.push({ vem: 'du', text });
+      // Turen är skickad: originaltexten hör till den och försvinner.
+      if (text !== null) { visning.push({ vem: 'du', text }); rensaOriginal(); }
       // Ett svar med bara ett kort ger ingen tom tur.
       if (svarstext) visning.push({ vem: 'ai', text: svarstext });
       else aiKropp.parentElement.remove();
@@ -743,7 +789,8 @@
       // Ett avbrutet svar tas bort helt, och ägarens text läggs tillbaka i fältet.
       aiKropp.parentElement.remove();
       parkeradeEl.forEach(e => e.remove());
-      if (duKropp) { duKropp.parentElement.remove(); $('text').value = text; }
+      // Texten kommer tillbaka i fältet, och då också originaltexten om det fanns någon.
+      if (duKropp) { duKropp.parentElement.remove(); $('text').value = text; $('original').hidden = original === null; }
       $('fel').textContent = FELTEXT[felkod] || FELTEXT.tekniskt;
       $('fel').hidden = false;
       track('intervju_fel', { kod: FELTEXT[felkod] ? felkod : 'tekniskt' });
@@ -751,8 +798,7 @@
     skickar = false;
     if (avslutat) { visaAvslutat(); return klar; }
     const slut = SLUTKODER.includes(felkod);
-    $('btn-skicka').disabled = slut;
-    $('text').disabled = slut;
+    lasSkriv(slut);
     lasKort(slut);
     uppdateraFalt();
     if (!slut && !(nyttKort && fokusKort())) $('text').focus();
@@ -762,6 +808,222 @@
   // Ägarens turer hittills. Historiken kan ha fler meddelanden än turer, så den räknas inte i par.
   function antalTurer() { return historik.filter(m => m && m.role === 'user').length; }
 
+  // ========== RÖSTEN ==========
+  // Tryck Prata, prata, tryck Klar. Klippet blir text hos /intervju-transkribera och hamnar i fältet,
+  // där ägaren kan ändra det innan det skickas som en vanlig tur. Ljudet sparas aldrig här.
+  // Feature flag: ?rost=1 i adressen, eller flaggan intervju-rost i PostHog. Laddas inte PostHog är rösten av.
+  let rostFlagga = false;
+  function rostPa() { return new URLSearchParams(location.search).get('rost') === '1' || rostFlagga; }
+  const LJUDTYPER = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
+  const MAX_SEKUNDER = 180;        // inspelningen stannar av sig själv
+  const MAX_LJUD = 4000000;        // tecken base64, serverns tak
+  const ROSTTEXT = {
+    mikrofon: 'Mikrofonen är inte tillgänglig. Skriv ditt svar i stället.',
+    ljud_for_stort: 'Klippet blev för långt. Prata lite kortare, eller skriv.',
+    tal_nere: 'Talet gick inte att göra om till text just nu. Skriv ditt svar i stället.',
+    inget_samtycke: 'Talet gick inte att göra om till text just nu. Skriv ditt svar i stället.',
+    tomt_ljud: 'Inget tal hördes. Prova igen, eller skriv ditt svar.',
+  };
+  // Koderna som räknas i PostHog. Allt annat räknas som tekniskt.
+  const TALKODER = ['mikrofon', 'ljud_for_stort', 'tal_nere', 'inget_samtycke', 'tomt_ljud', 'for_manga_anrop', 'natverk', 'inte_typkund'];
+  // Koder som tar bort Prata för resten av samtalet.
+  const TAL_AV = ['mikrofon', 'tal_nere', 'inget_samtycke'];
+  let rostAv = false;        // mikrofonen nekad eller talet nere: ingen Prata-knapp resten av samtalet
+  let rostLage = 'vila';     // vila, begar (väntar på mikrofonen), spelar, lyssnar (servern arbetar)
+  let inspelning = null;     // klippet som spelas in eller skickas just nu
+  let rostVarv = 0;          // räknas upp när samtalet stängs, så att ett sent svar inte hamnar i nästa samtal
+  let original = null;       // det talmodellen hörde, för texten i fältet, tills turen skickats
+
+  function ljudtyp() {
+    if (typeof window.MediaRecorder.isTypeSupported !== 'function') return '';
+    return LJUDTYPER.find(t => window.MediaRecorder.isTypeSupported(t)) || '';
+  }
+  function rostStods() {
+    return !!(navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function'
+      && typeof window.MediaRecorder === 'function' && ljudtyp());
+  }
+  // Bara i ett öppet samtal med samtycke. Äldre samtal utan samtycke får aldrig rösten.
+  function rostTillaten() {
+    return samtal !== null && samtycke === true && !avslutat && !rostAv && rostPa() && rostStods();
+  }
+  // Prata är av när Skicka är av, utom för att sluta spela in. Skicka är av så länge rösten arbetar.
+  function uppdateraRost() {
+    const knapp = $('btn-prata');
+    knapp.hidden = rostLage === 'vila' && !rostTillaten();
+    knapp.disabled = rostLage === 'begar' || rostLage === 'lyssnar' || (rostLage === 'vila' && $('text').disabled);
+    knapp.classList.toggle('spelar', rostLage === 'spelar');
+    $('prata-ord').textContent = rostLage === 'spelar' ? 'Klar' : 'Prata';
+    $('prata-tid').hidden = rostLage !== 'spelar';
+    $('btn-skicka').disabled = $('text').disabled || rostLage !== 'vila';
+    $('btn-skicka').classList.toggle('vantar-rost', rostLage === 'begar' || rostLage === 'spelar');
+  }
+  // Medan rösten arbetar är ett väntande kort låst, så att inget svar skickas mitt i en inspelning.
+  function satLage(lage) {
+    rostLage = lage;
+    lasKort(lage !== 'vila' || $('text').disabled);
+    uppdateraRost();
+  }
+  function visaRostNotis(text, fel) {
+    $('rost-notis').textContent = text;
+    $('rost-notis').classList.toggle('notice-fel', fel);
+    $('rost-notis').hidden = false;
+  }
+  function stangStrom(strom) {
+    try { strom.getTracks().forEach(t => t.stop()); } catch (_) {}
+  }
+  function visaTid() {
+    if (!inspelning) return;
+    const s = Math.min(MAX_SEKUNDER, Math.max(0, Math.floor((Date.now() - inspelning.t0) / 1000)));
+    $('prata-tid').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+  // Assistentens senaste visade text, som hjälper renskrivningen att höra rätt. Slutet behålls, där frågan står.
+  function senasteFraga() {
+    for (let i = visning.length - 1; i >= 0; i--) {
+      if (visning[i] && visning[i].vem === 'ai') return String(visning[i].text).slice(-2000);
+    }
+    return '';
+  }
+  function base64(blob) {
+    return new Promise((ok, fel) => {
+      const r = new FileReader();
+      r.onload = () => ok(String(r.result).replace(/^[^,]*,/, ''));
+      r.onerror = () => fel(r.error);
+      r.readAsDataURL(blob);
+    });
+  }
+
+  async function borjaPrata() {
+    if (rostLage !== 'vila' || skickar || $('text').disabled || !rostTillaten()) return;
+    const varv = rostVarv;
+    $('rost-notis').hidden = true;
+    satLage('begar');
+    let strom = null;
+    let recorder = null;
+    try {
+      strom = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (varv !== rostVarv) { stangStrom(strom); return; }
+      const typ = ljudtyp();
+      // 64 kbit/s räcker gott för tal och håller tre minuter långt under serverns tak.
+      recorder = new MediaRecorder(strom, { mimeType: typ, audioBitsPerSecond: 64000 });
+    } catch (_) {
+      if (strom) stangStrom(strom);
+      if (varv === rostVarv) rostFel('mikrofon');
+      return;
+    }
+    const ins = { recorder, strom, varv, bitar: [], t0: Date.now(), sekunder: 0 };
+    inspelning = ins;
+    recorder.ondataavailable = e => { if (e.data && e.data.size) ins.bitar.push(e.data); };
+    recorder.onerror = () => { if (inspelning === ins && rostLage === 'spelar') slutaPrata(); };
+    // Mikrofonen släpps så fort inspelningen är klar, också när samtalet stängts under tiden.
+    recorder.onstop = () => {
+      stangStrom(strom);
+      if (inspelning !== ins) return;
+      skickaKlipp(ins, new Blob(ins.bitar, { type: recorder.mimeType || '' }));
+    };
+    recorder.start();
+    ins.klocka = setInterval(visaTid, 250);
+    ins.stopp = setTimeout(slutaPrata, MAX_SEKUNDER * 1000);
+    satLage('spelar');
+    visaTid();
+    track('intervju_tal_start');
+  }
+
+  function slutaPrata() {
+    const ins = inspelning;
+    if (!ins || rostLage !== 'spelar') return;
+    clearInterval(ins.klocka);
+    clearTimeout(ins.stopp);
+    ins.sekunder = Math.round((Date.now() - ins.t0) / 1000);
+    satLage('lyssnar');
+    $('status').textContent = 'Lyssnar…';
+    try { ins.recorder.stop(); } catch (_) { stangStrom(ins.strom); inspelning = null; rostFel('tekniskt'); }
+  }
+
+  async function skickaKlipp(ins, blob) {
+    let kod = null;
+    let svar = null;
+    try {
+      const ljud = blob.size ? await base64(blob) : '';
+      if (ins.varv !== rostVarv) return;
+      if (!ljud) kod = 'tomt_ljud';
+      else if (ljud.length > MAX_LJUD) kod = 'ljud_for_stort';
+      else {
+        try {
+          const res = await fetch(talEndpoint(), {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ underlag, samtycke, ljud, typ: ins.recorder.mimeType || blob.type, fraga: senasteFraga() }),
+          });
+          let j = null;
+          try { j = await res.json(); } catch (_) {}
+          if (res.ok && j && j.ok === true && typeof j.ren === 'string' && typeof j.ratext === 'string') {
+            if (j.ren.trim()) svar = j;
+            else kod = 'tomt_ljud';
+          } else kod = j && typeof j.fel === 'string' ? j.fel : 'tekniskt';
+        } catch (_) { kod = 'natverk'; }
+      }
+    } catch (_) { kod = 'tekniskt'; }
+    if (ins.varv !== rostVarv) return;
+    inspelning = null;
+    $('status').textContent = '';
+    if (!svar) { rostFel(kod); return; }
+    satLage('vila');
+    lagIFaltet(svar.ren, svar.ratext);
+    track('intervju_tal_klar', { sekunder: ins.sekunder });
+  }
+
+  // Felen visas under fältet. Nekad mikrofon och tal som ligger nere tar bort Prata för resten av samtalet.
+  function rostFel(kod) {
+    if (TAL_AV.includes(kod)) rostAv = true;
+    satLage('vila');
+    // Ett tyst eller för långt klipp är inget fel, bara ett nytt försök. Allt annat visas som fel.
+    visaRostNotis(ROSTTEXT[kod] || FELTEXT[kod] || FELTEXT.tekniskt, !['tomt_ljud', 'ljud_for_stort'].includes(kod));
+    track('intervju_tal_fel', { kod: TALKODER.includes(kod) ? kod : 'tekniskt' });
+    if ($('btn-prata').hidden) $('text').focus();
+    else $('btn-prata').focus();
+  }
+
+  // Den renskrivna texten läggs efter det som redan står i fältet, och det ägaren skrivit ändras aldrig.
+  function lagIFaltet(ren, ratext) {
+    const falt = $('text');
+    const fore = falt.value;
+    const harText = fore.trim() !== '';
+    falt.value = harText ? fore + (/\s$/.test(fore) ? '' : ' ') + ren : ren;
+    original = harText && original !== null ? original + ' ' + ratext : ratext;
+    $('originaltext').textContent = original;
+    visaOriginal(false);
+    $('original').hidden = false;
+    falt.focus();
+    falt.setSelectionRange(falt.value.length, falt.value.length);
+  }
+  function visaOriginal(synlig) {
+    $('originaltext').hidden = !synlig;
+    $('btn-original').textContent = synlig ? 'Dölj originaltext' : 'Visa originaltext';
+    $('btn-original').setAttribute('aria-expanded', String(synlig));
+  }
+  function rensaOriginal() {
+    original = null;
+    $('originaltext').textContent = '';
+    visaOriginal(false);
+    $('original').hidden = true;
+  }
+  // När samtalet stängs: inspelningen kastas, mikrofonen släpps och ett svar som är på väg glöms.
+  function avbrytRost() {
+    rostVarv++;
+    const ins = inspelning;
+    inspelning = null;
+    if (ins) {
+      clearInterval(ins.klocka);
+      clearTimeout(ins.stopp);
+      try { if (ins.recorder.state !== 'inactive') ins.recorder.stop(); } catch (_) {}
+      stangStrom(ins.strom);
+    }
+    if (rostLage === 'lyssnar') $('status').textContent = '';
+    rostLage = 'vila';
+    rensaOriginal();
+    $('rost-notis').hidden = true;
+  }
+
   // ========== START ==========
   // Ett nytt samtal får ett nytt id och ägarens val. Ett återupptaget tar med sig båda.
   function oppnaSamtal(tidigare, ja) {
@@ -770,10 +1032,14 @@
     historik = tidigare ? tidigare.historik : [];
     visning = tidigare ? tidigare.visning : [];
     avslutat = tidigare ? tidigare.avslutat : false;
+    rostAv = false;
+    rensaOriginal();
+    $('rost-notis').hidden = true;
     $('skriv').hidden = false;
     $('avslutat').hidden = true;
     visa('samtal');
     ritaHistorik();
+    uppdateraRost();
     if (avslutat) visaAvslutat();
     else if (historik.length === 0) skicka(null);
     else if (!fokusKort()) $('text').focus();
@@ -781,6 +1047,7 @@
 
   $('skriv').addEventListener('submit', e => {
     e.preventDefault();
+    if (rostLage !== 'vila') return;                       // inget skickas medan rösten arbetar
     if (historik.length === 0) { skicka(null); return; }   // starten misslyckades, försök igen
     const t = $('text').value.trim();
     if (!t) { $('text').focus(); return; }
@@ -789,8 +1056,16 @@
   $('text').addEventListener('keydown', e => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); $('skriv').requestSubmit(); }
   });
+  $('btn-prata').addEventListener('click', () => { if (rostLage === 'spelar') slutaPrata(); else borjaPrata(); });
+  // Visar och döljer det talmodellen hörde. Fältet rörs inte.
+  $('btn-original').addEventListener('click', () => {
+    const synlig = $('originaltext').hidden;
+    visaOriginal(synlig);
+    if (synlig) track('intervju_originaltext');
+  });
   // Klart-skärmen säger vad som sparades. Koden är början på samtalets id, så att det går att ta bort.
   function stangSamtal() {
+    avbrytRost();
     track('intervju_avslutad', { tur: antalTurer(), av: avslutat ? 'assistenten' : 'agaren' });
     $('klart-sparat').hidden = !samtycke;
     $('klart-kod').hidden = !samtycke;

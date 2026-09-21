@@ -1,4 +1,4 @@
-// End-to-end-test av intervjusidan i Chromium mot en mockad /intervju-tur och /intervju-block.
+// End-to-end-test av intervjusidan i Chromium mot en mockad /intervju-tur, /intervju-block och /intervju-transkribera.
 // Körs med: npm install && npx playwright install chromium && node tests/test-intervju.js
 // Servern ligger i repot opengym. Här testas bara sidan, mot protokollet i
 // opengym/docs/undersokning/intervjusidan-protokoll.md. Mock-servern kontrollerar också att
@@ -17,10 +17,13 @@ const FALL = JSON.parse(fs.readFileSync(path.join(__dirname, 'fall-typkund.json'
 const RID = '3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b';
 const MOCK = '/mock/intervju-tur';
 const MOCK_BLOCK = '/mock/intervju-block';   // sidan byter intervju-tur mot intervju-block i adressen
+const MOCK_TAL = '/mock/intervju-transkribera';
+// Adresser testet får anropa. Allt annat, som Supabase och OpenAI, fäller testet på slutet.
+const TILLATNA_VARDAR = ['127.0.0.1', 'fonts.googleapis.com', 'fonts.gstatic.com', 'eu-assets.i.posthog.com'];
 const UNDERLAG = { v: 1, rid: RID, svar: FALL.bas, skapad: '2026-09-21T10:00:00.000Z' };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 // Samtyckestexten ur byggplanen, ordagrant. Daniels att ändra, och då här också.
-const SAMTYCKE = 'Det som sparas är korten du godkänner, ämnen du vill ta upp i slutet och ditt svar om pilotgym, ihop med dina enkätsvar. Det sparas i OpenGyms databas i EU, sammanställs anonymt till Boxrapporten 2026 och raderas senast den 30 juni 2027. Ditt namn och din e-post behövs inte, och assistenten skriver aldrig in namn på medlemmar eller coacher. Samtalet behandlas av Claude från Anthropic i USA, som inte tränar sina modeller på det och raderar det inom 30 dagar. För att stoppa missbruk räknar servern anrop per dygn, med din nätverksadress som kontrollsumma. Vill du att vi tar bort det som sparats, mejla daniel@opengym.se med koden du får när samtalet är klart.';
+const SAMTYCKE = 'Det som sparas är korten du godkänner, ämnen du vill ta upp i slutet och ditt svar om pilotgym, ihop med dina enkätsvar. Det sparas i OpenGyms databas i EU, sammanställs anonymt till Boxrapporten 2026 och raderas senast den 30 juni 2027. Ditt namn och din e-post behövs inte, och assistenten skriver aldrig in namn på medlemmar eller coacher. Samtalet behandlas av Claude från Anthropic i USA, som inte tränar sina modeller på det och raderar det inom 30 dagar. Pratar du i stället för att skriva skickas ljudet till OpenAI i USA för att bli text. Varken vi eller OpenAI sparar ljudet, och OpenAI tränar inte på det. För att stoppa missbruk räknar servern anrop per dygn, med din nätverksadress som kontrollsumma. Vill du att vi tar bort det som sparats, mejla daniel@opengym.se med koden du får när samtalet är klart.';
 // Starta ett samtal. Att starta är godkännandet, så det finns bara en knapp.
 const starta = async (p) => { await p.click('#btn-start'); };
 const antal = async (p, sel) => (await p.$$(sel)).length;
@@ -119,6 +122,67 @@ function kollaBlock(b) {
   } else fel.push('okänd typ');
   fel.forEach(f => brott.push('block: ' + f));
 }
+function kollaTal(b) {
+  const fel = [];
+  const obj = x => x && typeof x === 'object' && !Array.isArray(x);
+  if (!obj(b)) { brott.push('tal: kroppen har fel form'); return; }
+  if (!b.underlag || b.underlag.rid !== RID || !obj(b.underlag.svar)) fel.push('underlag saknas');
+  if (b.samtycke !== true) fel.push('tal utan samtycke');
+  if (typeof b.ljud !== 'string' || !b.ljud || !/^[A-Za-z0-9+/]+=*$/.test(b.ljud) || b.ljud.length > 4000000) fel.push('ljud är inte base64 utan prefix, eller för långt');
+  if (typeof b.typ !== 'string' || !/^audio\/(webm|mp4|m4a|mpeg|ogg|wav)\b/.test(b.typ)) fel.push('typ har fel form');
+  if (typeof b.fraga !== 'string' || b.fraga.length > 2000) fel.push('fraga har fel form');
+  const kanda = ['underlag', 'samtycke', 'ljud', 'typ', 'fraga'];
+  if (Object.keys(b).some(k => !kanda.includes(k))) fel.push('okända fält');
+  fel.forEach(f => brott.push('tal: ' + f));
+}
+
+// Fejkad mikrofon och MediaRecorder, som init script före sidans skript. Inspelningen ger en liten
+// Blob av typen audio/webm med innehållet "ljud", eller med stor: true ett klipp över serverns tak.
+function fejkadMikrofon(lage) {
+  const r = window.__rost = { gum: [], spar: [], recorders: [], neka: lage === 'neka', stor: false };
+  const mediaDevices = {
+    getUserMedia: async villkor => {
+      r.gum.push(villkor);
+      if (r.neka) throw new DOMException('Permission denied', 'NotAllowedError');
+      const spar = { kind: 'audio', stoppad: false, stop() { this.stoppad = true; } };
+      r.spar.push(spar);
+      return { getTracks: () => [spar], getAudioTracks: () => [spar] };
+    },
+  };
+  Object.defineProperty(navigator, 'mediaDevices', { configurable: true, get: () => mediaDevices });
+  class FejkadRecorder {
+    static isTypeSupported(t) { return /^audio\/webm/.test(t); }
+    constructor(strom, alternativ) {
+      this.stream = strom;
+      this.alternativ = alternativ || {};
+      this.mimeType = this.alternativ.mimeType || 'audio/webm';
+      this.state = 'inactive';
+      r.recorders.push(this);
+    }
+    start() { this.state = 'recording'; }
+    stop() {
+      if (this.state === 'inactive') return;
+      this.state = 'inactive';
+      const innehall = r.stor ? new Uint8Array(3000001) : new TextEncoder().encode('ljud');
+      const blob = new Blob([innehall], { type: 'audio/webm' });
+      setTimeout(() => {
+        if (this.ondataavailable) this.ondataavailable({ data: blob });
+        if (this.onstop) this.onstop();
+      }, 0);
+    }
+  }
+  window.MediaRecorder = FejkadRecorder;
+}
+// En fejkad PostHog i stället för array.js. Flaggorna kommer en stund efter init, som i verkligheten.
+const fejkadPostHog = pa => `window.posthog = {
+  init: function () {},
+  capture: function (e, p) { (window.__ph = window.__ph || []).push([e, p]); },
+  onFeatureFlags: function (cb) { setTimeout(cb, 150); },
+  isFeatureEnabled: function (n) { return ${pa ? "n === 'intervju-rost'" : 'false'}; },
+};`;
+const RATEXT = 'eh alltså vi kör autogiro eh och swish för drop in';
+const REN = 'Vi kör autogiro, och Swish för drop-in.';
+
 const vantaTills = async (villkor, ms = 5000) => {
   const t0 = Date.now();
   while (!villkor()) { if (Date.now() - t0 > ms) throw new Error('väntade för länge'); await new Promise(r => setTimeout(r, 20)); }
@@ -173,37 +237,64 @@ const vantaTills = async (villkor, ms = 5000) => {
   const blockAnrop = [];     // kropparna till /intervju-block
   const blockScenario = [];  // nästa svar från /intervju-block, annars sparat enligt samtycket
   const ordning = [];        // vilken väg som anropades, i tur och ordning
+  const talAnrop = [];       // kropparna till /intervju-transkribera
+  const talScenario = [];    // nästa svar från /intervju-transkribera, annars REN och RATEXT
+  const adresser = [];       // varje adress sidorna försökte nå
 
-  async function newPage(viewport, { underlag = UNDERLAG, samtal = null } = {}) {
+  // rost: fejkad mikrofon ('pa' eller 'neka'). posthog: fejkad PostHog med flaggan på ('pa') eller av ('av').
+  // utan: 'MediaRecorder' eller 'mediaDevices' tas bort, som i en webbläsare utan inspelning.
+  async function newPage(viewport, { underlag = UNDERLAG, samtal = null, rost = null, posthog = null, utan = null, klocka = false } = {}) {
     // Minskad rörelse, som sidan stöder, så att screenshotsen inte fångar en knapp mitt i en övergång.
     const ctx = await browser.newContext({ viewport, reducedMotion: 'reduce' });
     await ctx.route(/posthog\.com/, r => r.abort());
     if (underlag) await ctx.addInitScript(u => localStorage.setItem('opengym_intervju_underlag_v1', JSON.stringify(u)), underlag);
     // Ett sparat samtal läggs bara in första gången, så att sidans egna ändringar överlever en omladdning.
     if (samtal) await ctx.addInitScript(s => { if (!sessionStorage.getItem('lagt')) { localStorage.setItem('opengym_intervju_samtal_v1', JSON.stringify(s)); sessionStorage.setItem('lagt', '1'); } }, samtal);
+    if (rost) await ctx.addInitScript(fejkadMikrofon, rost);
+    if (utan === 'MediaRecorder') await ctx.addInitScript(() => { delete window.MediaRecorder; });
+    if (utan === 'mediaDevices') await ctx.addInitScript(() => { Object.defineProperty(navigator, 'mediaDevices', { configurable: true, get: () => undefined }); });
     const page = await ctx.newPage();
+    // Fejkad klocka, så att tiden under inspelningen går att spola fram utan att vänta.
+    if (klocka) await page.clock.install();
     page.on('console', m => { if (m.type() === 'error' && !/net::ERR_|Failed to load resource/.test(m.text())) errors.push(m.text()); });
     page.on('pageerror', e => errors.push('pageerror: ' + e.message));
-    await page.route(u => new URL(String(u.href || u)).pathname === MOCK, route => {
+    page.on('request', r => adresser.push(r.url()));
+    // Sidans egna routes går före kontextens, så PostHog kan fejkas här trots att den annars avbryts.
+    if (posthog) await page.route(/posthog\.com\/static\/array\.js/, r => r.fulfill({ status: 200, contentType: 'text/javascript', body: fejkadPostHog(posthog === 'pa') }));
+    await page.route(u => new URL(String(u.href || u)).pathname === MOCK, async route => {
       const req = route.request();
       const kropp = JSON.parse(req.postData() || 'null');
       anrop.push(kropp);
       ordning.push('tur');
       kollaTur(kropp);
       const nasta = scenario.shift() || { handelser: [{ typ: 'fel', kod: 'tekniskt' }] };
+      if (nasta.vanta) await nasta.vanta;
       if (nasta.status) return route.fulfill({ status: nasta.status, contentType: 'application/json', body: JSON.stringify(nasta.json) });
       return route.fulfill({ status: 200, contentType: 'text/event-stream; charset=utf-8', body: nasta.handelser.map(h => `data: ${JSON.stringify(h)}\n\n`).join('') });
     });
-    await page.route(u => new URL(String(u.href || u)).pathname === MOCK_BLOCK, route => {
+    await page.route(u => new URL(String(u.href || u)).pathname === MOCK_BLOCK, async route => {
       const kropp = JSON.parse(route.request().postData() || 'null');
       blockAnrop.push(kropp);
       ordning.push('block');
       kollaBlock(kropp);
       const nasta = blockScenario.shift() || { status: 200, json: { ok: true, sparat: !!kropp && kropp.samtycke === true } };
+      if (nasta.vanta) await nasta.vanta;
+      return route.fulfill({ status: nasta.status, contentType: 'application/json', body: JSON.stringify(nasta.json) });
+    });
+    await page.route(u => new URL(String(u.href || u)).pathname === MOCK_TAL, async route => {
+      const kropp = JSON.parse(route.request().postData() || 'null');
+      talAnrop.push(kropp);
+      ordning.push('tal');
+      kollaTal(kropp);
+      const nasta = talScenario.shift() || { status: 200, json: { ok: true, ratext: RATEXT, ren: REN } };
+      if (nasta.vanta) await nasta.vanta;
+      if (nasta.natverk) return route.abort('internetdisconnected');
       return route.fulfill({ status: nasta.status, contentType: 'application/json', body: JSON.stringify(nasta.json) });
     });
     return { ctx, page };
   }
+  // Ett svar som väntar tills testet släpper det, för att se sidan medan servern arbetar.
+  const sparr = () => { let slapp; const vanta = new Promise(r => { slapp = r; }); return { vanta, slapp }; };
   const turer = page => page.$$eval('#logg .tur', els => els.map(e => ({ vem: e.classList.contains('tur-ai') ? 'ai' : 'du', text: e.querySelector('.tur-text').textContent })));
   // Allt i loggen i ordning, för att jämföra före och efter en omladdning.
   const loggen = page => page.$$eval('#logg > *', els => els.map(e => e.className + ' | ' + e.textContent + ' | ' + e.querySelectorAll('button:not([disabled])').length));
@@ -644,10 +735,292 @@ const vantaTills = async (villkor, ms = 5000) => {
     await ctx.close();
   }
 
+  // ---------- Rösten ----------
+  // Prata-knappen och dess delar, som sidan visar dem.
+  const prata = page => page.evaluate(() => {
+    const k = document.getElementById('btn-prata');
+    const tid = document.getElementById('prata-tid');
+    return { synlig: !k.hidden && k.offsetParent !== null, av: k.disabled, text: document.getElementById('prata-ord').textContent, tid: tid.hidden ? null : tid.textContent, spelar: k.classList.contains('spelar') };
+  });
+  // Det den fejkade mikrofonen sett: anropen till getUserMedia, om spåren stoppats, och varje recorder.
+  const mikrofon = page => page.evaluate(() => ({ gum: window.__rost.gum, spar: window.__rost.spar.map(s => s.stoppad), recorders: window.__rost.recorders.map(r => ({ alternativ: r.alternativ, state: r.state })) }));
+  const notis = page => page.evaluate(() => { const n = document.getElementById('rost-notis'); return n.hidden ? null : n.textContent; });
+  const ROST = BASE + '?api=' + MOCK + '&rost=1';
+  // Ett samtal som hunnit få assistentens första svar.
+  async function rostSamtal(viewport, alternativ, adress = ROST, forsta = 'Hej. Berätta om en vanlig tisdag.') {
+    const { ctx, page } = await newPage(viewport, alternativ);
+    await page.goto(adress, { waitUntil: 'load' });
+    scenario.push(svar(forsta));
+    await starta(page);
+    await vantaPaSvar(page, 1);
+    return { ctx, page };
+  }
+  // Ett klipp från Prata till Klar. Klart när fältet ändrats eller en notis visas.
+  async function ettKlipp(page, svarTal) {
+    if (svarTal) talScenario.push(svarTal);
+    const fore = await page.inputValue('#text');
+    await page.click('#btn-prata');
+    await page.waitForSelector('#btn-prata.spelar');
+    await page.click('#btn-prata');
+    await page.waitForFunction(f => document.getElementById('text').value !== f || !document.getElementById('rost-notis').hidden, fore);
+  }
+  const DESKTOP = { width: 1280, height: 900 };
+
+  // ---------- Rösten: när Prata syns ----------
+  {
+    const utan = await rostSamtal(DESKTOP, { rost: 'pa' }, BASE + '?api=' + MOCK);
+    await utan.page.waitForTimeout(300);
+    check('feature flag: ingen Prata-knapp utan flagga, när PostHog inte laddas', !(await prata(utan.page)).synlig && (await utan.page.$$('#btn-prata')).length === 1);
+    await utan.ctx.close();
+
+    const ph = await rostSamtal(DESKTOP, { rost: 'pa', posthog: 'pa' }, BASE + '?api=' + MOCK);
+    await ph.page.waitForSelector('#btn-prata:not([hidden])', { timeout: 3000 });
+    check('feature flag: Prata syns när flaggan intervju-rost är på i PostHog', (await prata(ph.page)).synlig && (await ph.page.evaluate(() => (window.__ph || []).some(x => x[0] === 'intervju_visad'))));
+    await ph.ctx.close();
+
+    const phAv = await rostSamtal(DESKTOP, { rost: 'pa', posthog: 'av' }, BASE + '?api=' + MOCK);
+    await phAv.page.waitForTimeout(500);
+    check('feature flag: ingen Prata-knapp när flaggan är av i PostHog', !(await prata(phAv.page)).synlig && (await phAv.page.evaluate(() => (window.__ph || []).length > 0)));
+    await phAv.ctx.close();
+
+    // Ett samtal från före 2026-09-22 med samtycke false får aldrig rösten, inte ens med ?rost=1.
+    const nej = { v: 2, rid: RID, samtal: '9b1e4c2a-1111-4222-8333-444455556666', samtycke: false, historik: svar('Hej.').handelser.pop().tillagg, visning: [{ vem: 'ai', text: 'Hej.' }], slut: false };
+    const gammal = await newPage(DESKTOP, { rost: 'pa', samtal: nej });
+    await gammal.page.goto(ROST, { waitUntil: 'load' });
+    await gammal.page.click('#btn-fortsatt');
+    await gammal.page.waitForTimeout(200);
+    check('samtycke false: aldrig någon Prata-knapp', (await gammal.page.isVisible('#skriv')) && !(await prata(gammal.page)).synlig);
+    await gammal.ctx.close();
+
+    for (const saknas of ['MediaRecorder', 'mediaDevices']) {
+      const u = await rostSamtal(DESKTOP, { utan: saknas });
+      check('webbläsare utan ' + saknas + ': ingen Prata-knapp, inte ens med ?rost=1', !(await prata(u.page)).synlig);
+      await u.ctx.close();
+    }
+  }
+
+  // ---------- Rösten: inspelning, renskriven text och originaltexten ----------
+  {
+    const FRAGA = 'Hej. Jag är OpenGyms AI-assistent. Hur tar du betalt av medlemmarna i dag?';
+    const { ctx, page } = await rostSamtal(DESKTOP, { rost: 'pa', klocka: true }, ROST, FRAGA);
+    const t0 = talAnrop.length;
+    const p0 = await prata(page);
+    check('Prata: syns med ?rost=1, i skrivraden direkt före Skicka', p0.synlig && !p0.av && p0.text === 'Prata' && p0.tid === null
+      && await page.$eval('#btn-prata', el => el.nextElementSibling.id === 'btn-skicka' && !!el.closest('.skriv-rad')));
+    check('Prata: ordet i mono bredvid en ring med prick, ingen ikon', await page.$eval('#btn-prata', el => getComputedStyle(el).fontFamily.includes('JetBrains Mono') && !!el.querySelector('.prata-ring .prata-prick') && !el.querySelector('svg, img')));
+    check('Prata: mikrofonen frågas inte förrän ägaren trycker', (await mikrofon(page)).gum.length === 0);
+    await page.screenshot({ path: `${OUT}/intervju-prata.png`, fullPage: true });
+
+    await page.click('#btn-prata');
+    await page.waitForSelector('#btn-prata.spelar');
+    const m1 = await mikrofon(page);
+    check('inspelning: getUserMedia med audio true', JSON.stringify(m1.gum) === '[{"audio":true}]');
+    check('inspelning: MediaRecorder med den första stödda typen', m1.recorders.length === 1 && m1.recorders[0].alternativ.mimeType === 'audio/webm;codecs=opus' && m1.recorders[0].state === 'recording');
+    const p1 = await prata(page);
+    check('inspelning: knappen säger Klar och tiden börjar på 0:00', p1.text === 'Klar' && p1.tid === '0:00' && !p1.av);
+    // Under minskad rörelse är övergången 0,01 ms, så färgen läses först när nästa bildruta ritats.
+    const lime = await page.waitForFunction(() => getComputedStyle(document.querySelector('#btn-prata .prata-prick')).backgroundColor === 'rgb(166, 255, 31)', null, { timeout: 2000 }).then(() => true, () => false);
+    check('inspelning: pricken fylls med neon-lime', lime);
+    check('inspelning: Skicka är av, med pilen kvar, och fältet går att skriva i', await page.isDisabled('#btn-skicka') && !(await page.isDisabled('#text'))
+      && (await page.$eval('#btn-skicka', el => getComputedStyle(el, '::after').content)) === '"→"');
+    await page.clock.fastForward(12000);
+    await page.waitForFunction(() => document.getElementById('prata-tid').textContent === '0:12');
+    check('inspelning: tiden räknar upp i mono med tabellsiffror', (await page.$eval('#prata-tid', el => getComputedStyle(el).fontVariantNumeric)) === 'tabular-nums');
+    check('rörelse: ingen animation, och minskad rörelse stänger av övergångarna', await page.$eval('#btn-prata', el => [el, el.querySelector('.prata-prick')].every(e => getComputedStyle(e).animationName === 'none' && parseFloat(getComputedStyle(e).transitionDuration) <= 0.0001)));
+    await page.screenshot({ path: `${OUT}/intervju-prata-inspelning.png`, fullPage: true });
+
+    const s1 = sparr();
+    talScenario.push({ status: 200, json: { ok: true, ratext: RATEXT, ren: REN }, vanta: s1.vanta });
+    await page.click('#btn-prata');
+    await vantaTills(() => talAnrop.length === t0 + 1);
+    check('lyssnar: statusraden säger Lyssnar…', (await page.textContent('#status')) === 'Lyssnar…');
+    check('lyssnar: Prata och Skicka är av medan servern arbetar', (await prata(page)).av && !(await prata(page)).spelar && await page.isDisabled('#btn-skicka'));
+    check('lyssnar: mikrofonens spår är stoppade', (await mikrofon(page)).spar.length === 1 && (await mikrofon(page)).spar.every(s => s === true));
+    const tal = talAnrop[t0];
+    check('anrop: ljudet som base64 utan data:-prefix', tal.ljud === Buffer.from('ljud').toString('base64'));
+    check('anrop: typ är inspelningens mimeType', tal.typ === 'audio/webm;codecs=opus');
+    check('anrop: fraga är assistentens senaste text', tal.fraga === FRAGA);
+    check('anrop: underlag och samtycke som i turerna', tal.underlag.rid === RID && tal.underlag.svar.q03_medlemmar === '150–250' && tal.samtycke === true);
+    s1.slapp();
+    await page.waitForFunction(() => document.getElementById('text').value !== '');
+    check('ren: den renskrivna texten hamnar i fältet', (await page.inputValue('#text')) === REN);
+    check('ren: markören står i fältet', (await page.evaluate(() => document.activeElement.id)) === 'text');
+    const p2 = await prata(page);
+    check('ren: statusraden töms och Prata och Skicka är tillbaka', (await page.textContent('#status')) === '' && p2.text === 'Prata' && !p2.av && !(await page.isDisabled('#btn-skicka')));
+    check('originaltext: knappen syns och texten är dold', await page.isVisible('#btn-original') && (await page.textContent('#btn-original')) === 'Visa originaltext' && !(await page.isVisible('#originaltext')));
+    check('originaltext: systemets textknapp, mono 13 px med understrykning', await page.$eval('#btn-original', el => { const s = getComputedStyle(el); return s.fontFamily.includes('JetBrains Mono') && s.fontSize === '13px' && s.borderBottomStyle === 'solid' && el.type === 'button'; }));
+    await page.click('#btn-original');
+    check('originaltext: visar det talmodellen hörde', (await page.textContent('#originaltext')) === RATEXT && await page.isVisible('#originaltext'));
+    check('originaltext: knappen säger Dölj, och fältet är orört', (await page.textContent('#btn-original')) === 'Dölj originaltext' && (await page.getAttribute('#btn-original', 'aria-expanded')) === 'true' && (await page.inputValue('#text')) === REN);
+    await page.mouse.move(0, 0);
+    await page.screenshot({ path: `${OUT}/intervju-originaltext.png`, fullPage: true });
+    await page.click('#btn-original');
+    check('originaltext: döljs igen, och fältet är orört', !(await page.isVisible('#originaltext')) && (await page.textContent('#btn-original')) === 'Visa originaltext' && (await page.inputValue('#text')) === REN);
+
+    // Ägaren ändrar och skickar. Det går som en vanlig tur med text.
+    const SKICKAT = REN + ' Kort tar vi inte.';
+    await page.fill('#text', SKICKAT);
+    const SVAR2 = 'Swish för drop-in, alltså. Hur ofta byter medlemmarna betalsätt?';
+    scenario.push(svar(SVAR2, SKICKAT));
+    await page.click('#btn-skicka');
+    await vantaPaSvar(page, 2);
+    const tur = anrop[anrop.length - 1];
+    check('skickad tur: fältets text går som en vanlig tur', tur.text === SKICKAT && !('kortsvar' in tur) && tur.start === false);
+    check('skickad tur: originaltexten och knappen försvinner', !(await page.isVisible('#original')) && (await page.textContent('#originaltext')) === '');
+
+    // Står det redan text i fältet läggs den renskrivna texten efter, med ett mellanslag.
+    await page.fill('#text', 'Först det här.');
+    await ettKlipp(page, { status: 200, json: { ok: true, ratext: 'sen det här', ren: 'Sen det här.' } });
+    check('ren: läggs efter det som redan står, efter ett mellanslag', (await page.inputValue('#text')) === 'Först det här. Sen det här.');
+    check('fraga: följer med assistentens senaste text', talAnrop[talAnrop.length - 1].fraga === SVAR2);
+    await page.click('#btn-original');
+    check('originaltext: bara det som hördes, inte det ägaren skrev', (await page.textContent('#originaltext')) === 'sen det här');
+
+    // Inspelningen stannar av sig själv efter tre minuter.
+    await page.fill('#text', '');
+    const t2 = talAnrop.length;
+    const XSS = '<img src=x onerror="window.__xss=1"> hej';
+    talScenario.push({ status: 200, json: { ok: true, ratext: XSS, ren: REN } });
+    await page.click('#btn-prata');
+    await page.waitForSelector('#btn-prata.spelar');
+    await page.clock.fastForward(179000);
+    await page.waitForFunction(() => document.getElementById('prata-tid').textContent === '2:59');
+    check('tre minuter: vid 2:59 pågår inspelningen fortfarande', (await prata(page)).spelar && talAnrop.length === t2);
+    await page.clock.fastForward(1000);
+    await vantaTills(() => talAnrop.length === t2 + 1);
+    await page.waitForFunction(() => document.getElementById('text').value !== '');
+    check('tre minuter: inspelningen stannar av sig själv och klippet skickas', !(await prata(page)).spelar && (await page.inputValue('#text')) === REN && (await mikrofon(page)).spar.every(s => s === true));
+    await page.click('#btn-original');
+    check('originaltext: sätts som text, aldrig som HTML', (await page.textContent('#originaltext')) === XSS && (await page.evaluate(() => window.__xss)) === undefined);
+
+    const m = await matt(page);
+    const klara = m.filter(x => x.namn === 'intervju_tal_klar').map(x => x.egenskaper);
+    check('mätning: tal_start per inspelning och tal_klar med sekunder', m.filter(x => x.namn === 'intervju_tal_start').length === 3 && klara.length === 3 && klara.every(e => Object.keys(e).join() === 'sekunder') && klara[0].sekunder === 12 && klara[2].sekunder === 180);
+    check('mätning: originaltext räknas när den visas, inte när den döljs', m.filter(x => x.namn === 'intervju_originaltext').length === 3 && baraKoder(m));
+    await ctx.close();
+  }
+
+  // ---------- Rösten: medan ett kort väntar, och medan svar och kort är på väg ----------
+  {
+    const { ctx, page } = await newPage(DESKTOP, { rost: 'pa' });
+    await page.goto(ROST, { waitUntil: 'load' });
+    const t0 = anrop.length;
+    const s = sparr();
+    scenario.push(Object.assign(svar('Hej. Så här har jag uppfattat pengarna. Stämmer det?', '(start)', { kort: KORT_PENGAR }), { vanta: s.vanta }));
+    await starta(page);
+    await vantaTills(() => anrop.length === t0 + 1);
+    check('stream: Prata är av medan svaret streamas, precis som Skicka', (await prata(page)).synlig && (await prata(page)).av && await page.isDisabled('#btn-skicka'));
+    s.slapp();
+    await vantaPaKort(page, 1);
+    check('kort väntar: Prata går att trycka', !(await prata(page)).av);
+    await page.click('#btn-prata');
+    await page.waitForSelector('#btn-prata.spelar');
+    check('kort väntar: kortets knappar är låsta under inspelningen', (await page.$$('.kort-aktiv button:not([disabled])')).length === 0);
+    talScenario.push({ status: 200, json: { ok: true, ratext: 'kort tar vi bara för drop in', ren: 'Kort tar vi bara för drop-in.' } });
+    await page.click('#btn-prata');
+    await page.waitForFunction(() => document.getElementById('text').value !== '');
+    check('kort väntar: kortets knappar är tillbaka när texten kommit', (await page.$$('.kort-aktiv button:not([disabled])')).length === 2);
+    const KORT_E = kopia(KORT_PENGAR, { id: 'toolu_01E' });
+    scenario.push(svar('Då rättar jag det.', kortsvarBlock(KORT_PENGAR.id, 'Kort tar vi bara för drop-in.'), { kort: KORT_E }));
+    await page.click('#btn-skicka');
+    await vantaPaKort(page, 2);
+    const tr = anrop[anrop.length - 1];
+    check('kort väntar: det talade blir en rättning, precis som skriven text', JSON.stringify(tr.kortsvar) === JSON.stringify({ id: KORT_PENGAR.id, rattning: 'Kort tar vi bara för drop-in.' }) && tr.text === null);
+    check('kort väntar: originaltexten försvinner när rättningen skickats', !(await page.isVisible('#original')));
+
+    const b = sparr();
+    blockScenario.push({ status: 200, json: { ok: true, sparat: true }, vanta: b.vanta });
+    scenario.push(svar('Bra. Hur ser en vanlig tisdag ut?', kortsvarBlock(KORT_E.id, 'Stämmer.')));
+    const b0 = blockAnrop.length;
+    await page.click('.kort-aktiv .kort-stammer');
+    await vantaTills(() => blockAnrop.length === b0 + 1);
+    check('sparar kort: Prata är av medan kortet sparas, precis som Skicka', (await prata(page)).av && await page.isDisabled('#btn-skicka'));
+    b.slapp();
+    await vantaPaSvar(page, 3);
+    check('sparar kort: Prata går att trycka igen efter svaret', !(await prata(page)).av);
+
+    // Avsluta mitt i en inspelning: mikrofonen släpps och ingenting skickas.
+    const t1 = talAnrop.length;
+    await page.click('#btn-prata');
+    await page.waitForSelector('#btn-prata.spelar');
+    await page.click('#btn-avsluta');
+    await page.waitForTimeout(200);
+    check('avsluta under inspelning: mikrofonen släpps och inget klipp skickas', await page.isVisible('#klart') && (await mikrofon(page)).spar.every(x => x === true) && talAnrop.length === t1);
+    await ctx.close();
+  }
+
+  // ---------- Rösten: felen ----------
+  {
+    const { ctx, page } = await rostSamtal(DESKTOP, { rost: 'pa' });
+    await page.fill('#text', 'Mest morgonpass.');
+    await ettKlipp(page, { status: 400, json: { ok: false, fel: 'tomt_ljud' } });
+    check('tomt ljud: "Inget tal hördes." och Prata finns kvar', (await notis(page)) === 'Inget tal hördes. Prova igen, eller skriv ditt svar.' && (await prata(page)).synlig && !(await prata(page)).av);
+    check('tomt ljud: det ägaren skrivit är orört och ingen originaltext', (await page.inputValue('#text')) === 'Mest morgonpass.' && !(await page.isVisible('#original')));
+    check('notis: rösten säger till som notice under fältet, ett tyst klipp inte som fel', await page.$eval('#rost-notis', el => el.classList.contains('notice') && !el.classList.contains('notice-fel') && !!el.closest('#skriv')));
+    await ettKlipp(page, { status: 429, json: { ok: false, fel: 'for_manga_anrop' } });
+    check('för många anrop: samma text som i turerna', (await notis(page)) === 'Du har skickat många svar på kort tid. Vänta en stund och försök igen.' && (await prata(page)).synlig);
+    await ettKlipp(page, { natverk: true });
+    check('nätverksfel: samma text som i turerna, som notice i felvarianten', (await notis(page)) === 'Kunde inte nå assistenten. Kontrollera anslutningen och skicka igen.' && (await prata(page)).synlig && await page.$eval('#rost-notis', el => el.classList.contains('notice-fel')));
+    const t0 = talAnrop.length;
+    await page.evaluate(() => { window.__rost.stor = true; });
+    await ettKlipp(page);
+    check('för långt klipp: skickas inte, och sidan säger till utan felvarianten', (await notis(page)) === 'Klippet blev för långt. Prata lite kortare, eller skriv.' && talAnrop.length === t0 && (await prata(page)).synlig && await page.$eval('#rost-notis', el => !el.classList.contains('notice-fel')));
+    await page.evaluate(() => { window.__rost.stor = false; });
+    await ettKlipp(page, { status: 503, json: { ok: false, fel: 'tal_nere' } });
+    check('tal nere: sidan säger det i felvarianten och Prata döljs', (await notis(page)) === 'Talet gick inte att göra om till text just nu. Skriv ditt svar i stället.' && !(await prata(page)).synlig && await page.$eval('#rost-notis', el => el.classList.contains('notice-fel')));
+    check('tal nere: fältet och Skicka går att använda', !(await page.isDisabled('#text')) && !(await page.isDisabled('#btn-skicka')) && (await page.inputValue('#text')) === 'Mest morgonpass.');
+    scenario.push(svar('Morgonpass, alltså. Hur många kommer?', 'Mest morgonpass.'));
+    await page.click('#btn-skicka');
+    await vantaPaSvar(page, 2);
+    check('tal nere: Prata är borta resten av samtalet, och notisen försvinner med turen', !(await prata(page)).synlig && (await notis(page)) === null);
+    check('mikrofonen: spåren stoppas efter varje klipp', (await mikrofon(page)).spar.length === 5 && (await mikrofon(page)).spar.every(s => s === true));
+    const m = await matt(page);
+    check('mätning: tal_fel med koden', JSON.stringify(m.filter(x => x.namn === 'intervju_tal_fel').map(x => x.egenskaper.kod)) === '["tomt_ljud","for_manga_anrop","natverk","ljud_for_stort","tal_nere"]' && baraKoder(m));
+    await ctx.close();
+  }
+  {
+    const { ctx, page } = await rostSamtal(DESKTOP, { rost: 'neka' });
+    const t0 = talAnrop.length;
+    await page.click('#btn-prata');
+    await page.waitForSelector('#rost-notis:not([hidden])');
+    check('nekad mikrofon: noticen i felvarianten säger det', (await notis(page)) === 'Mikrofonen är inte tillgänglig. Skriv ditt svar i stället.' && await page.$eval('#rost-notis', el => el.classList.contains('notice-fel')));
+    await page.screenshot({ path: `${OUT}/intervju-mikrofon-nekad.png`, fullPage: true });
+    check('nekad mikrofon: Prata döljs och ingenting skickas', !(await prata(page)).synlig && talAnrop.length === t0);
+    check('nekad mikrofon: fältet och Skicka går att använda, med markören i fältet', !(await page.isDisabled('#text')) && !(await page.isDisabled('#btn-skicka')) && (await page.evaluate(() => document.activeElement.id)) === 'text');
+    const m = await matt(page);
+    check('mätning: nekad mikrofon räknas som tal_fel', m.some(x => x.namn === 'intervju_tal_fel' && x.egenskaper.kod === 'mikrofon') && baraKoder(m));
+    await ctx.close();
+  }
+
+  // ---------- Rösten på mobil ----------
+  {
+    const { ctx, page } = await rostSamtal({ width: 375, height: 740 }, { rost: 'pa', klocka: true });
+    // Avsluta och Skicka är olika höga, så raden jämförs på mitten.
+    const lage = await page.evaluate(() => ['btn-prata', 'btn-avsluta', 'btn-skicka'].map(id => document.getElementById(id).getBoundingClientRect()).map(r => ({ botten: r.bottom, top: r.top, mitt: r.top + r.height / 2 })));
+    check('mobil: Prata på en egen rad över Avsluta och Skicka, som står på samma rad', lage[0].botten <= lage[1].top && Math.abs(lage[1].mitt - lage[2].mitt) < 1 && (await overflow(page)) === 0);
+    await page.screenshot({ path: `${OUT}/intervju-prata-mobil.png`, fullPage: true });
+    await page.click('#btn-prata');
+    await page.waitForSelector('#btn-prata.spelar');
+    await page.clock.fastForward(12000);
+    await page.waitForFunction(() => document.getElementById('prata-tid').textContent === '0:12');
+    check('mobil: under inspelning utan sidledes rullning', (await overflow(page)) === 0);
+    await page.screenshot({ path: `${OUT}/intervju-prata-inspelning-mobil.png`, fullPage: true });
+    await page.click('#btn-prata');
+    await page.waitForFunction(() => document.getElementById('text').value !== '');
+    await page.click('#btn-original');
+    check('mobil: originaltexten utan sidledes rullning', await page.isVisible('#originaltext') && (await overflow(page)) === 0);
+    await page.mouse.move(0, 0);
+    await page.screenshot({ path: `${OUT}/intervju-originaltext-mobil.png`, fullPage: true });
+    await ctx.close();
+  }
+
   await browser.close();
   server.close();
   check('mock-servern: sidans anrop följer protokollet' + (brott.length ? ' (' + brott.join('; ') + ')' : ''), brott.length === 0);
-  console.log('\nanrop till mock-servern:', anrop.length, 'till /intervju-tur,', blockAnrop.length, 'till /intervju-block');
+  const riktiga = [...new Set(adresser.filter(a => /^https?:/.test(a)).map(a => new URL(a).hostname))].filter(v => !TILLATNA_VARDAR.includes(v));
+  check('adresser: ingen riktig server anropas' + (riktiga.length ? ' (' + riktiga.join(', ') + ')' : ''), riktiga.length === 0 && !adresser.some(a => /supabase\.co|openai\.com|anthropic\.com/.test(a)));
+  check('adresser: varje klipp gick till mock-servern', talAnrop.length > 0 && adresser.filter(a => a.includes('intervju-transkribera')).every(a => new URL(a).pathname === MOCK_TAL));
+  console.log('\nanrop till mock-servern:', anrop.length, 'till /intervju-tur,', blockAnrop.length, 'till /intervju-block,', talAnrop.length, 'till /intervju-transkribera');
   console.log('console errors:', errors.length ? errors : 'none');
   if (errors.length) process.exit(1);
 })().catch(e => { console.error('FAIL', e); process.exit(1); });
