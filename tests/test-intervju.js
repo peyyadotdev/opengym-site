@@ -213,6 +213,10 @@ const vantaTills = async (villkor, ms = 5000) => {
   const vantaPaKort = (page, n) => page.waitForFunction(k => document.querySelectorAll('#logg .kort').length === k && !document.getElementById('text').disabled, n);
   const sparat = page => page.evaluate(() => JSON.parse(localStorage.getItem('opengym_intervju_samtal_v1') || 'null'));
   const overflow = page => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  // PostHog laddas aldrig i testet, så händelserna ligger kvar i sidans kö.
+  const matt = page => page.evaluate(() => phQueue.map(([namn, egenskaper]) => ({ namn, egenskaper })));
+  // Bara namn och räknare: varje egenskap är ett tal eller en kort kod, aldrig text ur samtalet.
+  const baraKoder = h => h.every(x => Object.values(x.egenskaper).every(v => typeof v === 'number' || /^[a-z_]{1,24}$/.test(v)));
 
   // ---------- Stängt och utan enkätsvar ----------
   {
@@ -502,6 +506,12 @@ const vantaTills = async (villkor, ms = 5000) => {
     check('klart med samtycke: det du bekräftade är sparat', (await page.textContent('#klart .lede:not([hidden])')) === 'Det du bekräftade är sparat. Tack.' && !(await page.isVisible('#klart-inget')));
     check('klart med samtycke: koden är de första åtta tecknen i samtal', (await page.textContent('#kod')) === idn[0].slice(0, 8) && (await page.textContent('#klart-kod')).includes('daniel@opengym.se'));
     await page.screenshot({ path: `${OUT}/intervju-klart.png`, fullPage: true });
+    const m = await matt(page);
+    const namn = m.map(x => x.namn);
+    check('mätning: korten räknas med blocket', ['intervju_kort_visat', 'intervju_kort_stammer', 'intervju_kort_andra'].every(n => m.some(x => x.namn === n && x.egenskaper.block === 'pengarna')));
+    check('mätning: valet räknas utan värdet', m.some(x => x.namn === 'intervju_kort_val' && JSON.stringify(x.egenskaper) === '{"block":"pilot"}'));
+    check('mätning: misslyckat sparande räknas', namn.includes('intervju_sparfel'));
+    check('mätning: bara namn och räknare, aldrig innehåll', baraKoder(m));
     await ctx.close();
   }
 
@@ -622,6 +632,8 @@ const vantaTills = async (villkor, ms = 5000) => {
     await page.click('#btn-skicka');
     await vantaPaSvar(page, 3);
     check('parkerat sparfel: nästa tur går som vanligt', (await turer(page)).pop().text === 'Autogiro, alltså.');
+    const m = await matt(page);
+    check('mätning: parkerat ämne och misslyckat sparande räknas, utan ämnet', m.some(x => x.namn === 'intervju_parkerat') && m.some(x => x.namn === 'intervju_sparfel' && x.egenskaper.typ === 'sidospar') && baraKoder(m));
     await ctx.close();
   }
 
@@ -653,6 +665,8 @@ const vantaTills = async (villkor, ms = 5000) => {
     await page.click('#btn-stang');
     check('mobil: klart-skärmen utan sidledes rullning', await page.isVisible('#klart-kod') && (await overflow(page)) === 0);
     await page.screenshot({ path: `${OUT}/intervju-klart-mobil.png`, fullPage: true });
+    const m = await matt(page);
+    check('mätning: samtycket räknas som ja eller nej', m.some(x => x.namn === 'intervju_samtycke' && JSON.stringify(x.egenskaper) === '{"svar":"ja"}') && baraKoder(m));
     await ctx.close();
   }
 
@@ -665,6 +679,12 @@ const vantaTills = async (villkor, ms = 5000) => {
     await vantaPaSvar(page, 1);
     check('mobil: ingen sidledes rullning', (await overflow(page)) === 0);
     await page.screenshot({ path: `${OUT}/intervju-mobil.png`, fullPage: true });
+    scenario.push({ status: 429, json: { ok: false, fel: 'for_manga_anrop' } });
+    await page.fill('#text', 'Mest morgonpass.');
+    await page.click('#btn-skicka');
+    await page.waitForSelector('#fel:not([hidden])');
+    check('för många anrop: eget meddelande', (await page.textContent('#fel')) === 'Du har skickat många svar på kort tid. Vänta en stund och försök igen.');
+    check('för många anrop: samtalet fortsätter och texten ligger kvar', !(await page.isDisabled('#btn-skicka')) && !(await page.isDisabled('#text')) && (await page.inputValue('#text')) === 'Mest morgonpass.');
     scenario.push({ status: 400, json: { ok: false, fel: 'for_manga_turer' } });
     await page.fill('#text', 'En till.');
     await page.click('#btn-skicka');
