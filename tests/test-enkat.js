@@ -187,7 +187,7 @@ function serve() {
     await page.waitForFunction(() => document.getElementById('step-title').textContent.trim() === 'Byta system');
 
     // Del 7: max tre, kontaktfält, inskick
-    const q27 = ['Lägre kostnad', 'Svensk support', 'Swish återkommande', 'Bättre app för medlemmarna'];
+    const q27 = ['Lägre kostnad', 'Svensk support', 'Swish-prenumeration', 'Bättre app för medlemmarna'];
     for (const v of q27) await page.check(`input[name="q27_byta"][value="${v}"]`).catch(() => {});
     const q27Checked = await page.$$eval('input[name="q27_byta"]:checked', els => els.length);
     check('q27 stannar på högst tre', q27Checked === 3);
