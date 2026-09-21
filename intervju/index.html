@@ -24,6 +24,7 @@
     --accent: #a6ff1f;        /* neon-lime, bara som fyllning */
     --plate: #e9ffc2;         /* plattan bakom betonade ord */
     --plate-tint: rgba(233, 255, 194, 0.45);
+    --accent-soft-tint: var(--plate-tint);   /* systemets namn på samma ton: bekräftat kort, vald rad */
     --accent-deep: #131311;   /* ink: accentfärg används aldrig som text på ljus botten */
     --paper: #faf9f5;
     --error: #9a2f12;
@@ -78,6 +79,10 @@
   .facts li { display: grid; grid-template-columns: 28px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 15px; color: var(--ink-soft); }
   .facts li span:first-child { font-family: var(--mono); font-size: 12px; color: var(--ink); background: var(--plate); padding: 2px 4px; align-self: start; justify-self: start; }
   .fine { font-size: 13px; line-height: 1.55; color: var(--ink-muted); margin-top: 18px; max-width: 62ch; }
+  .samtycke { margin: 0 0 28px; max-width: 62ch; }
+  .samtycke p { font-size: 15px; line-height: 1.6; color: var(--ink-soft); }
+  .samtycke p + p { margin-top: 10px; }
+  .samtycke a { color: var(--ink); }
   .actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
   .notice { flex-basis: 100%; padding: 14px 16px; border: 1px solid var(--plate); background: var(--plate-tint); border-radius: 2px; font-size: 15px; line-height: 1.5; }
 
@@ -124,6 +129,9 @@
   /* KLART */
   .done-mark { width: 52px; height: 52px; border-radius: 50%; background: var(--accent); color: var(--ink); display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 22px; }
   #klart .lede { margin-bottom: 24px; }
+  #klart .kod { font-size: 15px; line-height: 1.6; color: var(--ink-soft); max-width: 60ch; margin: -8px 0 24px; }
+  #klart .kod a { color: var(--ink); }
+  #klart code { font-family: var(--mono); font-size: 13px; padding: 3px 8px; border: 1px solid var(--line); background: var(--bg); border-radius: 2px; color: var(--ink); }
 
   footer { padding: 28px 0 36px; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--ink-muted); line-height: 1.6; }
   footer a { color: inherit; }
@@ -153,7 +161,7 @@
       </svg>
       OpenGym
     </a>
-    <div class="top-meta">Samtal för boxägare · Provversion</div>
+    <div class="top-meta">Samtal för boxägare</div>
   </div>
 </header>
 
@@ -180,14 +188,26 @@
     <ul class="facts">
       <li><span>01</span><div>Du pratar med en AI-assistent, inte en människa.</div></li>
       <li><span>02</span><div>Tio till femton minuter. Du skriver när det passar och kan avsluta när du vill.</div></li>
-      <li><span>03</span><div>Det här är en provversion. Ingenting du skriver sparas.</div></li>
+      <li><span>03</span><div>Du bestämmer om något sparas. Utan ja sparas ingenting.</div></li>
     </ul>
-    <div class="actions" id="intro-actions"></div>
+    <div class="samtycke" id="samtycke">
+      <p>Säger du ja sparas det du bekräftar på korten, ämnen du vill ta upp i slutet och svaret om pilotgym, ihop med dina enkätsvar. Det sparas i OpenGyms databas i EU och sammanställs anonymt till Boxrapporten 2026. Ditt namn och din e-post behövs inte, och assistenten skriver aldrig in namn på medlemmar eller coacher. Samtalet behandlas av Claude från Anthropic i USA, som inte tränar sina modeller på det och raderar det inom 30 dagar. För att stoppa missbruk räknar servern anrop per dygn, med din nätverksadress som kontrollsumma. Vill du att vi tar bort det som sparats, mejla <a href="mailto:daniel@opengym.se">daniel@opengym.se</a> med koden du får när samtalet är klart.</p>
+      <p>Säger du nej kan du prata ändå, men ingenting sparas.</p>
+    </div>
+    <div class="actions" id="intro-ny">
+      <button type="button" class="btn-primary" id="btn-ja">Starta och spara det jag bekräftar</button>
+      <button type="button" class="btn-ghost" id="btn-nej">Starta utan att spara</button>
+    </div>
+    <div class="actions" id="intro-paborjat" hidden>
+      <div class="notice">Du har ett påbörjat samtal. Fortsätt där du slutade eller börja om.</div>
+      <button type="button" class="btn-primary" id="btn-fortsatt">Fortsätt</button>
+      <button type="button" class="btn-ghost" id="btn-omstart">Börja om</button>
+    </div>
     <p class="fine">Frågorna bygger på dina enkätsvar, som finns i den här webbläsaren. Din e-post följer inte med.</p>
   </section>
 
   <section id="samtal" class="card" hidden aria-labelledby="samtal-titel">
-    <div class="eyebrow" id="samtal-titel">Samtal med OpenGyms AI-assistent · Provversion</div>
+    <div class="eyebrow" id="samtal-titel">Samtal med OpenGyms AI-assistent</div>
     <div class="logg" id="logg" role="log" aria-live="polite"></div>
     <p class="status" id="status" aria-live="polite"></p>
     <p class="form-error" id="fel" role="alert" hidden></p>
@@ -211,7 +231,9 @@
   <section id="klart" class="card" hidden aria-labelledby="klart-titel">
     <div class="done-mark" aria-hidden="true">✓</div>
     <h2 id="klart-titel" tabindex="-1">Tack för samtalet.</h2>
-    <p class="lede">Det här var en provversion, så ingenting av det du skrev sparades.</p>
+    <p class="lede" id="klart-sparat" hidden>Det du bekräftade är sparat. Tack.</p>
+    <p class="kod" id="klart-kod" hidden>Koden till ditt samtal är <code id="kod"></code>. Mejla den till <a href="mailto:daniel@opengym.se">daniel@opengym.se</a> om du vill att vi tar bort det som sparats.</p>
+    <p class="lede" id="klart-inget">Ingenting sparades.</p>
     <a href="/" class="btn-text">Till opengym.se</a>
   </section>
 
@@ -220,7 +242,7 @@
 <footer>
   <div class="wrap">
     © 2026 OpenGym · <a href="/">opengym.se</a><br>
-    Samtalet förs med en AI-assistent. Provversion: ingenting du skriver sparas.
+    Samtalet förs med en AI-assistent. Utan ditt ja sparas ingenting.
   </div>
 </footer>
 
@@ -293,7 +315,10 @@
   // ========== TILLSTÅND ==========
   const $ = id => document.getElementById(id);
   let underlag = null;     // { rid, svar } ur enkäten
+  let samtal = null;       // samtalets id, skapat när samtalet startar
+  let samtycke = false;    // ägarens val i introt, samma i hela samtalet
   let historik = [];       // exakt det servern skickat, orört, eftersom Claude kräver det
+  let visning = [];        // det sidan ritat: turer, kort och parkerade ämnen. Servern ser den aldrig
   let avslutat = false;    // assistenten har avslutat samtalet (händelsen slut)
   let skickar = false;
 
@@ -303,22 +328,33 @@
       return u && typeof u.rid === 'string' && u.svar && typeof u.svar === 'object' ? { rid: u.rid, svar: u.svar } : null;
     } catch (_) { return null; }
   }
+  // En sparad v: 1 saknar samtal-id och samtycke och räknas som inget påbörjat samtal.
   function lasSamtal() {
     try {
       const s = JSON.parse(localStorage.getItem(SAMTAL_KEY) || 'null');
-      return s && s.rid === underlag.rid && Array.isArray(s.historik) && s.historik.length > 0 ? { historik: s.historik, avslutat: s.slut === true } : null;
+      if (!s || s.v !== 2 || s.rid !== underlag.rid || typeof s.samtal !== 'string' || typeof s.samtycke !== 'boolean') return null;
+      if (!Array.isArray(s.historik) || s.historik.length === 0 || !Array.isArray(s.visning)) return null;
+      return { samtal: s.samtal, samtycke: s.samtycke, historik: s.historik, visning: s.visning, avslutat: s.slut === true };
     } catch (_) { return null; }
   }
-  function sparaSamtal() { try { localStorage.setItem(SAMTAL_KEY, JSON.stringify({ v: 1, rid: underlag.rid, historik, slut: avslutat })); } catch (_) {} }
+  function sparaSamtal() {
+    try { localStorage.setItem(SAMTAL_KEY, JSON.stringify({ v: 2, rid: underlag.rid, samtal, samtycke, historik, visning, slut: avslutat })); } catch (_) {}
+  }
   function glomSamtal() { try { localStorage.removeItem(SAMTAL_KEY); } catch (_) {} }
+  // Samtalets id. Äldre webbläsare utan randomUUID får ett likadant id ur getRandomValues.
+  function nyttSamtalsId() {
+    if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+    const b = crypto.getRandomValues(new Uint8Array(16));
+    b[6] = (b[6] & 15) | 64;
+    b[8] = (b[8] & 63) | 128;
+    const h = Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+    return [h.slice(0, 8), h.slice(8, 12), h.slice(12, 16), h.slice(16, 20), h.slice(20)].join('-');
+  }
 
   // ========== VISNING ==========
   const SKARMAR = ['stangd', 'saknas', 'intro', 'samtal', 'klart'];
   function visa(id) { SKARMAR.forEach(s => { $(s).hidden = s !== id; }); }
 
-  function textAv(content) {
-    return (Array.isArray(content) ? content : []).filter(b => b && b.type === 'text').map(b => b.text).join('');
-  }
   function nyTur(vem) {
     const tur = document.createElement('div');
     tur.className = vem === 'ai' ? 'tur tur-ai' : 'tur tur-du';
@@ -339,10 +375,12 @@
       return p;
     }));
   }
+  // Ritar ur visning och aldrig ur historiken, där ägarens meddelanden kan vara block sidan inte tolkar.
   function ritaHistorik() {
     $('logg').replaceChildren();
-    // Första meddelandet är starttexten till servern och visas aldrig.
-    historik.forEach((m, i) => { if (i > 0) fyll(nyTur(m.role === 'assistant' ? 'ai' : 'du'), m.role === 'assistant' ? textAv(m.content) : m.content); });
+    visning.forEach(post => {
+      if (post && (post.vem === 'ai' || post.vem === 'du')) fyll(nyTur(post.vem), post.text);
+    });
   }
 
   const FELTEXT = {
@@ -384,7 +422,7 @@
       const res = await fetch(endpoint(), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ underlag, historik, text: start ? null : text, start }),
+        body: JSON.stringify({ underlag, samtycke, historik, text: start ? null : text, start }),
       });
       if (!res.ok || !res.body) {
         felkod = 'tekniskt';
@@ -421,6 +459,8 @@
     }
     $('status').textContent = '';
     if (klar) {
+      if (!start) visning.push({ vem: 'du', text });
+      visning.push({ vem: 'ai', text: svarstext });
       avslutat = slutSignal;
       sparaSamtal();
       track(start ? 'intervju_startad' : 'intervju_tur', { tur: historik.length / 2 });
@@ -442,8 +482,12 @@
   }
 
   // ========== START ==========
-  function oppnaSamtal(tidigare) {
+  // Ett nytt samtal får ett nytt id och ägarens val. Ett återupptaget tar med sig båda.
+  function oppnaSamtal(tidigare, ja) {
+    samtal = tidigare ? tidigare.samtal : nyttSamtalsId();
+    samtycke = tidigare ? tidigare.samtycke : ja === true;
     historik = tidigare ? tidigare.historik : [];
+    visning = tidigare ? tidigare.visning : [];
     avslutat = tidigare ? tidigare.avslutat : false;
     $('skriv').hidden = false;
     $('avslutat').hidden = true;
@@ -464,10 +508,18 @@
   $('text').addEventListener('keydown', e => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); $('skriv').requestSubmit(); }
   });
+  // Klart-skärmen säger vad som sparades. Koden är början på samtalets id, så att det går att ta bort.
   function stangSamtal() {
     track('intervju_avslutad', { tur: Math.floor(historik.length / 2), av: avslutat ? 'assistenten' : 'agaren' });
+    $('klart-sparat').hidden = !samtycke;
+    $('klart-kod').hidden = !samtycke;
+    $('klart-inget').hidden = samtycke;
+    $('kod').textContent = samtycke && samtal ? samtal.slice(0, 8) : '';
     glomSamtal();
+    samtal = null;
+    samtycke = false;
     historik = [];
+    visning = [];
     avslutat = false;
     visa('klart');
     $('klart-titel').focus();
@@ -475,22 +527,24 @@
   $('btn-avsluta').addEventListener('click', stangSamtal);
   $('btn-stang').addEventListener('click', stangSamtal);
 
+  // Introt: samtycket och två knappar, eller fortsätt och börja om när ett samtal är påbörjat.
+  function visaIntro(tidigare) {
+    $('samtycke').hidden = !!tidigare;
+    $('intro-ny').hidden = !!tidigare;
+    $('intro-paborjat').hidden = !tidigare;
+  }
+  let tidigare = null;
+  $('btn-ja').addEventListener('click', () => { track('intervju_samtycke', { svar: 'ja' }); oppnaSamtal(null, true); });
+  $('btn-nej').addEventListener('click', () => { track('intervju_samtycke', { svar: 'nej' }); oppnaSamtal(null, false); });
+  $('btn-fortsatt').addEventListener('click', () => oppnaSamtal(tidigare));
+  $('btn-omstart').addEventListener('click', () => { glomSamtal(); tidigare = null; visaIntro(null); $('btn-ja').focus(); });
+
   (function starta() {
     if (!endpoint()) { visa('stangd'); track('intervju_visad', { lage: 'stangd' }); return; }
     underlag = lasUnderlag();
     if (!underlag) { visa('saknas'); track('intervju_visad', { lage: 'saknas' }); return; }
-    const tidigare = lasSamtal();
-    const knappar = $('intro-actions');
-    if (tidigare) {
-      knappar.innerHTML = '<div class="notice">Du har ett påbörjat samtal. Fortsätt där du slutade eller börja om.</div>' +
-        '<button type="button" class="btn-primary" id="btn-fortsatt">Fortsätt</button>' +
-        '<button type="button" class="btn-ghost" id="btn-omstart">Börja om</button>';
-      $('btn-fortsatt').addEventListener('click', () => oppnaSamtal(tidigare));
-      $('btn-omstart').addEventListener('click', () => { glomSamtal(); oppnaSamtal(null); });
-    } else {
-      knappar.innerHTML = '<button type="button" class="btn-primary" id="btn-start">Starta samtalet</button>';
-      $('btn-start').addEventListener('click', () => oppnaSamtal(null));
-    }
+    tidigare = lasSamtal();
+    visaIntro(tidigare);
     visa('intro');
     track('intervju_visad', { lage: tidigare ? 'paborjat' : 'ny' });
   })();
