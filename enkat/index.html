@@ -437,7 +437,7 @@
     ] },
     { id: 'byta', title: 'Byta system', questions: [
       { code: 'q27_byta', type: 'multi', label: 'Vad skulle få er att byta system?', help: 'Välj upp till tre.', maxSelect: 3, options: ['Träningslogg, PR och leaderboard i samma system som medlemskapen', 'Riktigt stöd för fasta grupper', 'Lägre kostnad', 'Bättre app för medlemmarna', 'Påminnelser, nya som hör av sig och uppföljning sköts åt mig', 'Svensk support', 'Att någon flyttar över medlemmar och historik åt oss', 'Passersystem inbyggt', 'Swish-prenumeration', 'Inget, vi är nöjda'], required: true },
-      { code: 'q28_gratis', type: 'single', label: 'Ett system som är gratis och i stället tar cirka en och en halv procent av betalningarna, med tak på vad det får kosta per månad. Jämfört med fast månadsavgift plus transaktionsavgifter, är det …', options: ['Mer attraktivt', 'Lika', 'Mindre attraktivt', 'Vet inte'], cols: true, required: true },
+      { code: 'q28_gratis', type: 'single', label: 'Ett system utan fast månadsavgift, som i stället tar cirka en och en halv procent av det medlemmarna betalar, med ett tak per månad. Jämfört med fast månadsavgift plus transaktionsavgifter, är det …', options: ['Mer attraktivt', 'Lika', 'Mindre attraktivt', 'Vet inte'], cols: true, required: true },
       { code: 'q28b_varfor', type: 'text', label: 'Varför?', lines: 2, maxlength: 600 },
       { code: 'q29_pilot', type: 'single', label: 'Vill du vara ett av tre pilotgym när vi startar, med allt gratis under piloten och direkt inflytande över vad som byggs?', options: ['Ja', 'Kanske, berätta mer', 'Nej'], cols: true },
       { code: 'contact_pilot', type: 'contact', kind: 'pilot', label: 'Så når vi dig om piloten', showIf: s => /^(Ja|Kanske)/.test(s.answers.q29_pilot || '') },
