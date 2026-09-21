@@ -91,6 +91,8 @@
   .samtycke-godkann { font-size: 14px; line-height: 1.5; color: var(--ink-soft); max-width: 62ch; margin: 0 0 12px; }
   .actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
   .notice { flex-basis: 100%; padding: 14px 16px; border: 1px solid var(--plate); background: var(--plate-tint); border-radius: 2px; font-size: 15px; line-height: 1.5; }
+  /* Felvarianten: nekad mikrofon, tal till text som ligger nere, tappad anslutning. Samma toner som .form-error. */
+  .notice.notice-fel { border-color: var(--error-soft); background: rgba(241, 198, 182, 0.25); color: var(--error); }
 
   /* KNAPPAR */
   .btn-primary {
@@ -861,8 +863,9 @@
     lasKort(lage !== 'vila' || $('text').disabled);
     uppdateraRost();
   }
-  function visaRostNotis(text) {
+  function visaRostNotis(text, fel) {
     $('rost-notis').textContent = text;
+    $('rost-notis').classList.toggle('notice-fel', fel);
     $('rost-notis').hidden = false;
   }
   function stangStrom(strom) {
@@ -973,7 +976,8 @@
   function rostFel(kod) {
     if (TAL_AV.includes(kod)) rostAv = true;
     satLage('vila');
-    visaRostNotis(ROSTTEXT[kod] || FELTEXT[kod] || FELTEXT.tekniskt);
+    // Ett tyst eller för långt klipp är inget fel, bara ett nytt försök. Allt annat visas som fel.
+    visaRostNotis(ROSTTEXT[kod] || FELTEXT[kod] || FELTEXT.tekniskt, !['tomt_ljud', 'ljud_for_stort'].includes(kod));
     track('intervju_tal_fel', { kod: TALKODER.includes(kod) ? kod : 'tekniskt' });
     if ($('btn-prata').hidden) $('text').focus();
     else $('btn-prata').focus();
