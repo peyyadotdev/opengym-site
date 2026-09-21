@@ -117,6 +117,8 @@
   textarea:disabled { opacity: 0.6; }
   .skriv-rad { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
   .tips { font-family: var(--mono); font-size: 12px; color: var(--ink-muted); }
+  .avslutat { border-top: 1px solid var(--line); padding-top: 18px; display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-between; align-items: center; }
+  .avslutat p { font-family: var(--mono); font-size: 13px; color: var(--ink-soft); }
   .form-error { margin-bottom: 12px; color: var(--error); font-family: var(--mono); font-size: 13px; padding: 12px 14px; border: 1px solid var(--error-soft); background: rgba(241, 198, 182, 0.25); border-radius: 2px; }
 
   /* KLART */
@@ -200,6 +202,10 @@
         </div>
       </div>
     </form>
+    <div class="avslutat" id="avslutat" hidden>
+      <p>Samtalet är klart. Tack för att du tog dig tid.</p>
+      <button type="button" class="btn-primary" id="btn-stang">Stäng samtalet</button>
+    </div>
   </section>
 
   <section id="klart" class="card" hidden aria-labelledby="klart-titel">
@@ -288,6 +294,7 @@
   const $ = id => document.getElementById(id);
   let underlag = null;     // { rid, svar } ur enkäten
   let historik = [];       // exakt det servern skickat, orört, eftersom Claude kräver det
+  let avslutat = false;    // assistenten har avslutat samtalet (händelsen slut)
   let skickar = false;
 
   function lasUnderlag() {
@@ -299,10 +306,10 @@
   function lasSamtal() {
     try {
       const s = JSON.parse(localStorage.getItem(SAMTAL_KEY) || 'null');
-      return s && s.rid === underlag.rid && Array.isArray(s.historik) && s.historik.length > 0 ? s.historik : null;
+      return s && s.rid === underlag.rid && Array.isArray(s.historik) && s.historik.length > 0 ? { historik: s.historik, avslutat: s.slut === true } : null;
     } catch (_) { return null; }
   }
-  function sparaSamtal() { try { localStorage.setItem(SAMTAL_KEY, JSON.stringify({ v: 1, rid: underlag.rid, historik })); } catch (_) {} }
+  function sparaSamtal() { try { localStorage.setItem(SAMTAL_KEY, JSON.stringify({ v: 1, rid: underlag.rid, historik, slut: avslutat })); } catch (_) {} }
   function glomSamtal() { try { localStorage.removeItem(SAMTAL_KEY); } catch (_) {} }
 
   // ========== VISNING ==========
@@ -350,6 +357,13 @@
   };
   const SLUTKODER = ['for_manga_turer', 'for_lang_historik', 'inte_typkund'];
 
+  // Assistenten har avslutat: skrivfältet ersätts av raden om att samtalet är klart.
+  function visaAvslutat() {
+    $('skriv').hidden = true;
+    $('avslutat').hidden = false;
+    $('btn-stang').focus();
+  }
+
   // ========== EN TUR ==========
   async function skicka(text) {
     if (skickar) return;
@@ -364,6 +378,7 @@
     const aiKropp = nyTur('ai');
     let svarstext = '';
     let klar = false;
+    let slutSignal = false;
     let felkod = null;
     try {
       const res = await fetch(endpoint(), {
@@ -391,6 +406,8 @@
             } else if (h.typ === 'klar' && Array.isArray(h.tillagg)) {
               historik = historik.concat(h.tillagg);
               klar = true;
+            } else if (h.typ === 'slut') {
+              slutSignal = true;
             } else if (h.typ === 'fel') {
               felkod = typeof h.kod === 'string' ? h.kod : 'tekniskt';
             }
@@ -404,8 +421,10 @@
     }
     $('status').textContent = '';
     if (klar) {
+      avslutat = slutSignal;
       sparaSamtal();
       track(start ? 'intervju_startad' : 'intervju_tur', { tur: historik.length / 2 });
+      if (avslutat) track('intervju_slut', { tur: historik.length / 2 });
     } else {
       // Ett avbrutet svar tas bort helt, och ägarens text läggs tillbaka i fältet.
       aiKropp.parentElement.remove();
@@ -415,6 +434,7 @@
       track('intervju_fel', { kod: FELTEXT[felkod] ? felkod : 'tekniskt' });
     }
     skickar = false;
+    if (avslutat) { visaAvslutat(); return; }
     const slut = SLUTKODER.includes(felkod);
     $('btn-skicka').disabled = slut;
     $('text').disabled = slut;
@@ -423,10 +443,14 @@
 
   // ========== START ==========
   function oppnaSamtal(tidigare) {
-    historik = tidigare || [];
+    historik = tidigare ? tidigare.historik : [];
+    avslutat = tidigare ? tidigare.avslutat : false;
+    $('skriv').hidden = false;
+    $('avslutat').hidden = true;
     visa('samtal');
     ritaHistorik();
-    if (historik.length === 0) skicka(null);
+    if (avslutat) visaAvslutat();
+    else if (historik.length === 0) skicka(null);
     else $('text').focus();
   }
 
@@ -440,13 +464,16 @@
   $('text').addEventListener('keydown', e => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); $('skriv').requestSubmit(); }
   });
-  $('btn-avsluta').addEventListener('click', () => {
-    track('intervju_avslutad', { tur: Math.floor(historik.length / 2) });
+  function stangSamtal() {
+    track('intervju_avslutad', { tur: Math.floor(historik.length / 2), av: avslutat ? 'assistenten' : 'agaren' });
     glomSamtal();
     historik = [];
+    avslutat = false;
     visa('klart');
     $('klart-titel').focus();
-  });
+  }
+  $('btn-avsluta').addEventListener('click', stangSamtal);
+  $('btn-stang').addEventListener('click', stangSamtal);
 
   (function starta() {
     if (!endpoint()) { visa('stangd'); track('intervju_visad', { lage: 'stangd' }); return; }
