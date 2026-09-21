@@ -6,10 +6,13 @@ const assert = require('assert');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const OUT = path.join(__dirname, 'screenshots');
 const ENDPOINT_PREFIX = 'https://script.google.com/macros/s/';
+// Samma fall som i repot opengym, testade mot sidans kopia av typkundsregeln.
+const FALL = JSON.parse(fs.readFileSync(path.join(__dirname, 'fall-typkund.json'), 'utf8'));
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.txt': 'text/plain; charset=utf-8' };
 
 function serve() {
@@ -50,6 +53,17 @@ function serve() {
   const check = (name, cond) => { assert.ok(cond, name); console.log('  ok', name); };
   const lastPost = () => posts[posts.length - 1];
   const answersOf = p => JSON.parse(p.body.answers);
+  // Sätter intervjuflaggan i enkätsidan för ett test, oavsett vad den står på i källan.
+  async function intervjuFlagga(page, oppen) {
+    const lage = { satt: false };
+    await page.route(u => u.pathname === '/enkat/', async route => {
+      const r = await route.fetch();
+      const body = (await r.text()).replace(/const INTERVJU_OPPEN = (true|false);/, `const INTERVJU_OPPEN = ${oppen};`);
+      lage.satt = body.includes(`const INTERVJU_OPPEN = ${oppen};`);
+      await route.fulfill({ response: r, body });
+    });
+    return lage;
+  }
 
   // ---------- Källkod: copyregler ----------
   {
@@ -65,6 +79,11 @@ function serve() {
     const hits = banned.filter(w => new RegExp(w, 'i').test(src));
     check('enkäten: ingen systemjargong i copyn' + (hits.length ? ' (träffar: ' + hits.join(', ') + ')' : ''), hits.length === 0);
     check('enkäten: inga skogsgröna färger kvar', !/#22a447|#14732f/i.test(raw));
+    check('enkäten: intervjuflaggan finns', /const INTERVJU_OPPEN = (true|false);/.test(raw));
+    const typkundKod = raw.slice(raw.indexOf('// TYPKUND START'), raw.indexOf('// TYPKUND SLUT'));
+    const sb = {};
+    vm.runInNewContext(typkundKod + '\nthis.arTypkund = arTypkund;', sb);
+    for (const f of FALL.fall) check(`enkäten: typkund, ${f.namn}`, sb.arTypkund({ ...FALL.bas, ...f.andringar }) === f.typkund);
     check('enkäten: og:image och twitter:image pekar på delningsbilden', /<meta property="og:image" content="https:\/\/opengym.se\/assets\/og\/enkat.png"/.test(raw) && /<meta name="twitter:image" content="https:\/\/opengym.se\/assets\/og\/enkat.png"/.test(raw));
     const png = fs.readFileSync(path.join(ROOT, 'assets', 'og', 'enkat.png'));
     check('enkäten: delningsbilden är en 1200 × 630 png under 300 kB', png.toString('latin1', 1, 4) === 'PNG' && png.readUInt32BE(16) === 1200 && png.readUInt32BE(20) === 630 && png.length < 300 * 1024);
@@ -73,6 +92,7 @@ function serve() {
   // ---------- Flöde A: hela enkäten på desktop ----------
   {
     const { ctx, page } = await newPage({ width: 1280, height: 900 });
+    const flaggaA = await intervjuFlagga(page, false);
     await page.goto(URL, { waitUntil: 'networkidle' });
     check('intro visas med startknapp', await page.isVisible('#btn-start'));
     await page.screenshot({ path: `${OUT}/enkat-intro.png` });
@@ -183,6 +203,8 @@ function serve() {
     check('matris, max tre och tid med', a.q26_pass === 'Kanske' && a.q26_grupp === '' && a.q27_byta.length === 3 && Number(fin.body.duration_sec) >= 0);
     check('q17b explicit när två valda', a.q17b_storst === 'Swish');
     check('tacksidan listar rapport och pilot', (await page.textContent('#done-list')).includes('Boxrapporten') && (await page.textContent('#done-list')).includes('piloten'));
+    check('stängd intervju: inget erbjudande på tacksidan', flaggaA.satt && !(await page.isVisible('#intervju-erbjudande')));
+    check('stängd intervju: inga svar lämnas över', (await page.evaluate(() => localStorage.getItem('opengym_intervju_underlag_v1'))) === null);
     await page.screenshot({ path: `${OUT}/enkat-klar.png` });
 
     await page.reload({ waitUntil: 'networkidle' });
@@ -231,6 +253,32 @@ function serve() {
       const title = (await page.textContent('#step-title')).trim();
       check(`mobil del ${idx + 1} (${title}) utan overflow`, (await overflow(page)) === 0);
       await page.screenshot({ path: `${OUT}/enkat-mobil-del${idx + 1}.png`, fullPage: true });
+    }
+    await ctx.close();
+  }
+
+  // ---------- Flöde C: erbjudandet om samtal, med intervjun öppen ----------
+  for (const [namn, andring, vantat] of [['typkund', {}, true], ['inte typkund', { q03_medlemmar: 'Under 80' }, false]]) {
+    const { ctx, page } = await newPage({ width: 1280, height: 900 });
+    const flagga = await intervjuFlagga(page, true);
+    await page.goto(URL, { waitUntil: 'networkidle' });
+    const rid = 'test-rid-' + namn.replace(/ /g, '-');
+    const svar = { ...FALL.bas, ...andring, q29_pilot: 'Nej', q30_rapport: 'Nej tack' };
+    await page.evaluate(([r, a]) => localStorage.setItem('opengym_enkat_v1', JSON.stringify({ v: 1, rid: r, startedAt: new Date().toISOString(), step: 6, maxStep: 6, answers: a, contact: {}, source: 'test', completedAt: null })), [rid, svar]);
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.click('#btn-resume');
+    await page.click('#btn-next');
+    await page.waitForSelector('#done:not([hidden])');
+    check(`öppen intervju, ${namn}: sidan kördes med intervjun öppen`, flagga.satt);
+    check(`öppen intervju, ${namn}: erbjudandet ${vantat ? 'visas' : 'visas inte'}`, (await page.isVisible('#intervju-erbjudande')) === vantat);
+    const lamnat = await page.evaluate(() => JSON.parse(localStorage.getItem('opengym_intervju_underlag_v1')));
+    if (vantat) {
+      check('öppen intervju, typkund: svaren lämnas över med svars-id', lamnat && lamnat.rid === rid && lamnat.svar.q03_medlemmar === '150–250' && lamnat.svar.q09_irriterande === FALL.bas.q09_irriterande);
+      check('öppen intervju, typkund: inga kontaktfält och ingen e-post lämnas över', !Object.keys(lamnat.svar).some(k => k.startsWith('c_') || k.endsWith('_email')) && !JSON.stringify(lamnat).includes('@'));
+      check('öppen intervju, typkund: länken går till intervjun', (await page.getAttribute('#intervju-lank', 'href')) === '/intervju/');
+      await page.screenshot({ path: `${OUT}/enkat-klar-erbjudande.png`, fullPage: true });
+    } else {
+      check('öppen intervju, inte typkund: inga svar lämnas över', lamnat === null);
     }
     await ctx.close();
   }
