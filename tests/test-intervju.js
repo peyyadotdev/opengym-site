@@ -58,18 +58,22 @@ function serve() {
 const check = (name, cond) => { assert.ok(cond, name); console.log('  ok', name); };
 
 // Svar i serverns form: textdelar och sist klar med meddelandena som läggs i historiken.
-// Ett parkerat ämne kommer mitt i texten och ger två meddelanden till i klar. Ett kort kommer
-// efter klar, och assistentens sista meddelande slutar då med kortets block. Tom text ger inga textdelar.
-function svar(text, fraga = '(start)', { kort = null, parkerat = [], slut = false } = {}) {
+// Ett parkerat ämne kommer mitt i texten. Parkerade assistenten innan den skrev sitt svar ger det
+// två meddelanden till i klar. Med parkeratSist slutar i stället assistentens sista meddelande med
+// parkeringen, och då kommer inget kort. Ett kort kommer efter klar, och assistentens sista
+// meddelande slutar då med kortets block. Tom text ger inga textdelar.
+function svar(text, fraga = '(start)', { kort = null, parkerat = [], parkeratSist = false, slut = false } = {}) {
   const delar = text ? text.split(/(?<= )/).map(delta => ({ typ: 'text', delta })) : [];
   const handelser = [...delar.slice(0, 1), ...parkerat, ...delar.slice(1)];
   const tillagg = [{ role: 'user', content: fraga }];
-  parkerat.forEach(p => tillagg.push(
-    { role: 'assistant', content: [{ type: 'tool_use', id: 'toolu_p' + p.nummer, name: 'parkera', input: {} }] },
+  const parkering = p => ({ type: 'tool_use', id: 'toolu_p' + p.nummer, name: 'parkera', input: {} });
+  if (!parkeratSist) parkerat.forEach(p => tillagg.push(
+    { role: 'assistant', content: [parkering(p)] },
     { role: 'user', content: kortsvarBlock('toolu_p' + p.nummer, 'ok') },
   ));
   const sista = [{ type: 'thinking', thinking: '', signature: 'sig-' + text.length }];
   if (text) sista.push({ type: 'text', text });
+  if (parkeratSist) parkerat.forEach(p => sista.push(parkering(p)));
   if (kort) sista.push({ type: 'tool_use', id: kort.id, name: 'kort', input: {} });
   tillagg.push({ role: 'assistant', content: sista });
   handelser.push({ typ: 'klar', tillagg });
@@ -520,6 +524,104 @@ const vantaTills = async (villkor, ms = 5000) => {
     check('utan samtycke: valet går bara till /intervju-tur', blockAnrop.length === b0 && JSON.stringify(anrop[t0 + 2].kortsvar) === JSON.stringify({ id: VALKORT.id, val: 'nej' }));
     await page.click('#btn-stang');
     check('utan samtycke: klart säger att ingenting sparades', (await page.textContent('#klart .lede:not([hidden])')) === 'Ingenting sparades.' && !(await page.isVisible('#klart-kod')));
+    await ctx.close();
+  }
+
+  // ---------- Parkerade ämnen ----------
+  {
+    const { ctx, page } = await newPage({ width: 1280, height: 900 });
+    await page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
+    const t0 = anrop.length, b0 = blockAnrop.length;
+    scenario.push(svar('Hej. Berätta om pengarna.'));
+    await page.click('#btn-ja');
+    await vantaPaSvar(page, 1);
+
+    // Assistenten parkerade innan den skrev sitt svar: fyra meddelanden i klar.
+    const s4 = svar('Det tar vi i slutet. Hur betalar medlemmarna?', 'Schemat för coacherna är ett eget kapitel.', { parkerat: [PARKERAT] });
+    scenario.push(s4);
+    await page.fill('#text', 'Schemat för coacherna är ett eget kapitel.');
+    await page.click('#btn-skicka');
+    await vantaPaSvar(page, 2);
+    check('parkerat: raden "Tas upp i slutet: …" under assistentens tur', await page.$eval('#logg .parkerat', el => el.textContent === 'Tas upp i slutet: Coachernas scheman' && el.previousElementSibling.classList.contains('tur-ai')));
+    await vantaTills(() => blockAnrop.length === b0 + 1);
+    const sp = blockAnrop[b0];
+    check('parkerat: sparas med /intervju-block och sidospar exakt som i händelsen', sp.typ === 'sidospar' && sp.samtycke === true && UUID.test(sp.samtal)
+      && JSON.stringify(sp.sidospar) === JSON.stringify({ nummer: 1, amne: 'Coachernas scheman', vad_personen_sa: 'Schemat för coacherna är ett eget kapitel.' }));
+    check('parkerat: ligger i visning efter turen', JSON.stringify((await sparat(page)).visning.slice(-2)) === JSON.stringify([{ vem: 'ai', text: 'Det tar vi i slutet. Hur betalar medlemmarna?' }, { parkerat: 'Coachernas scheman' }]));
+    check('parkerat: inget kort väntar', (await page.getAttribute('#text', 'placeholder')) === 'Skriv ditt svar');
+
+    scenario.push(svar('Autogiro, alltså. Och bokningen?', 'Autogiro.'));
+    await page.fill('#text', 'Autogiro.');
+    await page.click('#btn-skicka');
+    await vantaPaSvar(page, 3);
+    const h4 = anrop[anrop.length - 1].historik;
+    check('stycken: alla fyra meddelanden ur klar ligger i historiken, orörda', h4.length === 6 && JSON.stringify(h4.slice(2)) === JSON.stringify(s4.handelser.find(h => h.typ === 'klar').tillagg));
+
+    // Historiken slutar med parkeringen och inget kort kom: nästa tur är vanlig text.
+    const P2 = { typ: 'parkerat', nummer: 2, amne: 'Bokningen', vad_personen_sa: 'Bokningen strular varje måndag.' };
+    scenario.push(svar('Den tar vi också i slutet.', 'Bokningen strular varje måndag.', { parkerat: [P2], parkeratSist: true }));
+    await page.fill('#text', 'Bokningen strular varje måndag.');
+    await page.click('#btn-skicka');
+    await vantaPaSvar(page, 4);
+    await vantaTills(() => blockAnrop.length === b0 + 2);
+    check('parkerat sist: historiken slutar med parkeringen', (await sparat(page)).historik.slice(-1)[0].content.slice(-1)[0].type === 'tool_use');
+    scenario.push(svar('Noterat. Hur många coacher har du?', kortsvarBlock('toolu_p2', 'ok').concat({ type: 'text', text: 'Fyra.' })));
+    await page.fill('#text', 'Fyra.');
+    await page.click('#btn-skicka');
+    await vantaPaSvar(page, 5);
+    const efter = anrop[anrop.length - 1];
+    check('parkerat sist: nästa anrop har text och inget kortsvar', efter.text === 'Fyra.' && !('kortsvar' in efter));
+    check('parkerat sist: ägarens meddelande som lista med block följer med orört', JSON.stringify((await sparat(page)).historik.slice(-2)[0].content) === JSON.stringify(kortsvarBlock('toolu_p2', 'ok').concat({ type: 'text', text: 'Fyra.' })));
+
+    // Ett avbrutet svar med ett parkerat ämne: raden försvinner och ingenting sparas.
+    const b1 = blockAnrop.length;
+    scenario.push({ handelser: [{ typ: 'text', delta: 'Det ' }, { typ: 'parkerat', nummer: 3, amne: 'Lokalen', vad_personen_sa: 'Hyran går upp.' }, { typ: 'fel', kod: 'upptagen' }] });
+    await page.fill('#text', 'Hyran går upp.');
+    await page.click('#btn-skicka');
+    await page.waitForSelector('#fel:not([hidden])');
+    await page.waitForTimeout(300);
+    check('parkerat i avbrutet svar: raden tas bort och ingenting sparas', (await page.$$('#logg .parkerat')).length === 2 && blockAnrop.length === b1);
+
+    const fore = await loggen(page);
+    await page.reload({ waitUntil: 'load' });
+    await page.click('#btn-fortsatt');
+    check('parkerat: raderna ritas upp igen efter omladdning', JSON.stringify(await loggen(page)) === JSON.stringify(fore));
+    await ctx.close();
+  }
+  {
+    // Utan samtycke visas raden, men ingenting sparas.
+    const { ctx, page } = await newPage({ width: 1280, height: 900 });
+    await page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
+    const b0 = blockAnrop.length;
+    scenario.push(svar('Det tar vi i slutet. Hur betalar medlemmarna?', '(start)', { parkerat: [PARKERAT] }));
+    await page.click('#btn-nej');
+    await vantaPaSvar(page, 1);
+    await page.waitForTimeout(300);
+    check('parkerat utan samtycke: raden visas men sparas inte', (await page.textContent('#logg .parkerat')) === 'Tas upp i slutet: Coachernas scheman' && blockAnrop.length === b0);
+    await ctx.close();
+  }
+  {
+    // Sparandet misslyckas två gånger: ett nytt försök, sedan inte fler, och samtalet går vidare.
+    const { ctx, page } = await newPage({ width: 1280, height: 900 });
+    await page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
+    scenario.push(svar('Hej. Berätta om pengarna.'));
+    await page.click('#btn-ja');
+    await vantaPaSvar(page, 1);
+    const b0 = blockAnrop.length;
+    blockScenario.push({ status: 500, json: { ok: false, fel: 'tekniskt' } }, { status: 200, json: { ok: false, fel: 'block_form' } });
+    scenario.push(svar('Det tar vi i slutet. Hur betalar medlemmarna?', 'Coacherna.', { parkerat: [PARKERAT] }));
+    await page.fill('#text', 'Coacherna.');
+    await page.click('#btn-skicka');
+    await vantaPaSvar(page, 2);
+    check('parkerat sparfel: samtalet väntar inte på sparandet', !(await page.isDisabled('#text')) && !(await page.isVisible('#fel')) && (await page.$$('.kort-fel:not([hidden])')).length === 0);
+    await vantaTills(() => blockAnrop.length === b0 + 2);
+    await page.waitForTimeout(1500);
+    check('parkerat sparfel: ett nytt försök och sedan inte fler', blockAnrop.length === b0 + 2 && blockAnrop.slice(b0).every(b => b.typ === 'sidospar'));
+    scenario.push(svar('Autogiro, alltså.', 'Autogiro.'));
+    await page.fill('#text', 'Autogiro.');
+    await page.click('#btn-skicka');
+    await vantaPaSvar(page, 3);
+    check('parkerat sparfel: nästa tur går som vanligt', (await turer(page)).pop().text === 'Autogiro, alltså.');
     await ctx.close();
   }
 

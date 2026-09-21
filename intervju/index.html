@@ -112,6 +112,7 @@
   .tur-text p + p { margin-top: 10px; }
   .tur-du { background: var(--bg); border: 1px solid var(--line); padding: 12px 14px; }
   .tur-du .tur-text { color: var(--ink-soft); }
+  .parkerat { font-family: var(--mono); font-size: 13px; line-height: 1.5; color: var(--ink-soft); margin-top: -8px; }
   .status { font-family: var(--mono); font-size: 13px; color: var(--ink-muted); min-height: 20px; margin-bottom: 8px; }
   .skriv { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 18px; }
   textarea {
@@ -417,6 +418,12 @@
     if (text !== undefined) e.textContent = text;
     return e;
   }
+  // Ett ämne assistenten parkerat till slutet, som en rad under assistentens tur.
+  function ritaParkerat(amne) {
+    const rad = skapa('p', 'parkerat', 'Tas upp i slutet: ' + amne);
+    $('logg').append(rad);
+    return rad;
+  }
 
   // ========== KORTEN ==========
   const kortEl = new Map();   // kortets id → elementet som visar det
@@ -525,6 +532,7 @@
     kortEl.clear();
     visning.forEach(post => {
       if (post && post.kort) $('logg').append(byggKort(post));
+      else if (post && typeof post.parkerat === 'string') ritaParkerat(post.parkerat);
       else if (post && (post.vem === 'ai' || post.vem === 'du')) fyll(nyTur(post.vem), post.text);
     });
     uppdateraFalt();
@@ -606,6 +614,18 @@
     $('text').focus();
   }
 
+  // Ett parkerat ämne sparas direkt när ägaren sagt ja, men får aldrig stoppa samtalet: misslyckas
+  // det försöker sidan en gång till, och sedan inte mer. Ämnet stäms ändå av på ett kort i slutet.
+  // Id och samtycke tas med här, så att ett nytt försök gäller samma samtal även om det hunnit stängas.
+  async function sparaSidospar(h) {
+    if (!samtycke) return;
+    const { typ, ...sidospar } = h;
+    const delar = { samtal, samtycke, typ: 'sidospar', sidospar };
+    if (await sparaBlock(delar)) return;
+    await new Promise(r => setTimeout(r, 1000));
+    if (!(await sparaBlock(delar))) track('intervju_sparfel', { typ: 'sidospar' });
+  }
+
   // ========== EN TUR ==========
   // Ägarens text, ett svar på ett kort, eller starten när båda saknas. Medan ett kort väntar går
   // texten som en rättning av kortet. Ger true när assistentens svar kom fram helt.
@@ -626,6 +646,8 @@
     let svarstext = '';
     let klar = false;
     let nyttKort = null;
+    const parkerade = [];     // händelserna parkerat, som räknas först när svaret är klart
+    const parkeradeEl = [];
     let slutSignal = false;
     let felkod = null;
     const kropp = { underlag, samtycke, historik, text: start || kortsvar ? null : text, start };
@@ -656,6 +678,9 @@
             } else if (h.typ === 'klar' && Array.isArray(h.tillagg)) {
               historik = historik.concat(h.tillagg);
               klar = true;
+            } else if (h.typ === 'parkerat' && typeof h.amne === 'string') {
+              parkerade.push(h);
+              parkeradeEl.push(ritaParkerat(h.amne));
             } else if (h.typ === 'kort' && klar && giltigtKort(h)) {
               nyttKort = h;
             } else if (h.typ === 'slut') {
@@ -677,6 +702,12 @@
       // Ett svar med bara ett kort ger ingen tom tur.
       if (svarstext) visning.push({ vem: 'ai', text: svarstext });
       else aiKropp.parentElement.remove();
+      // Parkerade ämnen sparas först nu, så att ett avbrutet svar inte lämnar något sparat efter sig.
+      parkerade.forEach(p => {
+        visning.push({ parkerat: p.amne });
+        sparaSidospar(p);
+        track('intervju_parkerat');
+      });
       // Kortet som besvarades: bekräftat efter Stämmer eller ett val, ändrat efter en rättning.
       const besvarat = kortsvar ? visning.find(p => p.kort && p.kort.id === kortsvar.id) : null;
       if (besvarat) {
@@ -698,6 +729,7 @@
     } else {
       // Ett avbrutet svar tas bort helt, och ägarens text läggs tillbaka i fältet.
       aiKropp.parentElement.remove();
+      parkeradeEl.forEach(e => e.remove());
       if (duKropp) { duKropp.parentElement.remove(); $('text').value = text; }
       $('fel').textContent = FELTEXT[felkod] || FELTEXT.tekniskt;
       $('fel').hidden = false;
