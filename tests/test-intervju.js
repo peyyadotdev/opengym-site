@@ -179,6 +179,31 @@ function svar(text, fraga = '(start)') {
     await ctx.close();
   }
 
+  // ---------- Assistenten avslutar samtalet ----------
+  {
+    const { ctx, page } = await newPage({ width: 1280, height: 900 });
+    await page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
+    scenario.push(svar('Är det något mer du vill berätta?'));
+    await page.click('#btn-start');
+    await vantaPaSvar(page, 1);
+    const sista = svar('Tack för samtalet. Då är vi klara.', 'Nej.');
+    sista.handelser.push({ typ: 'slut' });
+    scenario.push(sista);
+    await page.fill('#text', 'Nej.');
+    await page.click('#btn-skicka');
+    await page.waitForSelector('#avslutat:not([hidden])');
+    check('slut: skrivfältet försvinner', !(await page.isVisible('#skriv')));
+    check('slut: raden om att samtalet är klart visas', (await page.textContent('#avslutat')).includes('Samtalet är klart'));
+    check('slut: sista svaret visas', (await turer(page)).pop().text === 'Tack för samtalet. Då är vi klara.');
+    await page.screenshot({ path: `${OUT}/intervju-slut.png`, fullPage: true });
+    await page.reload({ waitUntil: 'load' });
+    await page.click('#btn-fortsatt');
+    check('slut: efter omladdning är samtalet fortfarande avslutat', await page.isVisible('#avslutat') && !(await page.isVisible('#skriv')));
+    await page.click('#btn-stang');
+    check('slut: stäng visar tacksidan och glömmer samtalet', await page.isVisible('#klart') && (await page.evaluate(() => localStorage.getItem('opengym_intervju_samtal_v1'))) === null);
+    await ctx.close();
+  }
+
   // ---------- Mobil, och slutkoder ----------
   {
     const { ctx, page } = await newPage({ width: 375, height: 740 });
