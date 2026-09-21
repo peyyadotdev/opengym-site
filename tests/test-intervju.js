@@ -168,9 +168,11 @@ const vantaTills = async (villkor, ms = 5000) => {
   const scenario = [];       // nästa svar från /intervju-tur
   const blockAnrop = [];     // kropparna till /intervju-block
   const blockScenario = [];  // nästa svar från /intervju-block, annars sparat enligt samtycket
+  const ordning = [];        // vilken väg som anropades, i tur och ordning
 
   async function newPage(viewport, { underlag = UNDERLAG, samtal = null } = {}) {
-    const ctx = await browser.newContext({ viewport });
+    // Minskad rörelse, som sidan stöder, så att skärmbilderna inte fångar en knapp mitt i en övergång.
+    const ctx = await browser.newContext({ viewport, reducedMotion: 'reduce' });
     await ctx.route(/posthog\.com/, r => r.abort());
     if (underlag) await ctx.addInitScript(u => localStorage.setItem('opengym_intervju_underlag_v1', JSON.stringify(u)), underlag);
     // Ett sparat samtal läggs bara in första gången, så att sidans egna ändringar överlever en omladdning.
@@ -182,6 +184,7 @@ const vantaTills = async (villkor, ms = 5000) => {
       const req = route.request();
       const kropp = JSON.parse(req.postData() || 'null');
       anrop.push(kropp);
+      ordning.push('tur');
       kollaTur(kropp);
       const nasta = scenario.shift() || { handelser: [{ typ: 'fel', kod: 'tekniskt' }] };
       if (nasta.status) return route.fulfill({ status: nasta.status, contentType: 'application/json', body: JSON.stringify(nasta.json) });
@@ -190,6 +193,7 @@ const vantaTills = async (villkor, ms = 5000) => {
     await page.route(u => new URL(String(u.href || u)).pathname === MOCK_BLOCK, route => {
       const kropp = JSON.parse(route.request().postData() || 'null');
       blockAnrop.push(kropp);
+      ordning.push('block');
       kollaBlock(kropp);
       const nasta = blockScenario.shift() || { status: 200, json: { ok: true, sparat: !!kropp && kropp.samtycke === true } };
       return route.fulfill({ status: nasta.status, contentType: 'application/json', body: JSON.stringify(nasta.json) });
@@ -371,6 +375,182 @@ const vantaTills = async (villkor, ms = 5000) => {
     check('slut: efter omladdning är samtalet fortfarande avslutat', await page.isVisible('#avslutat') && !(await page.isVisible('#skriv')));
     await page.click('#btn-stang');
     check('slut: stäng visar tacksidan och glömmer samtalet', await page.isVisible('#klart') && (await page.evaluate(() => localStorage.getItem('opengym_intervju_samtal_v1'))) === null);
+    await ctx.close();
+  }
+
+  // ---------- Korten med samtycke ----------
+  {
+    const { ctx, page } = await newPage({ width: 1280, height: 900 });
+    await page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
+    const t0 = anrop.length, b0 = blockAnrop.length;
+    // Kortet nummer i (från noll) av de som matchar sel.
+    const kortet = (sel, i = 0) => page.$$eval(sel, (els, i) => { const el = els[i]; return {
+      klass: el.className,
+      rubrik: el.querySelector('.kort-rubrik').textContent,
+      bock: !!el.querySelector('.kort-bock'),
+      rader: [...el.querySelectorAll('.kort-rad')].map(r => ({
+        etikett: r.querySelector('dt').textContent,
+        taggar: [...r.querySelectorAll('.tag')].map(t => t.textContent),
+        kalla: r.querySelector('.kalla') ? r.querySelector('.kalla').textContent : null,
+        varde: r.querySelector('dd').textContent,
+      })),
+      knappar: [...el.querySelectorAll('button')].map(b => ({ text: b.textContent, klass: b.className, av: b.disabled })),
+      fel: el.querySelector('.kort-fel').hidden ? null : el.querySelector('.kort-fel').textContent,
+    }; }, i);
+
+    scenario.push(svar('Hej. Så här har jag uppfattat pengarna. Stämmer det?', '(start)', { kort: KORT_PENGAR }));
+    await page.click('#btn-ja');
+    await vantaPaKort(page, 1);
+    const k1 = await kortet('#logg .kort');
+    check('kort: ritas efter assistentens tur', await page.$eval('#logg .kort', el => el.previousElementSibling && el.previousElementSibling.classList.contains('tur-ai')));
+    check('kort: rubriken och en rad per post i rader', k1.rubrik === 'Pengarna' && k1.rader.length === 2 && k1.rader[0].etikett === 'Betalsätt' && k1.rader[1].etikett === 'En avgift på betalningarna i stället för licens');
+    check('kort: listor visas som taggar, text som text', JSON.stringify(k1.rader[0].taggar) === '["Autogiro","Swish"]' && k1.rader[1].taggar.length === 0 && k1.rader[1].varde === 'Negativ');
+    check('kort: värden ur enkäten har markeringen enkät, andra inte', k1.rader[0].kalla === 'enkät' && k1.rader[1].kalla === null);
+    check('kort: Stämmer som primär och Ändra som ghost', JSON.stringify(k1.knappar.map(b => b.text + ':' + b.klass)) === '["Stämmer:btn-primary kort-stammer","Ändra:btn-ghost kort-andra"]');
+    check('kort: platshållaren ber om ändringen medan kortet väntar', (await page.getAttribute('#text', 'placeholder')) === 'Skriv vad som ska ändras');
+    check('kort: sparas i visning som väntande', JSON.stringify((await sparat(page)).visning.pop()) === JSON.stringify({ kort: Object.fromEntries(Object.entries(KORT_PENGAR).filter(([n]) => n !== 'typ')), status: 'vantar' }));
+    await page.screenshot({ path: `${OUT}/intervju-kort.png`, fullPage: true });
+
+    const fore = await loggen(page);
+    await page.reload({ waitUntil: 'load' });
+    await page.click('#btn-fortsatt');
+    check('återupptaget: samma turer och kort, och kortet går att svara på', JSON.stringify(await loggen(page)) === JSON.stringify(fore) && (await page.$$('.kort-aktiv .kort-stammer')).length === 1);
+    check('återupptaget: platshållaren ber fortfarande om ändringen', (await page.getAttribute('#text', 'placeholder')) === 'Skriv vad som ska ändras');
+
+    // Sparandet misslyckas: felet på kortet, inget anrop till /intervju-tur, knapparna går att trycka igen.
+    blockScenario.push({ status: 500, json: { ok: false, fel: 'tekniskt' } });
+    await page.click('.kort-aktiv .kort-stammer');
+    await page.waitForSelector('.kort-aktiv .kort-fel:not([hidden])');
+    const kf = await kortet('.kort-aktiv');
+    check('sparfel: "Kunde inte spara. Tryck igen." på kortet', kf.fel === 'Kunde inte spara. Tryck igen.' && !/kort-bekraftat/.test(kf.klass));
+    check('sparfel: inget anrop till /intervju-tur', anrop.length === t0 + 1 && blockAnrop.length === b0 + 1);
+    check('sparfel: knapparna och fältet går att använda igen', kf.knappar.every(b => !b.av) && !(await page.isDisabled('#text')));
+
+    scenario.push(svar('Bra. Hur ofta byter medlemmarna betalsätt?', kortsvarBlock(KORT_PENGAR.id, 'Stämmer.')));
+    await page.click('.kort-aktiv .kort-stammer');
+    await vantaPaSvar(page, 2);
+    const blk = blockAnrop[b0 + 1];
+    check('stämmer: ett nytt tryck försöker spara igen', blockAnrop.length === b0 + 2);
+    check('stämmer: /intervju-block med blocket, varden och kallor orörda', blk.typ === 'block' && blk.block === 'pengarna' && blk.samtycke === true && blk.underlag.rid === RID
+      && JSON.stringify(blk.varden) === JSON.stringify(KORT_PENGAR.varden) && JSON.stringify(blk.kallor) === JSON.stringify(KORT_PENGAR.kallor));
+    check('stämmer: först /intervju-block och sedan /intervju-tur', ordning.slice(-2).join() === 'block,tur');
+    const ts = anrop[t0 + 1];
+    check('stämmer: kortsvar med stammer och text null', JSON.stringify(ts.kortsvar) === JSON.stringify({ id: KORT_PENGAR.id, stammer: true }) && ts.text === null && ts.samtycke === true && ts.start === false);
+    const k2 = await kortet('#logg .kort');
+    check('stämmer: kortet är bekräftat med bocken och utan knappar', /kort-bekraftat/.test(k2.klass) && k2.bock && k2.knappar.length === 0);
+    check('stämmer: ingen tur från ägaren för ett kortsvar', JSON.stringify((await turer(page)).map(t => t.vem)) === '["ai","ai"]');
+    check('stämmer: platshållaren är tillbaka', (await page.getAttribute('#text', 'placeholder')) === 'Skriv ditt svar');
+    await page.screenshot({ path: `${OUT}/intervju-kort-bekraftat.png`, fullPage: true });
+
+    // Ett svar med bara ett kort.
+    const KORT_C = kopia(KORT_PENGAR, { id: 'toolu_01C', rader: [{ etikett: 'Betalsätt', varde: ['Autogiro', 'Swish', 'Kort'], kalla: 'samtal' }, KORT_PENGAR.rader[1]] });
+    scenario.push(svar('', 'Nästan aldrig. Kort tar vi också.', { kort: KORT_C }));
+    await page.fill('#text', 'Nästan aldrig. Kort tar vi också.');
+    await page.click('#btn-skicka');
+    await vantaPaKort(page, 2);
+    check('bara ett kort: ingen tom tur', (await page.$$('#logg .tur-ai')).length === 2 && (await turer(page)).every(t => t.text.trim() !== ''));
+    check('bara ett kort: kortet ritas direkt efter ägarens tur', await page.$eval('.kort-aktiv', el => el.previousElementSibling.classList.contains('tur-du')));
+
+    // Ändra lägger markören i fältet, och det som skickas är en rättning.
+    await page.click('.kort-aktiv .kort-andra');
+    check('ändra: markören i skrivfältet', (await page.evaluate(() => document.activeElement.id)) === 'text');
+    const KORT_D = kopia(KORT_C, { id: 'toolu_01D' });
+    scenario.push(svar('Då rättar jag det.', kortsvarBlock(KORT_C.id, 'Kort bara för drop-in.'), { kort: KORT_D }));
+    const b1 = blockAnrop.length;
+    await page.fill('#text', '  Kort bara för drop-in.  ');
+    await page.click('#btn-skicka');
+    await vantaPaKort(page, 3);
+    const tr = anrop[anrop.length - 1];
+    check('ändra: kortsvar med rättningen och text null', JSON.stringify(tr.kortsvar) === JSON.stringify({ id: KORT_C.id, rattning: 'Kort bara för drop-in.' }) && tr.text === null);
+    check('ändra: ingen /intervju-block för en rättning', blockAnrop.length === b1);
+    const kc = await kortet('#logg .kort', 1);
+    check('ändra: det gamla kortet tonas ned och knapparna försvinner', /kort-andrat/.test(kc.klass) && kc.knappar.length === 0 && !kc.bock);
+    check('ändra: rättningen visas som ägarens tur', (await turer(page)).filter(t => t.vem === 'du').pop().text === 'Kort bara för drop-in.');
+    check('ändra: det nya kortet väntar', (await page.$$('.kort-aktiv')).length === 1 && (await kortet('.kort-aktiv')).rader[0].taggar.length === 3);
+
+    // Sparat, men svaret når inte assistenten: kortet väntar igen och nästa tryck sparar om.
+    scenario.push({ handelser: [{ typ: 'fel', kod: 'tekniskt' }] });
+    await page.click('.kort-aktiv .kort-stammer');
+    await page.waitForSelector('#fel:not([hidden])');
+    check('fel efter sparat: kortet väntar igen med knapparna', (await page.$$('.kort-aktiv .kort-stammer:not([disabled])')).length === 1 && !(await page.$('.kort-aktiv.kort-bekraftat')));
+    check('fel efter sparat: felet visas under samtalet', (await page.textContent('#fel')) === 'Något gick fel. Försök igen om en stund.');
+    scenario.push(svar('Sista frågan. Vill du vara ett av pilotgymmen?', kortsvarBlock(KORT_D.id, 'Stämmer.'), { kort: VALKORT }));
+    await page.click('.kort-aktiv .kort-stammer');
+    await vantaPaKort(page, 4);
+    check('fel efter sparat: nytt tryck sparar igen och skickar', blockAnrop.length === b1 + 2 && JSON.stringify(anrop[anrop.length - 1].kortsvar) === JSON.stringify({ id: KORT_D.id, stammer: true }));
+
+    // Valkortet.
+    const val = await page.$$eval('.kort-aktiv .opt', els => els.map(e => ({ text: e.textContent, av: e.disabled })));
+    check('valkort: en rad att trycka på per val', JSON.stringify(val) === JSON.stringify([{ text: 'Ja', av: false }, { text: 'Nej', av: false }]) && (await page.textContent('.kort-aktiv .kort-rubrik')) === 'Pilotgym');
+    check('valkort: inga Stämmer och Ändra', (await page.$$('.kort-aktiv .kort-stammer, .kort-aktiv .kort-andra')).length === 0);
+    await page.screenshot({ path: `${OUT}/intervju-valkort.png`, fullPage: true });
+    scenario.push(svar('Tack. Då hör jag av mig om piloten. Det var allt.', kortsvarBlock(VALKORT.id, 'ja'), { slut: true }));
+    await page.click('.kort-aktiv .opt:nth-child(1)');
+    await page.waitForSelector('#avslutat:not([hidden])');
+    const bp = blockAnrop[blockAnrop.length - 1];
+    check('valkort: sparar pilotintresse', bp.typ === 'block' && bp.block === 'pilot' && JSON.stringify(bp.varden) === '{"pilotintresse":"ja"}' && JSON.stringify(bp.kallor) === '{"pilotintresse":"samtal"}');
+    check('valkort: skickar val', JSON.stringify(anrop[anrop.length - 1].kortsvar) === JSON.stringify({ id: VALKORT.id, val: 'ja' }) && anrop[anrop.length - 1].text === null && ordning.slice(-2).join() === 'block,tur');
+    check('valkort: det valda är markerat och kortet bekräftat', (await page.textContent('.kort-bekraftat .opt.vald')) === 'Ja' && (await page.$$('#logg .kort:last-child .opt:not([disabled])')).length === 0);
+    const idn = [...new Set(blockAnrop.slice(b0).map(b => b.samtal))];
+    check('samtal: samma id i varje anrop till /intervju-block', idn.length === 1 && UUID.test(idn[0]));
+
+    await page.click('#btn-stang');
+    check('klart med samtycke: det du bekräftade är sparat', (await page.textContent('#klart .lede:not([hidden])')) === 'Det du bekräftade är sparat. Tack.' && !(await page.isVisible('#klart-inget')));
+    check('klart med samtycke: koden är de första åtta tecknen i samtal', (await page.textContent('#kod')) === idn[0].slice(0, 8) && (await page.textContent('#klart-kod')).includes('daniel@opengym.se'));
+    await page.screenshot({ path: `${OUT}/intervju-klart.png`, fullPage: true });
+    await ctx.close();
+  }
+
+  // ---------- Korten utan samtycke ----------
+  {
+    const { ctx, page } = await newPage({ width: 1280, height: 900 });
+    await page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
+    const t0 = anrop.length, b0 = blockAnrop.length;
+    scenario.push(svar('Hej. Så här har jag uppfattat pengarna.', '(start)', { kort: KORT_PENGAR }));
+    await page.click('#btn-nej');
+    await vantaPaKort(page, 1);
+    scenario.push(svar('Vill du vara ett av pilotgymmen?', kortsvarBlock(KORT_PENGAR.id, 'Stämmer.'), { kort: VALKORT }));
+    await page.click('.kort-aktiv .kort-stammer');
+    await vantaPaKort(page, 2);
+    check('utan samtycke: Stämmer går bara till /intervju-tur', blockAnrop.length === b0 && JSON.stringify(anrop[t0 + 1].kortsvar) === JSON.stringify({ id: KORT_PENGAR.id, stammer: true }) && anrop[t0 + 1].samtycke === false);
+    check('utan samtycke: kortet märks bekräftat ändå', (await page.$$('#logg .kort-bekraftat')).length === 1);
+    scenario.push(svar('Tack för samtalet.', kortsvarBlock(VALKORT.id, 'nej'), { slut: true }));
+    await page.click('.kort-aktiv .opt:nth-child(2)');
+    await page.waitForSelector('#avslutat:not([hidden])');
+    check('utan samtycke: valet går bara till /intervju-tur', blockAnrop.length === b0 && JSON.stringify(anrop[t0 + 2].kortsvar) === JSON.stringify({ id: VALKORT.id, val: 'nej' }));
+    await page.click('#btn-stang');
+    check('utan samtycke: klart säger att ingenting sparades', (await page.textContent('#klart .lede:not([hidden])')) === 'Ingenting sparades.' && !(await page.isVisible('#klart-kod')));
+    await ctx.close();
+  }
+
+  // ---------- Skärmbilder på mobil ----------
+  {
+    const { ctx, page } = await newPage({ width: 375, height: 740 });
+    await page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
+    check('mobil: introt med samtycket utan sidledes rullning', await page.isVisible('#samtycke') && (await overflow(page)) === 0);
+    await page.screenshot({ path: `${OUT}/intervju-intro-mobil.png`, fullPage: true });
+    scenario.push(svar('Hej. Så här har jag uppfattat pengarna. Stämmer det?', '(start)', { kort: KORT_PENGAR }));
+    await page.click('#btn-ja');
+    await vantaPaKort(page, 1);
+    check('mobil: avstämningskortet utan sidledes rullning', (await overflow(page)) === 0);
+    await page.screenshot({ path: `${OUT}/intervju-kort-mobil.png`, fullPage: true });
+    scenario.push(svar('Bra. Hur ofta byter medlemmarna betalsätt?', kortsvarBlock(KORT_PENGAR.id, 'Stämmer.')));
+    await page.click('.kort-aktiv .kort-stammer');
+    await vantaPaSvar(page, 2);
+    check('mobil: bekräftat kort utan sidledes rullning', (await overflow(page)) === 0 && (await page.$$('.kort-bekraftat')).length === 1);
+    await page.screenshot({ path: `${OUT}/intervju-kort-bekraftat-mobil.png`, fullPage: true });
+    scenario.push(svar('Sista frågan. Vill du vara ett av pilotgymmen?', 'Nästan aldrig.', { kort: VALKORT }));
+    await page.fill('#text', 'Nästan aldrig.');
+    await page.click('#btn-skicka');
+    await vantaPaKort(page, 2);
+    check('mobil: valkortet utan sidledes rullning', (await overflow(page)) === 0);
+    await page.screenshot({ path: `${OUT}/intervju-valkort-mobil.png`, fullPage: true });
+    scenario.push(svar('Tack. Det var allt.', kortsvarBlock(VALKORT.id, 'ja'), { slut: true }));
+    await page.click('.kort-aktiv .opt:nth-child(1)');
+    await page.waitForSelector('#avslutat:not([hidden])');
+    await page.click('#btn-stang');
+    check('mobil: klart-skärmen utan sidledes rullning', await page.isVisible('#klart-kod') && (await overflow(page)) === 0);
+    await page.screenshot({ path: `${OUT}/intervju-klart-mobil.png`, fullPage: true });
     await ctx.close();
   }
 

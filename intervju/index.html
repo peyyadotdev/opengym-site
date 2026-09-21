@@ -126,6 +126,38 @@
   .avslutat p { font-family: var(--mono); font-size: 13px; color: var(--ink-soft); }
   .form-error { margin-bottom: 12px; color: var(--error); font-family: var(--mono); font-size: 13px; padding: 12px 14px; border: 1px solid var(--error-soft); background: rgba(241, 198, 182, 0.25); border-radius: 2px; }
 
+  /* KORTEN: StackList för avstämningen, Options för valen. Radie 0, inga skuggor. */
+  .kort { border: 1px solid var(--line); background: var(--paper); padding: 18px 20px; }
+  .kort-huvud { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .kort-rubrik { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink); }
+  .kort-bock { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; flex: none; }
+  .kort-rader { border-top: 1px solid var(--line); }
+  .kort-rad { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 15px; line-height: 1.45; }
+  .kort-rad dt { color: var(--ink-muted); }
+  .kort-rad dd { color: var(--ink); display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; overflow-wrap: anywhere; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag { font-family: var(--mono); font-size: 11px; padding: 6px 12px; border: 1px solid var(--plate); background: var(--plate-tint); border-radius: 2px; color: var(--ink-soft); }
+  .kalla { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-muted); }
+  .kort .actions { margin-top: 16px; }
+  .kort .form-error { margin: 14px 0 0; }
+  .kort-bekraftat { border-color: var(--ink); background: var(--accent-soft-tint); }
+  .kort-bekraftat .tag { background: var(--paper); }
+  .kort-andrat { opacity: 0.5; }
+  .opts { display: grid; gap: 8px; }
+  .opt {
+    display: grid; grid-template-columns: 20px 1fr; gap: 12px; align-items: start; width: 100%; text-align: left;
+    padding: 13px 14px; border: 1px solid var(--line); background: var(--bg); border-radius: 2px;
+    font-family: var(--sans); font-size: 15px; line-height: 1.4; color: var(--ink);
+    cursor: pointer; transition: border-color 0.15s, background 0.15s;
+  }
+  .opt:hover:not(:disabled) { border-color: var(--ink-muted); }
+  .opt-mark { width: 20px; height: 20px; border: 1px solid var(--ink-muted); border-radius: 50%; background: var(--paper); margin-top: 1px; position: relative; }
+  .opt.vald { border-color: var(--ink); background: var(--accent-soft-tint); }
+  .opt.vald .opt-mark { border-color: var(--ink); background: var(--accent); }
+  .opt.vald .opt-mark::after { content: ''; position: absolute; inset: 5px; background: var(--ink); border-radius: inherit; }
+  .opt:disabled { cursor: default; }
+  .opt:disabled:not(.vald) { opacity: 0.45; }
+
   /* KLART */
   .done-mark { width: 52px; height: 52px; border-radius: 50%; background: var(--accent); color: var(--ink); display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 22px; }
   #klart .lede { margin-bottom: 24px; }
@@ -141,6 +173,8 @@
     .card { margin: 16px 0 28px; }
     .top-meta { display: none; }
     .tips { display: none; }
+    .kort { padding: 16px 14px; }
+    .kort-rad { grid-template-columns: minmax(0, 1fr); gap: 4px; }
     h1 em, h2 em { font-stretch: 112%; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -263,6 +297,8 @@
     const api = new URLSearchParams(location.search).get('api');
     return lokal && api ? api : TUR_ENDPOINT;
   }
+  // /intervju-block ligger bredvid, med samma adress och intervju-tur utbytt.
+  function blockEndpoint() { return endpoint().replace(/intervju-tur\/?$/, 'intervju-block'); }
 
   // ========== MÄTNING (PostHog utan kakor) ==========
   // Bara händelser och räknare, aldrig text ur samtalet.
@@ -375,12 +411,123 @@
       return p;
     }));
   }
+  function skapa(tagg, klass, text) {
+    const e = document.createElement(tagg);
+    if (klass) e.className = klass;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  // ========== KORTEN ==========
+  const kortEl = new Map();   // kortets id → elementet som visar det
+  // Kortet som väntar på svar: det sist ritade, om det är ett kort som inte besvarats.
+  function vantandeKort() {
+    const sista = visning[visning.length - 1];
+    return sista && sista.kort && sista.status === 'vantar' ? sista : null;
+  }
+  function giltigtKort(h) {
+    return typeof h.id === 'string' && typeof h.block === 'string'
+      && (Array.isArray(h.rader) || (Array.isArray(h.val) && h.val.every(v => v && typeof v.nyckel === 'string')));
+  }
+  // Ett kort ur visning. Bara det väntande kortet går att svara på. Allt från servern sätts som text.
+  function byggKort(post) {
+    const k = post.kort;
+    const aktiv = post === vantandeKort();
+    const rot = skapa('div', 'kort' + (post.status === 'bekraftat' ? ' kort-bekraftat' : post.status === 'andrat' ? ' kort-andrat' : '') + (aktiv ? ' kort-aktiv' : ''));
+    const huvud = skapa('div', 'kort-huvud');
+    huvud.append(skapa('div', 'kort-rubrik', String(k.rubrik || '')));
+    if (post.status === 'bekraftat') {
+      const bock = skapa('span', 'kort-bock', '✓');
+      bock.setAttribute('role', 'img');
+      bock.setAttribute('aria-label', 'Bekräftat');
+      huvud.append(bock);
+    }
+    rot.append(huvud);
+    if (Array.isArray(k.val)) {
+      // Valkortet: en rad att trycka på per svar, som enkätens svarsrader.
+      const rader = skapa('div', 'opts');
+      rader.setAttribute('role', 'group');
+      rader.setAttribute('aria-label', String(k.rubrik || ''));
+      k.val.forEach(v => {
+        const vald = post.val === v.nyckel;
+        const knapp = skapa('button', 'opt' + (vald ? ' vald' : ''));
+        knapp.type = 'button';
+        knapp.disabled = !aktiv;
+        knapp.setAttribute('aria-pressed', String(vald));
+        knapp.append(skapa('span', 'opt-mark'), skapa('span', '', String(v.etikett || '')));
+        knapp.addEventListener('click', () => svaraKort(post, { val: v.nyckel }, knapp));
+        rader.append(knapp);
+      });
+      rot.append(rader);
+    } else {
+      // Avstämningskortet: linjerade rader med etikett och värde. Listor blir taggar.
+      const lista = skapa('dl', 'kort-rader');
+      (Array.isArray(k.rader) ? k.rader : []).forEach(r => {
+        const rad = skapa('div', 'kort-rad');
+        const varde = skapa('dd');
+        if (Array.isArray(r.varde)) {
+          const taggar = skapa('span', 'tags');
+          r.varde.forEach(v => taggar.append(skapa('span', 'tag', String(v))));
+          varde.append(taggar);
+        } else {
+          varde.append(skapa('span', '', r.varde == null ? '' : String(r.varde)));
+        }
+        if (r.kalla === 'enkät') varde.append(skapa('span', 'kalla', 'enkät'));
+        rad.append(skapa('dt', '', r.etikett == null ? '' : String(r.etikett)), varde);
+        lista.append(rad);
+      });
+      rot.append(lista);
+      if (aktiv) {
+        const knappar = skapa('div', 'actions');
+        const stammer = skapa('button', 'btn-primary kort-stammer', 'Stämmer');
+        const andra = skapa('button', 'btn-ghost kort-andra', 'Ändra');
+        stammer.type = 'button';
+        andra.type = 'button';
+        stammer.addEventListener('click', () => svaraKort(post, { stammer: true }));
+        andra.addEventListener('click', () => andraKort(post));
+        knappar.append(stammer, andra);
+        rot.append(knappar);
+      }
+    }
+    const fel = skapa('p', 'form-error kort-fel', 'Kunde inte spara. Tryck igen.');
+    fel.setAttribute('role', 'alert');
+    fel.hidden = true;
+    rot.append(fel);
+    kortEl.set(k.id, rot);
+    return rot;
+  }
+  function ritaOmKort(post) {
+    const gammalt = kortEl.get(post.kort.id);
+    const nytt = byggKort(post);
+    if (gammalt && gammalt.isConnected) gammalt.replaceWith(nytt);
+    uppdateraFalt();
+    return nytt;
+  }
+  function lasKort(las) {
+    const k = vantandeKort();
+    const rot = k && kortEl.get(k.kort.id);
+    if (rot) rot.querySelectorAll('button').forEach(b => { b.disabled = las; });
+  }
+  function fokusKort() {
+    const k = vantandeKort();
+    const knapp = k && kortEl.get(k.kort.id).querySelector('button:not([disabled])');
+    if (knapp) knapp.focus();
+    return !!knapp;
+  }
+  // Medan ett kort väntar är allt ägaren skriver en rättning av kortet.
+  function uppdateraFalt() {
+    $('text').placeholder = vantandeKort() ? 'Skriv vad som ska ändras' : 'Skriv ditt svar';
+  }
+
   // Ritar ur visning och aldrig ur historiken, där ägarens meddelanden kan vara block sidan inte tolkar.
   function ritaHistorik() {
     $('logg').replaceChildren();
+    kortEl.clear();
     visning.forEach(post => {
-      if (post && (post.vem === 'ai' || post.vem === 'du')) fyll(nyTur(post.vem), post.text);
+      if (post && post.kort) $('logg').append(byggKort(post));
+      else if (post && (post.vem === 'ai' || post.vem === 'du')) fyll(nyTur(post.vem), post.text);
     });
+    uppdateraFalt();
   }
 
   const FELTEXT = {
@@ -402,27 +549,92 @@
     $('btn-stang').focus();
   }
 
+  // ========== SPARANDET ==========
+  // Sparar ett bekräftat block, pilotsvaret eller ett parkerat ämne. Bara 200 med ok räknas som sparat.
+  async function sparaBlock(delar) {
+    try {
+      const res = await fetch(blockEndpoint(), {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(Object.assign({ underlag, samtal, samtycke }, delar)),
+      });
+      if (!res.ok) return false;
+      const j = await res.json();
+      return !!j && j.ok === true;
+    } catch (_) { return false; }
+  }
+
+  // Stämmer eller ett val. Med samtycke sparas blocket först, och först när det gått bra går svaret
+  // till assistenten. Misslyckas sparandet står kortet kvar med felet och samtalet väntar.
+  async function svaraKort(post, svar, knapp) {
+    if (skickar || post !== vantandeKort()) return;
+    skickar = true;
+    const arVal = 'val' in svar;
+    const rot = kortEl.get(post.kort.id);
+    rot.querySelectorAll('button').forEach(b => { b.disabled = true; });
+    if (knapp) knapp.classList.add('vald');
+    rot.querySelector('.kort-fel').hidden = true;
+    $('fel').hidden = true;
+    $('text').disabled = true;
+    $('btn-skicka').disabled = true;
+    const sparat = !samtycke || await sparaBlock(arVal
+      ? { typ: 'block', block: post.kort.block, varden: { pilotintresse: svar.val }, kallor: { pilotintresse: 'samtal' } }
+      : { typ: 'block', block: post.kort.block, varden: post.kort.varden, kallor: post.kort.kallor });
+    skickar = false;
+    if (!sparat) {
+      ritaOmKort(post).querySelector('.kort-fel').hidden = false;
+      $('text').disabled = false;
+      $('btn-skicka').disabled = false;
+      track('intervju_sparfel', { typ: 'block' });
+      fokusKort();
+      return;
+    }
+    post.status = 'bekraftat';
+    if (arVal) post.val = svar.val;
+    ritaOmKort(post);
+    track(arVal ? 'intervju_kort_val' : 'intervju_kort_stammer', { block: post.kort.block });
+    if (await skicka(null, Object.assign({ id: post.kort.id }, svar))) return;
+    // Svaret nådde inte assistenten. Kortet väntar igen, och nästa tryck sparar om och skickar igen.
+    post.status = 'vantar';
+    delete post.val;
+    ritaOmKort(post);
+    if ($('text').disabled) lasKort(true);
+    else fokusKort();
+  }
+  function andraKort(post) {
+    track('intervju_kort_andra', { block: post.kort.block });
+    $('text').focus();
+  }
+
   // ========== EN TUR ==========
-  async function skicka(text) {
-    if (skickar) return;
+  // Ägarens text, ett svar på ett kort, eller starten när båda saknas. Medan ett kort väntar går
+  // texten som en rättning av kortet. Ger true när assistentens svar kom fram helt.
+  async function skicka(text, kortsvar) {
+    if (skickar) return false;
     skickar = true;
     const start = historik.length === 0;
+    const vantande = vantandeKort();
+    if (!kortsvar && vantande && text !== null) kortsvar = { id: vantande.kort.id, rattning: text };
     $('fel').hidden = true;
     $('btn-skicka').disabled = true;
     $('text').disabled = true;
+    lasKort(true);
     let duKropp = null;
-    if (!start) { duKropp = nyTur('du'); fyll(duKropp, text); $('text').value = ''; }
+    if (text !== null) { duKropp = nyTur('du'); fyll(duKropp, text); $('text').value = ''; }
     $('status').textContent = 'Skriver…';
     const aiKropp = nyTur('ai');
     let svarstext = '';
     let klar = false;
+    let nyttKort = null;
     let slutSignal = false;
     let felkod = null;
+    const kropp = { underlag, samtycke, historik, text: start || kortsvar ? null : text, start };
+    if (kortsvar) kropp.kortsvar = kortsvar;
     try {
       const res = await fetch(endpoint(), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ underlag, samtycke, historik, text: start ? null : text, start }),
+        body: JSON.stringify(kropp),
       });
       if (!res.ok || !res.body) {
         felkod = 'tekniskt';
@@ -444,6 +656,8 @@
             } else if (h.typ === 'klar' && Array.isArray(h.tillagg)) {
               historik = historik.concat(h.tillagg);
               klar = true;
+            } else if (h.typ === 'kort' && klar && giltigtKort(h)) {
+              nyttKort = h;
             } else if (h.typ === 'slut') {
               slutSignal = true;
             } else if (h.typ === 'fel') {
@@ -459,8 +673,24 @@
     }
     $('status').textContent = '';
     if (klar) {
-      if (!start) visning.push({ vem: 'du', text });
-      visning.push({ vem: 'ai', text: svarstext });
+      if (text !== null) visning.push({ vem: 'du', text });
+      // Ett svar med bara ett kort ger ingen tom tur.
+      if (svarstext) visning.push({ vem: 'ai', text: svarstext });
+      else aiKropp.parentElement.remove();
+      // Kortet som besvarades: bekräftat efter Stämmer eller ett val, ändrat efter en rättning.
+      const besvarat = kortsvar ? visning.find(p => p.kort && p.kort.id === kortsvar.id) : null;
+      if (besvarat) {
+        besvarat.status = 'rattning' in kortsvar ? 'andrat' : 'bekraftat';
+        if ('val' in kortsvar) besvarat.val = kortsvar.val;
+        ritaOmKort(besvarat);
+      }
+      if (nyttKort) {
+        const { typ, ...kort } = nyttKort;
+        const post = { kort, status: 'vantar' };
+        visning.push(post);
+        $('logg').append(byggKort(post));
+        track('intervju_kort_visat', { block: kort.block });
+      }
       avslutat = slutSignal;
       sparaSamtal();
       track(start ? 'intervju_startad' : 'intervju_tur', { tur: historik.length / 2 });
@@ -474,11 +704,14 @@
       track('intervju_fel', { kod: FELTEXT[felkod] ? felkod : 'tekniskt' });
     }
     skickar = false;
-    if (avslutat) { visaAvslutat(); return; }
+    if (avslutat) { visaAvslutat(); return klar; }
     const slut = SLUTKODER.includes(felkod);
     $('btn-skicka').disabled = slut;
     $('text').disabled = slut;
-    if (!slut) $('text').focus();
+    lasKort(slut);
+    uppdateraFalt();
+    if (!slut && !(nyttKort && fokusKort())) $('text').focus();
+    return klar;
   }
 
   // ========== START ==========
@@ -495,7 +728,7 @@
     ritaHistorik();
     if (avslutat) visaAvslutat();
     else if (historik.length === 0) skicka(null);
-    else $('text').focus();
+    else if (!fokusKort()) $('text').focus();
   }
 
   $('skriv').addEventListener('submit', e => {
