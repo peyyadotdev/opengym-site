@@ -31,7 +31,7 @@
  * annars kör webbappen fortfarande den gamla koden.
  *
  * Formulären skickar formulärkodat (application/x-www-form-urlencoded) utan
- * egna headers, så förfrågan räknas som "enkel" och Apps Script svarar utan
+ * egna headers, så requesten räknas som "simple request" och Apps Script svarar utan
  * CORS-preflight.
  *
  * Fält från landningssidan (action saknas eller = lead):

@@ -28,7 +28,7 @@ Statisk sajt för opengym.se: landningssida (`index.html`), enkät (`enkat/index
 ## Intervjusidan
 
 - Bara sidan ligger här. Servern, prompten, serverns typkundsregel och databasen ligger i det privata repot opengym. Kontraktet är `docs/undersokning/intervjusidan-protokoll.md` där.
-- Undantag från regeln ovan: intervjusidan postar JSON till Supabase-funktionen `intervju-tur`, som svarar på webbläsarens CORS-förfrågan. Den postar aldrig till Apps Script.
-- Två strömbrytare: `INTERVJU_OPPEN` i `enkat/index.html` och `TUR_ENDPOINT` i `intervju/index.html`. Båda öppna sedan 2026-09-21, på Daniels klartecken: intervjun är i drift. Stänger du någon av dem stängs intervjun för alla direkt, så gör det bara på Daniels besked. Allt som slås ihop till `main` syns genast på opengym.se.
+- Undantag från regeln ovan: intervjusidan postar JSON till Supabase-funktionen `intervju-tur`, som svarar på webbläsarens CORS-preflight. Den postar aldrig till Apps Script.
+- Två feature flags: `INTERVJU_OPPEN` i `enkat/index.html` och `TUR_ENDPOINT` i `intervju/index.html`. Båda öppna sedan 2026-09-21, på Daniels klartecken: intervjun är i drift. Stänger du någon av dem stängs intervjun för alla direkt, så gör det bara på Daniels besked. Allt som mergas till `main` syns genast på opengym.se.
 - Typkundsregeln i `enkat/index.html`, mellan `TYPKUND START` och `TYPKUND SLUT`, är en kopia av regeln i opengym. Ändras den ändras också kopian där, och `tests/fall-typkund.json` ska vara likadan i båda repona.
-- Enkätsvaren lämnas över i webbläsarens lagring under `opengym_intervju_underlag_v1`, utan kontaktfält. Allt som kommer från servern sätts med `textContent`, aldrig med `innerHTML`.
+- Enkätsvaren lämnas över i localStorage under `opengym_intervju_underlag_v1`, utan kontaktfält. Allt som kommer från servern sätts med `textContent`, aldrig med `innerHTML`.

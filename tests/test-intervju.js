@@ -1,7 +1,7 @@
-// End-to-end-test av intervjusidan i Chromium mot en låtsad /intervju-tur och /intervju-block.
+// End-to-end-test av intervjusidan i Chromium mot en mockad /intervju-tur och /intervju-block.
 // Körs med: npm install && npx playwright install chromium && node tests/test-intervju.js
 // Servern ligger i repot opengym. Här testas bara sidan, mot protokollet i
-// opengym/docs/undersokning/intervjusidan-protokoll.md. Låtsasservern kontrollerar också att
+// opengym/docs/undersokning/intervjusidan-protokoll.md. Mock-servern kontrollerar också att
 // sidans anrop följer protokollet, och varje avvikelse fäller testet på slutet.
 const { chromium } = require('playwright');
 const assert = require('assert');
@@ -82,7 +82,7 @@ function svar(text, fraga = '(start)', { kort = null, parkerat = [], parkeratSis
   return { handelser };
 }
 
-// Låtsasserverns kontroll av protokollet. Varje avvikelse hamnar i brott.
+// Mock-serverns kontroll av protokollet. Varje avvikelse hamnar i brott.
 const brott = [];
 function kollaTur(b) {
   const fel = [];
@@ -151,17 +151,17 @@ const vantaTills = async (villkor, ms = 5000) => {
     check('källa: pilen → är den enda pilglyfen', !/[←↑↓↔⇒⇐➔➜➝➞]|->/.test(src));
   }
 
-  // ---------- Strömmen i bitar ----------
+  // ---------- Streamen i bitar ----------
   {
     const kod = raw.slice(raw.indexOf('// HANDELSER START'), raw.indexOf('// HANDELSER SLUT'));
     const sb = {};
     vm.runInNewContext(kod + '\nthis.delaHandelser = delaHandelser;', sb);
     const a = sb.delaHandelser('data: {"typ":"text","delta":"Hej. "}\n\ndata: {"typ":"text","del');
-    check('ström: hel händelse läses, halv blir rest', a.handelser.length === 1 && a.handelser[0].delta === 'Hej. ' && a.rest === 'data: {"typ":"text","del');
+    check('stream: helt event läses, halv blir rest', a.handelser.length === 1 && a.handelser[0].delta === 'Hej. ' && a.rest === 'data: {"typ":"text","del');
     const b = sb.delaHandelser(a.rest + 'ta":"Du."}\n\ndata: {"typ":"klar","tillagg":[]}\n\n');
-    check('ström: resten fogas ihop med nästa bit', b.handelser.length === 2 && b.handelser[0].delta === 'Du.' && b.handelser[1].typ === 'klar' && b.rest === '');
+    check('stream: resten fogas ihop med nästa bit', b.handelser.length === 2 && b.handelser[0].delta === 'Du.' && b.handelser[1].typ === 'klar' && b.rest === '');
     const c = sb.delaHandelser(': kommentar\n\ndata: inte json\n\ndata: {"typ":"text","delta":"x"}\n\n');
-    check('ström: kommentarer och trasiga rader hoppas över', c.handelser.length === 1 && c.handelser[0].delta === 'x');
+    check('stream: kommentarer och trasiga rader hoppas över', c.handelser.length === 1 && c.handelser[0].delta === 'x');
   }
 
   const server = await serve();
@@ -175,7 +175,7 @@ const vantaTills = async (villkor, ms = 5000) => {
   const ordning = [];        // vilken väg som anropades, i tur och ordning
 
   async function newPage(viewport, { underlag = UNDERLAG, samtal = null } = {}) {
-    // Minskad rörelse, som sidan stöder, så att skärmbilderna inte fångar en knapp mitt i en övergång.
+    // Minskad rörelse, som sidan stöder, så att screenshotsen inte fångar en knapp mitt i en övergång.
     const ctx = await browser.newContext({ viewport, reducedMotion: 'reduce' });
     await ctx.route(/posthog\.com/, r => r.abort());
     if (underlag) await ctx.addInitScript(u => localStorage.setItem('opengym_intervju_underlag_v1', JSON.stringify(u)), underlag);
@@ -213,7 +213,7 @@ const vantaTills = async (villkor, ms = 5000) => {
   const vantaPaKort = (page, n) => page.waitForFunction(k => document.querySelectorAll('#logg .kort').length === k && !document.getElementById('text').disabled, n);
   const sparat = page => page.evaluate(() => JSON.parse(localStorage.getItem('opengym_intervju_samtal_v1') || 'null'));
   const overflow = page => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  // PostHog laddas aldrig i testet, så händelserna ligger kvar i sidans kö.
+  // PostHog laddas aldrig i testet, så eventen ligger kvar i sidans kö.
   const matt = page => page.evaluate(() => phQueue.map(([namn, egenskaper]) => ({ namn, egenskaper })));
   // Bara namn och räknare: varje egenskap är ett tal eller en kort kod, aldrig text ur samtalet.
   const baraKoder = h => h.every(x => Object.values(x.egenskaper).every(v => typeof v === 'number' || /^[a-z_]{1,24}$/.test(v)));
@@ -555,7 +555,7 @@ const vantaTills = async (villkor, ms = 5000) => {
     check('parkerat: raden "Tas upp i slutet: …" under assistentens tur', await page.$eval('#logg .parkerat', el => el.textContent === 'Tas upp i slutet: Coachernas scheman' && el.previousElementSibling.classList.contains('tur-ai')));
     await vantaTills(() => blockAnrop.length === b0 + 1);
     const sp = blockAnrop[b0];
-    check('parkerat: sparas med /intervju-block och sidospar exakt som i händelsen', sp.typ === 'sidospar' && sp.samtycke === true && UUID.test(sp.samtal)
+    check('parkerat: sparas med /intervju-block och sidospar exakt som i eventet', sp.typ === 'sidospar' && sp.samtycke === true && UUID.test(sp.samtal)
       && JSON.stringify(sp.sidospar) === JSON.stringify({ nummer: 1, amne: 'Coachernas scheman', vad_personen_sa: 'Schemat för coacherna är ett eget kapitel.' }));
     check('parkerat: ligger i visning efter turen', JSON.stringify((await sparat(page)).visning.slice(-2)) === JSON.stringify([{ vem: 'ai', text: 'Det tar vi i slutet. Hur betalar medlemmarna?' }, { parkerat: 'Coachernas scheman' }]));
     check('parkerat: inget kort väntar', (await page.getAttribute('#text', 'placeholder')) === 'Skriv ditt svar');
@@ -637,7 +637,7 @@ const vantaTills = async (villkor, ms = 5000) => {
     await ctx.close();
   }
 
-  // ---------- Skärmbilder på mobil ----------
+  // ---------- Screenshots på mobil ----------
   {
     const { ctx, page } = await newPage({ width: 375, height: 740 });
     await page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
@@ -695,8 +695,8 @@ const vantaTills = async (villkor, ms = 5000) => {
 
   await browser.close();
   server.close();
-  check('låtsasservern: sidans anrop följer protokollet' + (brott.length ? ' (' + brott.join('; ') + ')' : ''), brott.length === 0);
-  console.log('\nanrop till låtsasservern:', anrop.length, 'till /intervju-tur,', blockAnrop.length, 'till /intervju-block');
+  check('mock-servern: sidans anrop följer protokollet' + (brott.length ? ' (' + brott.join('; ') + ')' : ''), brott.length === 0);
+  console.log('\nanrop till mock-servern:', anrop.length, 'till /intervju-tur,', blockAnrop.length, 'till /intervju-block');
   console.log('console errors:', errors.length ? errors : 'none');
   if (errors.length) process.exit(1);
 })().catch(e => { console.error('FAIL', e); process.exit(1); });

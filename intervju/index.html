@@ -292,7 +292,7 @@
   const UNDERLAG_KEY = 'opengym_intervju_underlag_v1';   // skrivs av enkätsidan
   const SAMTAL_KEY = 'opengym_intervju_samtal_v1';
 
-  // På den egna datorn går adressen att peka om med ?api=, till utvecklingsservern i opengym.
+  // På den egna datorn går adressen att peka om med ?api=, till dev-servern i opengym.
   function endpoint() {
     const lokal = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
     const api = new URLSearchParams(location.search).get('api');
@@ -301,8 +301,8 @@
   // /intervju-block ligger bredvid, med samma adress och intervju-tur utbytt.
   function blockEndpoint() { return endpoint().replace(/intervju-tur\/?$/, 'intervju-block'); }
 
-  // ========== MÄTNING (PostHog utan kakor) ==========
-  // Bara händelser och räknare, aldrig text ur samtalet.
+  // ========== MÄTNING (PostHog utan cookies) ==========
+  // Bara events och räknare, aldrig text ur samtalet.
   const phQueue = [];
   let phReady = false;
   function track(event, props) {
@@ -319,7 +319,7 @@
     s.onload = function () {
       window.posthog.init(POSTHOG_KEY, {
         api_host: POSTHOG_HOST,
-        persistence: 'memory',          // inga kakor, inget lagrat id
+        persistence: 'memory',          // inga cookies, inget lagrat id
         person_profiles: 'identified_only',
         autocapture: false,
         capture_pageview: true,
@@ -334,7 +334,7 @@
 
   // ========== STRÖMMEN ==========
   // HANDELSER START
-  // Delar det som kommit hittills i händelser. Varje händelse är en rad "data: {...}" följd av en
+  // Delar det som kommit hittills i events. Varje event är en rad "data: {...}" följd av en
   // tom rad. Det som inte är komplett än kommer tillbaka som rest och läggs först i nästa bit.
   function delaHandelser(buffert) {
     const delar = buffert.split('\n\n');
@@ -356,7 +356,7 @@
   let samtycke = false;    // ägarens val i introt, samma i hela samtalet
   let historik = [];       // exakt det servern skickat, orört, eftersom Claude kräver det
   let visning = [];        // det sidan ritat: turer, kort och parkerade ämnen. Servern ser den aldrig
-  let avslutat = false;    // assistenten har avslutat samtalet (händelsen slut)
+  let avslutat = false;    // assistenten har avslutat samtalet (eventet slut)
   let skickar = false;
 
   function lasUnderlag() {
@@ -647,7 +647,7 @@
     let svarstext = '';
     let klar = false;
     let nyttKort = null;
-    const parkerade = [];     // händelserna parkerat, som räknas först när svaret är klart
+    const parkerade = [];     // eventen parkerat, som räknas först när svaret är klart
     const parkeradeEl = [];
     let slutSignal = false;
     let felkod = null;
@@ -689,7 +689,7 @@
             } else if (h.typ === 'fel') {
               felkod = typeof h.kod === 'string' ? h.kod : 'tekniskt';
             }
-            // Okända händelsetyper hoppas över, så att en nyare server inte bryter sidan.
+            // Okända eventtyper hoppas över, så att en nyare server inte bryter sidan.
           }
         }
         if (!klar && !felkod) felkod = 'tekniskt';

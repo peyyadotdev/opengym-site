@@ -1,4 +1,4 @@
-// Kör leads/Code.gs i Node mot ett låtsas-kalkylark och kontrollerar beteendet.
+// Kör leads/Code.gs i Node mot ett mock-kalkylark och kontrollerar beteendet.
 // Körs med: node tests/test-codegs.js
 const fs = require('fs');
 const vm = require('vm');
