@@ -1,6 +1,6 @@
 # opengym-site
 
-Statisk sajt för opengym.se: landningssida (`index.html`), enkät (`enkat/index.html`), Apps Script-backend (`leads/Code.gs`), tester (`tests/`). Inga byggsteg. Kör `npm test` före push (första gången: `npm install && npx playwright install chromium`).
+Statisk sajt för opengym.se: landningssida (`index.html`), enkät (`enkat/index.html`), intervjusida (`intervju/index.html`), Apps Script-backend (`leads/Code.gs`), tester (`tests/`). Inga byggsteg. Kör `npm test` före push (första gången: `npm install && npx playwright install chromium`).
 
 ## Design
 
@@ -24,3 +24,11 @@ Statisk sajt för opengym.se: landningssida (`index.html`), enkät (`enkat/index
 - Båda sidorna postar formulärkodat till Apps Script-webbappen (`SIGNUP_ENDPOINT`), utan egna headers, så att ingen CORS-preflight behövs. Sidorna läser JSON-svaret och visar fel om `ok` är false.
 - Ändras `leads/Code.gs` måste en ny version distribueras i Apps Script (Distribuera → Hantera distributioner → Ny version), annars kör webbappen den gamla koden.
 - Enkätens svarsrad innehåller aldrig e-post. Pilotintresse och rapportlista ligger i egna flikar.
+
+## Intervjusidan
+
+- Bara sidan ligger här. Servern, prompten, serverns typkundsregel och databasen ligger i det privata repot opengym. Kontraktet är `docs/undersokning/intervjusidan-protokoll.md` där.
+- Undantag från regeln ovan: intervjusidan postar JSON till Supabase-funktionen `intervju-tur`, som svarar på webbläsarens CORS-förfrågan. Den postar aldrig till Apps Script.
+- Två strömbrytare: `INTERVJU_OPPEN` i `enkat/index.html` och `TUR_ENDPOINT` i `intervju/index.html`. Båda stängda tills servern är driftsatt och Daniel har gett klartecken. Allt som slås ihop till `main` syns genast på opengym.se.
+- Typkundsregeln i `enkat/index.html`, mellan `TYPKUND START` och `TYPKUND SLUT`, är en kopia av regeln i opengym. Ändras den ändras också kopian där, och `tests/fall-typkund.json` ska vara likadan i båda repona.
+- Enkätsvaren lämnas över i webbläsarens lagring under `opengym_intervju_underlag_v1`, utan kontaktfält. Allt som kommer från servern sätts med `textContent`, aldrig med `innerHTML`.

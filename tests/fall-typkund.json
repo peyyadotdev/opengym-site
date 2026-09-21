@@ -1,0 +1,32 @@
+{
+  "om": "Testfall för typkundsregeln. Samma fil finns i opengym (tests/intervju/) och opengym-site (tests/). Ändras regeln ändras båda kopiorna av filen och båda kopiorna av arTypkund. Svaren har enkätsidans exakta form.",
+  "bas": {
+    "q01_lan": "Skåne", "q02_typ": ["CrossFit-affiliate"], "q02_annat": "", "q03_medlemmar": "150–250", "q04_anlaggningar": "1",
+    "q05_coacher": ["Jag själv plus deltidscoacher"], "q06_system": "Zoezi", "q06_annat": "", "q07_logg": ["SugarWOD"], "q07_annat": "",
+    "q08_kostnad": "2 500–5 000 kr", "q09_irriterande": "Stämma av autogirot mot banken varje månad",
+    "q10_modell": "Både och", "q10_annat": "", "q11_utebliven": ["Vi hör av oss"], "q11_annat": "", "q12_fungerat": "Grupperna håller ihop, men sjukfrånvaro är svårt",
+    "q13_pris": "900–1 100 kr", "q14_offpeak": "Nej", "q15_3plus": 35, "q15_1till2": 45, "q15_sallan": 20, "q16_opengym": "Ja, bemannat",
+    "q17_betalsatt": ["Autogiro via banken", "Swish"], "q17_annat": "", "q17b_storst": "Autogiro via banken", "q18_betalkostnad": "Nej",
+    "q19_swish": "Ja", "q19b_varfor": "", "q20_omregistrering": "70–90 %", "q21_dorr": ["Parakey"], "q21_annat": "", "q22_automation": "Nej",
+    "q23_retention": "65–80 %", "q24_avhopp": ["Coachen ser det på golvet"], "q24_annat": "", "q25_vikarie": "Sällan", "q25b_hitta": [],
+    "q26_pass": "Ja", "q26_grupp": "Kanske", "q27_byta": ["Riktigt stöd för fasta grupper", "Swish återkommande"],
+    "q28_gratis": "Mer attraktivt", "q28b_varfor": "", "q29_pilot": "Kanske, berätta mer", "q30_rapport": "Ja"
+  },
+  "fall": [
+    { "namn": "bas är typkund", "andringar": {}, "typkund": true },
+    { "namn": "80–150 medlemmar räknas", "andringar": { "q03_medlemmar": "80–150" }, "typkund": true },
+    { "namn": "250–400 medlemmar räknas", "andringar": { "q03_medlemmar": "250–400" }, "typkund": true },
+    { "namn": "över 400 medlemmar räknas", "andringar": { "q03_medlemmar": "Över 400" }, "typkund": true },
+    { "namn": "under 80 räknas inte", "andringar": { "q03_medlemmar": "Under 80" }, "typkund": false },
+    { "namn": "under 80 med fasta grupper räknas inte heller", "andringar": { "q03_medlemmar": "Under 80", "q10_modell": "Fasta grupper där samma medlemmar tränar samma tider med samma coach" }, "typkund": false },
+    { "namn": "2–3 anläggningar räknas", "andringar": { "q04_anlaggningar": "2–3" }, "typkund": true },
+    { "namn": "4 eller fler räknas inte", "andringar": { "q04_anlaggningar": "4 eller fler" }, "typkund": false },
+    { "namn": "HYROX-klubb räknas", "andringar": { "q02_typ": ["HYROX-träningsklubb"] }, "typkund": true },
+    { "namn": "funktionell utan affiliering räknas", "andringar": { "q02_typ": ["Funktionell träning utan affiliering"] }, "typkund": true },
+    { "namn": "bara annat räknas inte", "andringar": { "q02_typ": ["Annat"], "q02_annat": "Yogastudio" }, "typkund": false },
+    { "namn": "annat plus affiliate räknas", "andringar": { "q02_typ": ["CrossFit-affiliate", "Annat"] }, "typkund": true },
+    { "namn": "obesvarad fråga 3 räknas inte", "andringar": { "q03_medlemmar": "" }, "typkund": false },
+    { "namn": "obesvarad fråga 2 räknas inte", "andringar": { "q02_typ": [] }, "typkund": false },
+    { "namn": "pilotintresse öppnar inte utanför regeln", "andringar": { "q03_medlemmar": "Under 80", "q29_pilot": "Ja" }, "typkund": false }
+  ]
+}

@@ -222,6 +222,9 @@
   .done-list li { padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 15px; color: var(--ink-soft); display: grid; grid-template-columns: 24px 1fr; gap: 10px; }
   .done-list li span:first-child { color: var(--ink); background: var(--plate); text-align: center; align-self: start; }
   .share { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; }
+  .offer { border: 1px solid var(--ink); background: var(--plate-tint); padding: 24px 22px; margin: 0 0 28px; }
+  .offer h3 { margin-bottom: 8px; }
+  .offer p { font-size: 15px; line-height: 1.55; color: var(--ink-soft); margin-bottom: 18px; max-width: 58ch; }
   .share code { font-family: var(--mono); font-size: 13px; padding: 10px 12px; border: 1px solid var(--line); background: var(--bg); border-radius: 2px; }
 
   footer { padding: 28px 0 36px; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--ink-muted); line-height: 1.6; }
@@ -303,6 +306,12 @@
     <div class="done-mark" aria-hidden="true">✓</div>
     <h2 id="done-title">Tack. Dina svar är sparade.</h2>
     <ul class="done-list" id="done-list"></ul>
+    <div class="offer" id="intervju-erbjudande" hidden>
+      <div class="eyebrow">Tio minuter till, om du vill</div>
+      <h3>Du driver den sortens box vi bygger för.</h3>
+      <p>Vill du berätta mer? Vår AI-assistent frågar vidare om det du svarade, där vi har mest att lära. Tio till femton minuter, och du skriver när det passar.</p>
+      <a class="btn-primary" href="/intervju/" id="intervju-lank">Berätta mer</a>
+    </div>
     <p class="lede">Känner du en annan boxägare som borde svara? Skicka länken.</p>
     <div class="share">
       <code id="share-url">opengym.se/enkat</code>
@@ -330,6 +339,11 @@
 
   const STORAGE_KEY = 'opengym_enkat_v1';
   const TOTAL_LABEL = '7';
+
+  // AI-intervjun erbjuds på tacksidan till den som svaren visar är vår typkund.
+  // Stängd tills servern i opengym är driftsatt och Daniel gett klartecken.
+  const INTERVJU_OPPEN = false;
+  const INTERVJU_UNDERLAG_KEY = 'opengym_intervju_underlag_v1';
 
   // ========== MÄTNING (PostHog utan kakor) ==========
   const phQueue = [];
@@ -721,6 +735,29 @@
     if (el) el.focus({ preventScroll: true });
   }
 
+  // ========== TYPKUND ==========
+  // TYPKUND START
+  // Kopia av arTypkund i repot opengym, supabase/functions/_shared/typkund.ts. Servern kontrollerar
+  // regeln en gång till, den här kopian avgör bara om erbjudandet visas. Ändras regeln där ska den
+  // ändras här, och tests/fall-typkund.json ska vara likadan i båda repona.
+  const TYPKUND_TYPER = ['CrossFit-affiliate', 'HYROX-träningsklubb', 'Funktionell träning utan affiliering'];
+  const TYPKUND_ANLAGGNINGAR = ['1', '2–3'];
+  const TYPKUND_MEDLEMMAR = ['80–150', '150–250', '250–400', 'Över 400'];
+  function arTypkund(svar) {
+    const typ = Array.isArray(svar.q02_typ) ? svar.q02_typ : (svar.q02_typ ? [svar.q02_typ] : []);
+    return typ.some(t => TYPKUND_TYPER.includes(t)) &&
+      TYPKUND_ANLAGGNINGAR.includes(svar.q04_anlaggningar) &&
+      TYPKUND_MEDLEMMAR.includes(svar.q03_medlemmar);
+  }
+  // TYPKUND SLUT
+
+  // Enkätsvaren till intervjun, i en egen nyckel. persistCompleted() skriver över enkätens egen nyckel
+  // och tar bort svaren, så överlämningen måste sparas före den. snapshot() tar inte med kontaktfälten,
+  // så e-post och boxnamn följer aldrig med.
+  function sparaIntervjuUnderlag() {
+    try { localStorage.setItem(INTERVJU_UNDERLAG_KEY, JSON.stringify({ v: 1, rid: state.rid, svar: snapshot(), skapad: new Date().toISOString() })); } catch (_) {}
+  }
+
   // ========== SPARA ==========
   function snapshot() {
     const out = {};
@@ -861,13 +898,16 @@
     try {
       await save(true);
       state.completedAt = new Date().toISOString();
+      const erbjud = INTERVJU_OPPEN && arTypkund(snapshot());
+      if (erbjud) sparaIntervjuUnderlag();
       track('enkat_klar', {
+        intervju_erbjuden: erbjud,
         tid_sek: Math.round((Date.now() - Date.parse(state.startedAt)) / 1000),
         pilot: state.answers.q29_pilot || '',
         rapport: /^Ja/.test(state.answers.q30_rapport || ''),
         kalla: state.source,
       });
-      renderDone();
+      renderDone(erbjud);
       persistCompleted();
       showScreen('done');
       $('done-title').focus({ preventScroll: true });
@@ -881,7 +921,8 @@
     }
   }
 
-  function renderDone() {
+  function renderDone(erbjud) {
+    $('intervju-erbjudande').hidden = !erbjud;
     const items = [];
     if (/^Ja/.test(state.answers.q30_rapport || '')) items.push('Boxrapporten 2026 skickas till din e-post när svaren är sammanställda.');
     if (/^(Ja|Kanske)/.test(state.answers.q29_pilot || '')) items.push('Vi hör av oss om piloten.');

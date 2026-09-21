@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Berätta mer om din box – OpenGym</title>
+<meta name="description" content="Samtal med OpenGyms AI-assistent för boxägare som svarat på enkäten.">
+<meta name="robots" content="noindex">
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23121311'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%23f4f2ec' stroke-width='6'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23a6ff1f'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,100..900&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f2ec;
+    --bg-alt: #eae7dd;
+    --ink: #131311;
+    --ink-soft: #3a3a36;
+    --ink-muted: #6b6a63;
+    --line: #d5d1c5;
+    --line-soft: #e2ded3;
+    --accent: #a6ff1f;        /* neon-lime, bara som fyllning */
+    --plate: #e9ffc2;         /* plattan bakom betonade ord */
+    --plate-tint: rgba(233, 255, 194, 0.45);
+    --accent-deep: #131311;   /* ink: accentfärg används aldrig som text på ljus botten */
+    --paper: #faf9f5;
+    --error: #9a2f12;
+    --error-soft: #f1c6b6;
+    --display: 'Anybody', 'Inter Tight', system-ui, sans-serif;
+    --sans: 'Inter Tight', system-ui, -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    --card-x: 36px;
+    --card-y: 40px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased; min-height: 100vh; display: flex; flex-direction: column;
+  }
+  main { flex: 1; }
+  .wrap { width: 100%; max-width: 760px; margin: 0 auto; padding: 0 20px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  :focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 3px; }
+  [hidden] { display: none !important; }
+
+  /* TOPP */
+  .top { padding: 18px 0; border-bottom: 1px solid var(--line); background: var(--bg); }
+  .top-inner { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .logo {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--display); font-weight: 700; font-stretch: 110%; font-size: 19px;
+    letter-spacing: -0.01em; text-decoration: none; color: var(--ink);
+  }
+  .logo svg { width: 24px; height: 24px; }
+  .top-meta { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted); text-align: right; }
+
+  /* KORT */
+  .card { background: var(--paper); border: 1px solid var(--line); padding: var(--card-y) var(--card-x); margin: 32px 0 40px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--ink-muted); margin-bottom: 18px; display: flex; align-items: center; gap: 12px;
+  }
+  .eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--accent-deep); flex: none; }
+  h1, h2 { font-family: var(--display); font-weight: 700; font-stretch: 105%; letter-spacing: -0.025em; }
+  h1 em, h2 em {
+    font-style: normal; font-weight: 600; font-stretch: 135%; color: var(--ink);
+    background: linear-gradient(var(--plate), var(--plate)) no-repeat 0 58% / 100% 82%;
+    padding: 0 0.06em; margin: 0 -0.06em; -webkit-box-decoration-break: clone; box-decoration-break: clone;
+    hyphens: none; overflow-wrap: normal; word-break: keep-all;
+  }
+  h1 { font-size: clamp(36px, 7vw, 56px); line-height: 1; margin-bottom: 24px; max-width: 14ch; }
+  h2 { font-size: clamp(26px, 4.5vw, 34px); line-height: 1.1; margin-bottom: 12px; }
+  .lede { font-size: 17px; line-height: 1.6; color: var(--ink-soft); max-width: 60ch; }
+  .facts { list-style: none; margin: 28px 0 32px; border-top: 1px solid var(--line); }
+  .facts li { display: grid; grid-template-columns: 28px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 15px; color: var(--ink-soft); }
+  .facts li span:first-child { font-family: var(--mono); font-size: 12px; color: var(--ink); background: var(--plate); padding: 2px 4px; align-self: start; justify-self: start; }
+  .fine { font-size: 13px; line-height: 1.55; color: var(--ink-muted); margin-top: 18px; max-width: 62ch; }
+  .actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+  .notice { flex-basis: 100%; padding: 14px 16px; border: 1px solid var(--plate); background: var(--plate-tint); border-radius: 2px; font-size: 15px; line-height: 1.5; }
+
+  /* KNAPPAR */
+  .btn-primary {
+    font-family: var(--sans); font-size: 15px; font-weight: 500; padding: 15px 28px;
+    background: var(--ink); color: var(--paper); border: 1px solid var(--ink); border-radius: 2px;
+    text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; transition: all 0.2s;
+  }
+  .btn-primary::after { content: '→'; transition: transform 0.2s; }
+  .btn-primary:hover { background: var(--plate); border-color: var(--ink); color: var(--ink); }
+  .btn-primary:hover::after { transform: translateX(4px); }
+  .btn-primary:disabled { opacity: 0.6; cursor: wait; }
+  .btn-primary:disabled::after { content: '…'; }
+  .btn-ghost {
+    font-family: var(--sans); font-size: 15px; font-weight: 500; padding: 14px 20px;
+    background: transparent; color: var(--ink-soft); border: 1px solid var(--line); border-radius: 2px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
+  .btn-text { font-family: var(--mono); font-size: 13px; color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid var(--line); padding-bottom: 2px; }
+  .btn-text:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+  /* SAMTALET */
+  .logg { display: grid; gap: 18px; margin-bottom: 18px; }
+  .tur-vem { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted); margin-bottom: 6px; }
+  .tur-text { font-size: 16px; line-height: 1.6; }
+  .tur-text p + p { margin-top: 10px; }
+  .tur-du { background: var(--bg); border: 1px solid var(--line); padding: 12px 14px; }
+  .tur-du .tur-text { color: var(--ink-soft); }
+  .status { font-family: var(--mono); font-size: 13px; color: var(--ink-muted); min-height: 20px; margin-bottom: 8px; }
+  .skriv { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 18px; }
+  textarea {
+    width: 100%; font-family: var(--sans); font-size: 15px; color: var(--ink); line-height: 1.5;
+    padding: 13px 14px; border: 1px solid var(--line); background: var(--bg); border-radius: 2px; outline: none; resize: vertical; min-height: 96px;
+  }
+  textarea:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--accent-deep); }
+  textarea:disabled { opacity: 0.6; }
+  .skriv-rad { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .tips { font-family: var(--mono); font-size: 12px; color: var(--ink-muted); }
+  .form-error { margin-bottom: 12px; color: var(--error); font-family: var(--mono); font-size: 13px; padding: 12px 14px; border: 1px solid var(--error-soft); background: rgba(241, 198, 182, 0.25); border-radius: 2px; }
+
+  /* KLART */
+  .done-mark { width: 52px; height: 52px; border-radius: 50%; background: var(--accent); color: var(--ink); display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 22px; }
+  #klart .lede { margin-bottom: 24px; }
+
+  footer { padding: 28px 0 36px; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--ink-muted); line-height: 1.6; }
+  footer a { color: inherit; }
+
+  @media (max-width: 600px) {
+    :root { --card-x: 18px; --card-y: 26px; }
+    .card { margin: 16px 0 28px; }
+    .top-meta { display: none; }
+    .tips { display: none; }
+    h1 em, h2 em { font-stretch: 112%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  }
+  ::selection { background: var(--plate); color: var(--ink); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-inner">
+    <a href="/" class="logo" aria-label="OpenGym, till startsidan">
+      <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <rect width="64" height="64" rx="12" fill="#121311"/>
+        <circle cx="32" cy="32" r="18" fill="none" stroke="#f4f2ec" stroke-width="6"/>
+        <circle cx="32" cy="32" r="5" fill="#a6ff1f"/>
+      </svg>
+      OpenGym
+    </a>
+    <div class="top-meta">Samtal för boxägare · Provversion</div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section id="stangd" class="card" hidden aria-labelledby="stangd-titel">
+    <div class="eyebrow">Samtal för boxägare</div>
+    <h1 id="stangd-titel">Samtalet är inte <em>öppet</em> än.</h1>
+    <p class="lede">Här kommer du att kunna berätta mer om din box för vår AI-assistent, efter enkäten. Börja med enkäten så länge.</p>
+    <div class="actions" style="margin-top:28px"><a class="btn-primary" href="/enkat/">Till enkäten</a></div>
+  </section>
+
+  <section id="saknas" class="card" hidden aria-labelledby="saknas-titel">
+    <div class="eyebrow">Samtal för boxägare</div>
+    <h1 id="saknas-titel">Samtalet bygger på <em>enkäten</em>.</h1>
+    <p class="lede">Assistenten frågar vidare om det du svarade i enkäten, så den behöver dina svar först. Svara på enkäten i den här webbläsaren. Passar samtalet din box står erbjudandet på tacksidan.</p>
+    <div class="actions" style="margin-top:28px"><a class="btn-primary" href="/enkat/">Till enkäten</a></div>
+  </section>
+
+  <section id="intro" class="card" hidden aria-labelledby="intro-titel">
+    <div class="eyebrow">Samtal för boxägare · Tio till femton minuter</div>
+    <h1 id="intro-titel">Berätta mer om <em>din box</em>.</h1>
+    <p class="lede">Tack för att du svarade på enkäten. Nu vill vi förstå mer av det du svarade. Frågorna ställs av OpenGyms AI-assistent, som utgår från dina svar och frågar vidare där vi har mest att lära.</p>
+    <ul class="facts">
+      <li><span>01</span><div>Du pratar med en AI-assistent, inte en människa.</div></li>
+      <li><span>02</span><div>Tio till femton minuter. Du skriver när det passar och kan avsluta när du vill.</div></li>
+      <li><span>03</span><div>Det här är en provversion. Ingenting du skriver sparas.</div></li>
+    </ul>
+    <div class="actions" id="intro-actions"></div>
+    <p class="fine">Frågorna bygger på dina enkätsvar, som finns i den här webbläsaren. Din e-post följer inte med.</p>
+  </section>
+
+  <section id="samtal" class="card" hidden aria-labelledby="samtal-titel">
+    <div class="eyebrow" id="samtal-titel">Samtal med OpenGyms AI-assistent · Provversion</div>
+    <div class="logg" id="logg" role="log" aria-live="polite"></div>
+    <p class="status" id="status" aria-live="polite"></p>
+    <p class="form-error" id="fel" role="alert" hidden></p>
+    <form id="skriv" class="skriv" novalidate>
+      <label class="sr-only" for="text">Ditt svar</label>
+      <textarea id="text" rows="3" maxlength="4000" placeholder="Skriv ditt svar"></textarea>
+      <div class="skriv-rad">
+        <span class="tips">Cmd eller Ctrl + Enter skickar</span>
+        <div class="actions">
+          <button type="button" class="btn-ghost" id="btn-avsluta">Avsluta</button>
+          <button type="submit" class="btn-primary" id="btn-skicka">Skicka</button>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <section id="klart" class="card" hidden aria-labelledby="klart-titel">
+    <div class="done-mark" aria-hidden="true">✓</div>
+    <h2 id="klart-titel" tabindex="-1">Tack för samtalet.</h2>
+    <p class="lede">Det här var en provversion, så ingenting av det du skrev sparades.</p>
+    <a href="/" class="btn-text">Till opengym.se</a>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    © 2026 OpenGym · <a href="/">opengym.se</a><br>
+    Samtalet förs med en AI-assistent. Provversion: ingenting du skriver sparas.
+  </div>
+</footer>
+
+<script>
+  // ========== INSTÄLLNINGAR ==========
+  // /intervju-tur i repot opengym, körd hos Supabase. Tom = samtalet är stängt, och sidan säger det.
+  const TUR_ENDPOINT = '';
+  // PostHog: samma projekt och samma inställningar som enkäten. Tom nyckel = ingen mätning alls.
+  const POSTHOG_KEY = 'phc_nDoAcMqFZRzAak22z5sXN3LtnRPEC9s3Q7PfdVH753Td';
+  const POSTHOG_HOST = 'https://eu.i.posthog.com';
+
+  const UNDERLAG_KEY = 'opengym_intervju_underlag_v1';   // skrivs av enkätsidan
+  const SAMTAL_KEY = 'opengym_intervju_samtal_v1';
+
+  // På den egna datorn går adressen att peka om med ?api=, till utvecklingsservern i opengym.
+  function endpoint() {
+    const lokal = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+    const api = new URLSearchParams(location.search).get('api');
+    return lokal && api ? api : TUR_ENDPOINT;
+  }
+
+  // ========== MÄTNING (PostHog utan kakor) ==========
+  // Bara händelser och räknare, aldrig text ur samtalet.
+  const phQueue = [];
+  let phReady = false;
+  function track(event, props) {
+    if (!POSTHOG_KEY) return;
+    if (phReady && window.posthog) window.posthog.capture(event, props || {});
+    else phQueue.push([event, props || {}]);
+  }
+  (function loadPostHog() {
+    if (!POSTHOG_KEY) return;
+    const s = document.createElement('script');
+    s.async = true;
+    s.crossOrigin = 'anonymous';
+    s.src = POSTHOG_HOST.replace('.i.posthog.com', '-assets.i.posthog.com') + '/static/array.js';
+    s.onload = function () {
+      window.posthog.init(POSTHOG_KEY, {
+        api_host: POSTHOG_HOST,
+        persistence: 'memory',          // inga kakor, inget lagrat id
+        person_profiles: 'identified_only',
+        autocapture: false,
+        capture_pageview: true,
+        capture_pageleave: true,
+        disable_session_recording: true,
+      });
+      phReady = true;
+      phQueue.splice(0).forEach(function (item) { window.posthog.capture(item[0], item[1]); });
+    };
+    document.head.appendChild(s);
+  })();
+
+  // ========== STRÖMMEN ==========
+  // HANDELSER START
+  // Delar det som kommit hittills i händelser. Varje händelse är en rad "data: {...}" följd av en
+  // tom rad. Det som inte är komplett än kommer tillbaka som rest och läggs först i nästa bit.
+  function delaHandelser(buffert) {
+    const delar = buffert.split('\n\n');
+    const rest = delar.pop();
+    const handelser = [];
+    for (const del of delar) {
+      const rad = del.split('\n').find(r => r.startsWith('data: '));
+      if (!rad) continue;
+      try { handelser.push(JSON.parse(rad.slice(6))); } catch (_) {}
+    }
+    return { handelser, rest };
+  }
+  // HANDELSER SLUT
+
+  // ========== TILLSTÅND ==========
+  const $ = id => document.getElementById(id);
+  let underlag = null;     // { rid, svar } ur enkäten
+  let historik = [];       // exakt det servern skickat, orört, eftersom Claude kräver det
+  let skickar = false;
+
+  function lasUnderlag() {
+    try {
+      const u = JSON.parse(localStorage.getItem(UNDERLAG_KEY) || 'null');
+      return u && typeof u.rid === 'string' && u.svar && typeof u.svar === 'object' ? { rid: u.rid, svar: u.svar } : null;
+    } catch (_) { return null; }
+  }
+  function lasSamtal() {
+    try {
+      const s = JSON.parse(localStorage.getItem(SAMTAL_KEY) || 'null');
+      return s && s.rid === underlag.rid && Array.isArray(s.historik) && s.historik.length > 0 ? s.historik : null;
+    } catch (_) { return null; }
+  }
+  function sparaSamtal() { try { localStorage.setItem(SAMTAL_KEY, JSON.stringify({ v: 1, rid: underlag.rid, historik })); } catch (_) {} }
+  function glomSamtal() { try { localStorage.removeItem(SAMTAL_KEY); } catch (_) {} }
+
+  // ========== VISNING ==========
+  const SKARMAR = ['stangd', 'saknas', 'intro', 'samtal', 'klart'];
+  function visa(id) { SKARMAR.forEach(s => { $(s).hidden = s !== id; }); }
+
+  function textAv(content) {
+    return (Array.isArray(content) ? content : []).filter(b => b && b.type === 'text').map(b => b.text).join('');
+  }
+  function nyTur(vem) {
+    const tur = document.createElement('div');
+    tur.className = vem === 'ai' ? 'tur tur-ai' : 'tur tur-du';
+    const etikett = document.createElement('div');
+    etikett.className = 'tur-vem';
+    etikett.textContent = vem === 'ai' ? 'OpenGym, AI-assistent' : 'Du';
+    const kropp = document.createElement('div');
+    kropp.className = 'tur-text';
+    tur.append(etikett, kropp);
+    $('logg').append(tur);
+    return kropp;
+  }
+  // Text, aldrig HTML: allt som kommer från servern eller ägaren sätts med textContent.
+  function fyll(kropp, text) {
+    kropp.replaceChildren(...String(text).split(/\n{2,}/).map(s => s.trim()).filter(Boolean).map(stycke => {
+      const p = document.createElement('p');
+      p.textContent = stycke;
+      return p;
+    }));
+  }
+  function ritaHistorik() {
+    $('logg').replaceChildren();
+    // Första meddelandet är starttexten till servern och visas aldrig.
+    historik.forEach((m, i) => { if (i > 0) fyll(nyTur(m.role === 'assistant' ? 'ai' : 'du'), m.role === 'assistant' ? textAv(m.content) : m.content); });
+  }
+
+  const FELTEXT = {
+    upptagen: 'Assistenten är upptagen just nu. Vänta en stund och skicka igen.',
+    avbojt: 'Det svaret kunde assistenten inte ge. Skriv om ditt svar och skicka igen.',
+    for_lang_tur: 'Svaret är för långt. Korta ner det och skicka igen.',
+    for_manga_turer: 'Samtalet har blivit så långt det kan bli. Tack för att du tog dig tid.',
+    for_lang_historik: 'Samtalet har blivit så långt det kan bli. Tack för att du tog dig tid.',
+    inte_typkund: 'Samtalet är för boxar som svarat på enkäten.',
+    natverk: 'Kunde inte nå assistenten. Kontrollera anslutningen och skicka igen.',
+    tekniskt: 'Något gick fel. Försök igen om en stund.',
+  };
+  const SLUTKODER = ['for_manga_turer', 'for_lang_historik', 'inte_typkund'];
+
+  // ========== EN TUR ==========
+  async function skicka(text) {
+    if (skickar) return;
+    skickar = true;
+    const start = historik.length === 0;
+    $('fel').hidden = true;
+    $('btn-skicka').disabled = true;
+    $('text').disabled = true;
+    let duKropp = null;
+    if (!start) { duKropp = nyTur('du'); fyll(duKropp, text); $('text').value = ''; }
+    $('status').textContent = 'Skriver…';
+    const aiKropp = nyTur('ai');
+    let svarstext = '';
+    let klar = false;
+    let felkod = null;
+    try {
+      const res = await fetch(endpoint(), {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ underlag, historik, text: start ? null : text, start }),
+      });
+      if (!res.ok || !res.body) {
+        felkod = 'tekniskt';
+        try { const j = await res.json(); if (j && typeof j.fel === 'string') felkod = j.fel; } catch (_) {}
+      } else {
+        const lasare = res.body.getReader();
+        const avkodare = new TextDecoder();
+        let buffert = '';
+        for (;;) {
+          const { value, done } = await lasare.read();
+          if (done) break;
+          const { handelser, rest } = delaHandelser(buffert + avkodare.decode(value, { stream: true }));
+          buffert = rest;
+          for (const h of handelser) {
+            if (h.typ === 'text' && typeof h.delta === 'string') {
+              svarstext += h.delta;
+              fyll(aiKropp, svarstext);
+              $('status').textContent = '';
+            } else if (h.typ === 'klar' && Array.isArray(h.tillagg)) {
+              historik = historik.concat(h.tillagg);
+              klar = true;
+            } else if (h.typ === 'fel') {
+              felkod = typeof h.kod === 'string' ? h.kod : 'tekniskt';
+            }
+            // Okända händelsetyper hoppas över, så att en nyare server inte bryter sidan.
+          }
+        }
+        if (!klar && !felkod) felkod = 'tekniskt';
+      }
+    } catch (_) {
+      felkod = 'natverk';
+    }
+    $('status').textContent = '';
+    if (klar) {
+      sparaSamtal();
+      track(start ? 'intervju_startad' : 'intervju_tur', { tur: historik.length / 2 });
+    } else {
+      // Ett avbrutet svar tas bort helt, och ägarens text läggs tillbaka i fältet.
+      aiKropp.parentElement.remove();
+      if (duKropp) { duKropp.parentElement.remove(); $('text').value = text; }
+      $('fel').textContent = FELTEXT[felkod] || FELTEXT.tekniskt;
+      $('fel').hidden = false;
+      track('intervju_fel', { kod: FELTEXT[felkod] ? felkod : 'tekniskt' });
+    }
+    skickar = false;
+    const slut = SLUTKODER.includes(felkod);
+    $('btn-skicka').disabled = slut;
+    $('text').disabled = slut;
+    if (!slut) $('text').focus();
+  }
+
+  // ========== START ==========
+  function oppnaSamtal(tidigare) {
+    historik = tidigare || [];
+    visa('samtal');
+    ritaHistorik();
+    if (historik.length === 0) skicka(null);
+    else $('text').focus();
+  }
+
+  $('skriv').addEventListener('submit', e => {
+    e.preventDefault();
+    if (historik.length === 0) { skicka(null); return; }   // starten misslyckades, försök igen
+    const t = $('text').value.trim();
+    if (!t) { $('text').focus(); return; }
+    skicka(t);
+  });
+  $('text').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); $('skriv').requestSubmit(); }
+  });
+  $('btn-avsluta').addEventListener('click', () => {
+    track('intervju_avslutad', { tur: Math.floor(historik.length / 2) });
+    glomSamtal();
+    historik = [];
+    visa('klart');
+    $('klart-titel').focus();
+  });
+
+  (function starta() {
+    if (!endpoint()) { visa('stangd'); track('intervju_visad', { lage: 'stangd' }); return; }
+    underlag = lasUnderlag();
+    if (!underlag) { visa('saknas'); track('intervju_visad', { lage: 'saknas' }); return; }
+    const tidigare = lasSamtal();
+    const knappar = $('intro-actions');
+    if (tidigare) {
+      knappar.innerHTML = '<div class="notice">Du har ett påbörjat samtal. Fortsätt där du slutade eller börja om.</div>' +
+        '<button type="button" class="btn-primary" id="btn-fortsatt">Fortsätt</button>' +
+        '<button type="button" class="btn-ghost" id="btn-omstart">Börja om</button>';
+      $('btn-fortsatt').addEventListener('click', () => oppnaSamtal(tidigare));
+      $('btn-omstart').addEventListener('click', () => { glomSamtal(); oppnaSamtal(null); });
+    } else {
+      knappar.innerHTML = '<button type="button" class="btn-primary" id="btn-start">Starta samtalet</button>';
+      $('btn-start').addEventListener('click', () => oppnaSamtal(null));
+    }
+    visa('intro');
+    track('intervju_visad', { lage: tidigare ? 'paborjat' : 'ny' });
+  })();
+</script>
+
+</body>
+</html>
