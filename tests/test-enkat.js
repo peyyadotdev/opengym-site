@@ -181,6 +181,7 @@ function serve() {
     await page.check('input[name="q23_retention"][value="Vet inte"]');
     await page.check('input[name="q24_avhopp"][value="Coachen ser det på golvet"]');
     await page.check('input[name="q26_pass"][value="Kanske"]');
+    check('matris: vald cell får prick i ringen', await page.$eval('input[name="q26_pass"]:checked + .opt-mark', el => getComputedStyle(el).backgroundColor === 'rgb(166, 255, 31)' && getComputedStyle(el, '::after').content === '""'));
     await page.screenshot({ path: `${OUT}/enkat-del6.png`, fullPage: true });
     await page.click('#btn-next');
     await page.waitForFunction(() => document.getElementById('step-title').textContent.trim() === 'Byta system');

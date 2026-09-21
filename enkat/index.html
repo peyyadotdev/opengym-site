@@ -199,6 +199,8 @@
   .m-label { padding: 12px; font-size: 15px; }
   .m-cell { display: flex; justify-content: center; align-items: center; padding: 12px 6px; cursor: pointer; position: relative; border-left: 1px solid var(--line-soft); min-height: 48px; }
   .m-cell input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; margin: 0; cursor: pointer; z-index: 1; }
+  .m-cell input:checked + .opt-mark { border-color: var(--ink); background: var(--accent); }
+  .m-cell input:checked + .opt-mark::after { content: ''; position: absolute; inset: 5px; background: var(--ink); border-radius: inherit; }
   .m-cell:has(input:checked) { background: var(--plate-tint); }
   .m-cell:has(input:focus-visible) { outline: 2px solid var(--accent-deep); outline-offset: -2px; }
 
@@ -415,7 +417,7 @@
       { code: 'q17f_butik', type: 'single', label: 'Dryck, bars, kläder och merch i boxen?', optionsFrom: 'q17_betalsatt', extraOptions: ['Säljer vi inte'], cols: true, required: true },
       { code: 'q17g_kanal', type: 'single', label: 'Det ni säljer utöver medlemskap, var köps det främst?', options: ['På plats i boxen', 'Via hemsidan eller appen', 'Ungefär lika'], cols: true, showIf: s => ['q17d_dropin', 'q17e_pt', 'q17f_butik'].some(c => s.answers[c] && s.answers[c] !== 'Säljer vi inte') },
       { code: 'q18_betalkostnad', type: 'single', label: 'Vet ni vad betalningarna kostar er per år?', options: ['Nej', 'Under 1 % av omsättningen', '1–2 %', '2–3 %', 'Över 3 %'], cols: true },
-      { code: 'q19_swish', type: 'single', label: 'Skulle ni låta Swish återkommande vara standardvalet för era medlemmar?', help: 'Swish har sedan i år återkommande betalningar: medlemmen godkänner en gång med BankID i Swish-appen, sedan dras avgiften automatiskt.', options: ['Ja', 'Nej', 'Vet inte'], cols: true, required: true },
+      { code: 'q19_swish', type: 'single', label: 'Skulle ni låta Swish-prenumeration vara standardvalet för era medlemmar?', help: 'Swish-prenumeration är Swish återkommande betalningar, nytt sedan i år: medlemmen godkänner en gång med BankID i Swish-appen, sedan dras avgiften automatiskt.', options: ['Ja', 'Nej', 'Vet inte'], cols: true, required: true },
       { code: 'q19b_varfor', type: 'text', label: 'Varför?', lines: 2, maxlength: 600 },
       { code: 'q20_omregistrering', type: 'single', label: 'Om ni bytte system och medlemmarna behövde registrera om sitt betalsätt med BankID i en app, hur stor andel tror du gör det inom en månad?', options: ['Under 50 %', '50–70 %', '70–90 %', 'Över 90 %'], cols: true, required: true },
     ] },
@@ -434,7 +436,7 @@
       ], options: ['Ja', 'Kanske', 'Nej'] },
     ] },
     { id: 'byta', title: 'Byta system', questions: [
-      { code: 'q27_byta', type: 'multi', label: 'Vad skulle få er att byta system?', help: 'Välj upp till tre.', maxSelect: 3, options: ['Träningslogg, PR och leaderboard i samma system som medlemskapen', 'Riktigt stöd för fasta grupper', 'Lägre kostnad', 'Bättre app för medlemmarna', 'Påminnelser, nya som hör av sig och uppföljning sköts åt mig', 'Svensk support', 'Att någon flyttar över medlemmar och historik åt oss', 'Passersystem inbyggt', 'Swish återkommande', 'Inget, vi är nöjda'], required: true },
+      { code: 'q27_byta', type: 'multi', label: 'Vad skulle få er att byta system?', help: 'Välj upp till tre.', maxSelect: 3, options: ['Träningslogg, PR och leaderboard i samma system som medlemskapen', 'Riktigt stöd för fasta grupper', 'Lägre kostnad', 'Bättre app för medlemmarna', 'Påminnelser, nya som hör av sig och uppföljning sköts åt mig', 'Svensk support', 'Att någon flyttar över medlemmar och historik åt oss', 'Passersystem inbyggt', 'Swish-prenumeration', 'Inget, vi är nöjda'], required: true },
       { code: 'q28_gratis', type: 'single', label: 'Ett system som är gratis och i stället tar cirka en och en halv procent av betalningarna, med tak på vad det får kosta per månad. Jämfört med fast månadsavgift plus transaktionsavgifter, är det …', options: ['Mer attraktivt', 'Lika', 'Mindre attraktivt', 'Vet inte'], cols: true, required: true },
       { code: 'q28b_varfor', type: 'text', label: 'Varför?', lines: 2, maxlength: 600 },
       { code: 'q29_pilot', type: 'single', label: 'Vill du vara ett av tre pilotgym när vi startar, med allt gratis under piloten och direkt inflytande över vad som byggs?', options: ['Ja', 'Kanske, berätta mer', 'Nej'], cols: true },
