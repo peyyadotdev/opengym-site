@@ -6,7 +6,7 @@
     "q08_kostnad": "2 500–5 000 kr", "q09_irriterande": "Stämma av autogirot mot banken varje månad",
     "q10_modell": "Både och", "q10_annat": "", "q11_utebliven": ["Vi hör av oss"], "q11_annat": "", "q12_fungerat": "Grupperna håller ihop, men sjukfrånvaro är svårt",
     "q13_pris": "900–1 100 kr", "q14_offpeak": "Nej", "q15_3plus": 35, "q15_1till2": 45, "q15_sallan": 20, "q16_opengym": "Ja, bemannat",
-    "q17_betalsatt": ["Autogiro via banken", "Swish"], "q17_annat": "", "q17b_storst": "Autogiro via banken", "q18_betalkostnad": "Nej",
+    "q17_betalsatt": ["Autogiro", "Swish"], "q17_annat": "", "q17b_storst": "Autogiro", "q18_betalkostnad": "Nej",
     "q19_swish": "Ja", "q19b_varfor": "", "q20_omregistrering": "70–90 %", "q21_dorr": ["Parakey"], "q21_annat": "", "q22_automation": "Nej",
     "q23_retention": "65–80 %", "q24_avhopp": ["Coachen ser det på golvet"], "q24_annat": "", "q25_vikarie": "Sällan", "q25b_hitta": [],
     "q26_pass": "Ja", "q26_grupp": "Kanske", "q27_byta": ["Riktigt stöd för fasta grupper", "Swish återkommande"],

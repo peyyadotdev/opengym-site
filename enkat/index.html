@@ -409,7 +409,7 @@
       { code: 'q16_opengym', type: 'single', label: 'Har ni Open Gym, alltså tider där medlemmar tränar själva utan pass?', options: ['Ja, bemannat', 'Ja, obemannat', 'Nej'], cols: true, required: true },
     ] },
     { id: 'betalningar', title: 'Betalningar', questions: [
-      { code: 'q17_betalsatt', type: 'multi', label: 'Hur betalar era medlemmar i dag?', options: ['Autogiro via banken', 'Kort', 'Swish', 'Faktura', 'Friskvårdsportal (Epassi, Benify, Wellnet)', 'Klarna'], other: true, cols: true, required: true },
+      { code: 'q17_betalsatt', type: 'multi', label: 'Hur betalar era medlemmar i dag?', options: ['Autogiro', 'Kort', 'Swish', 'Faktura', 'Friskvårdsportal (Epassi, Benify, Wellnet)', 'Klarna'], other: true, cols: true, required: true },
       { code: 'q17b_storst', type: 'single', label: 'Vilket betalsätt är störst?', optionsFrom: 'q17_betalsatt', cols: true, required: true, showIf: s => (s.answers.q17_betalsatt || []).length > 1 },
       { code: 'q17c_medlemskap', type: 'single', label: 'Hur betalar medlemmarna för det löpande medlemskapet?', help: 'Samma fråga för fyra saker ni kan sälja. Välj det betalsätt som används mest.', optionsFrom: 'q17_betalsatt', extraOptions: ['Annat sätt'], cols: true, required: true },
       { code: 'q17d_dropin', type: 'single', label: 'Och för drop-in, klippkort och enstaka pass?', optionsFrom: 'q17_betalsatt', extraOptions: ['Säljer vi inte'], cols: true, required: true },
