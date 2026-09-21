@@ -21,7 +21,7 @@ const UNDERLAG = { v: 1, rid: RID, svar: FALL.bas, skapad: '2026-09-21T10:00:00.
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 // Samtyckestexten ur byggplanen, ordagrant. Daniels att ändra, och då här också.
 const SAMTYCKE = [
-  'Säger du ja sparas det du bekräftar på korten, ämnen du vill ta upp i slutet och svaret om pilotgym, ihop med dina enkätsvar. Det sparas i OpenGyms databas i EU och sammanställs anonymt till Boxrapporten 2026. Ditt namn och din e-post behövs inte, och assistenten skriver aldrig in namn på medlemmar eller coacher. Samtalet behandlas av Claude från Anthropic i USA, som inte tränar sina modeller på det och raderar det inom 30 dagar. För att stoppa missbruk räknar servern anrop per dygn, med din nätverksadress som kontrollsumma. Vill du att vi tar bort det som sparats, mejla daniel@opengym.se med koden du får när samtalet är klart.',
+  'Säger du ja sparas det du bekräftar på korten, ämnen du vill ta upp i slutet och svaret om pilotgym, ihop med dina enkätsvar. Det sparas i OpenGyms databas i EU, sammanställs anonymt till Boxrapporten 2026 och raderas senast den 30 juni 2027. Ditt namn och din e-post behövs inte, och assistenten skriver aldrig in namn på medlemmar eller coacher. Samtalet behandlas av Claude från Anthropic i USA, som inte tränar sina modeller på det och raderar det inom 30 dagar. För att stoppa missbruk räknar servern anrop per dygn, med din nätverksadress som kontrollsumma. Vill du att vi tar bort det som sparats, mejla daniel@opengym.se med koden du får när samtalet är klart.',
   'Säger du nej kan du prata ändå, men ingenting sparas.',
 ];
 

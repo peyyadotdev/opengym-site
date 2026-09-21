@@ -226,7 +226,7 @@
       <li><span>03</span><div>Du bestämmer om något sparas. Utan ja sparas ingenting.</div></li>
     </ul>
     <div class="samtycke" id="samtycke">
-      <p>Säger du ja sparas det du bekräftar på korten, ämnen du vill ta upp i slutet och svaret om pilotgym, ihop med dina enkätsvar. Det sparas i OpenGyms databas i EU och sammanställs anonymt till Boxrapporten 2026. Ditt namn och din e-post behövs inte, och assistenten skriver aldrig in namn på medlemmar eller coacher. Samtalet behandlas av Claude från Anthropic i USA, som inte tränar sina modeller på det och raderar det inom 30 dagar. För att stoppa missbruk räknar servern anrop per dygn, med din nätverksadress som kontrollsumma. Vill du att vi tar bort det som sparats, mejla <a href="mailto:daniel@opengym.se">daniel@opengym.se</a> med koden du får när samtalet är klart.</p>
+      <p>Säger du ja sparas det du bekräftar på korten, ämnen du vill ta upp i slutet och svaret om pilotgym, ihop med dina enkätsvar. Det sparas i OpenGyms databas i EU, sammanställs anonymt till Boxrapporten 2026 och raderas senast den 30 juni 2027. Ditt namn och din e-post behövs inte, och assistenten skriver aldrig in namn på medlemmar eller coacher. Samtalet behandlas av Claude från Anthropic i USA, som inte tränar sina modeller på det och raderar det inom 30 dagar. För att stoppa missbruk räknar servern anrop per dygn, med din nätverksadress som kontrollsumma. Vill du att vi tar bort det som sparats, mejla <a href="mailto:daniel@opengym.se">daniel@opengym.se</a> med koden du får när samtalet är klart.</p>
       <p>Säger du nej kan du prata ändå, men ingenting sparas.</p>
     </div>
     <div class="actions" id="intro-ny">
@@ -725,8 +725,8 @@
       }
       avslutat = slutSignal;
       sparaSamtal();
-      track(start ? 'intervju_startad' : 'intervju_tur', { tur: historik.length / 2 });
-      if (avslutat) track('intervju_slut', { tur: historik.length / 2 });
+      track(start ? 'intervju_startad' : 'intervju_tur', { tur: antalTurer() });
+      if (avslutat) track('intervju_slut', { tur: antalTurer() });
     } else {
       // Ett avbrutet svar tas bort helt, och ägarens text läggs tillbaka i fältet.
       aiKropp.parentElement.remove();
@@ -746,6 +746,9 @@
     if (!slut && !(nyttKort && fokusKort())) $('text').focus();
     return klar;
   }
+
+  // Ägarens turer hittills. Historiken kan ha fler meddelanden än turer, så den räknas inte i par.
+  function antalTurer() { return historik.filter(m => m && m.role === 'user').length; }
 
   // ========== START ==========
   // Ett nytt samtal får ett nytt id och ägarens val. Ett återupptaget tar med sig båda.
@@ -776,7 +779,7 @@
   });
   // Klart-skärmen säger vad som sparades. Koden är början på samtalets id, så att det går att ta bort.
   function stangSamtal() {
-    track('intervju_avslutad', { tur: Math.floor(historik.length / 2), av: avslutat ? 'assistenten' : 'agaren' });
+    track('intervju_avslutad', { tur: antalTurer(), av: avslutat ? 'assistenten' : 'agaren' });
     $('klart-sparat').hidden = !samtycke;
     $('klart-kod').hidden = !samtycke;
     $('klart-inget').hidden = samtycke;
