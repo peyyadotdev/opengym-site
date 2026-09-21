@@ -80,9 +80,20 @@
   .facts li span:first-child { font-family: var(--mono); font-size: 12px; color: var(--ink); background: var(--plate); padding: 2px 4px; align-self: start; justify-self: start; }
   .fine { font-size: 13px; line-height: 1.55; color: var(--ink-muted); margin-top: 18px; max-width: 62ch; }
   .samtycke { margin: 0 0 28px; max-width: 62ch; }
+  .samtycke-fraga { font-weight: 600; font-size: 17px; color: var(--ink); margin-bottom: 12px; }
+  .samtycke-ingress { margin-bottom: 14px; }
+  .samtycke .opts { margin-bottom: 14px; }
+  .opt-text { display: grid; gap: 4px; text-align: left; }
+  .opt-sub { font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
   .samtycke p { font-size: 15px; line-height: 1.6; color: var(--ink-soft); }
-  .samtycke p + p { margin-top: 10px; }
   .samtycke a { color: var(--ink); }
+  .samtycke-mer { margin-top: 10px; }
+  .samtycke-mer summary { cursor: pointer; font-family: var(--mono); font-size: 13px; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; width: fit-content; }
+  .samtycke-mer summary:hover { background: var(--plate); }
+  .samtycke-mer p { margin-top: 10px; }
+  /* Startknappen väntar på ett val, den skickar inget. Därför pil och inte "…", och ingen väntemarkör. */
+  #btn-start:disabled { opacity: 0.45; cursor: not-allowed; }
+  #btn-start:disabled::after { content: '→'; }
   .actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
   .notice { flex-basis: 100%; padding: 14px 16px; border: 1px solid var(--plate); background: var(--plate-tint); border-radius: 2px; font-size: 15px; line-height: 1.5; }
 
@@ -223,15 +234,22 @@
     <ul class="facts">
       <li><span>01</span><div>Du pratar med en AI-assistent, inte en människa.</div></li>
       <li><span>02</span><div>Tio till femton minuter. Du skriver när det passar och kan avsluta när du vill.</div></li>
-      <li><span>03</span><div>Du bestämmer om något sparas. Utan ja sparas ingenting.</div></li>
+      <li><span>03</span><div>Du bestämmer om vi får använda det du berättar.</div></li>
     </ul>
     <div class="samtycke" id="samtycke">
-      <p>Säger du ja sparas det du bekräftar på korten, ämnen du vill ta upp i slutet och svaret om pilotgym, ihop med dina enkätsvar. Det sparas i OpenGyms databas i EU, sammanställs anonymt till Boxrapporten 2026 och raderas senast den 30 juni 2027. Ditt namn och din e-post behövs inte, och assistenten skriver aldrig in namn på medlemmar eller coacher. Samtalet behandlas av Claude från Anthropic i USA, som inte tränar sina modeller på det och raderar det inom 30 dagar. För att stoppa missbruk räknar servern anrop per dygn, med din nätverksadress som kontrollsumma. Vill du att vi tar bort det som sparats, mejla <a href="mailto:daniel@opengym.se">daniel@opengym.se</a> med koden du får när samtalet är klart.</p>
-      <p>Säger du nej kan du prata ändå, men ingenting sparas.</p>
+      <p class="samtycke-fraga" id="samtycke-fraga">Får vi använda det du berättar?</p>
+      <p class="samtycke-ingress">Under samtalet sammanfattar assistenten det du säger på små kort, som du godkänner eller rättar.</p>
+      <div class="opts" role="radiogroup" aria-labelledby="samtycke-fraga">
+        <button type="button" class="opt" role="radio" aria-checked="false" data-svar="ja"><span class="opt-mark"></span><span class="opt-text"><span>Ja, använd mina svar</span><span class="opt-sub">Korten du godkänner sparas utan ditt namn och används i Boxrapporten 2026 och när vi bygger OpenGym.</span></span></button>
+        <button type="button" class="opt" role="radio" aria-checked="false" data-svar="nej"><span class="opt-mark"></span><span class="opt-text"><span>Nej, jag vill bara prata</span><span class="opt-sub">Ingenting sparas. När du stänger sidan är samtalet borta.</span></span></button>
+      </div>
+      <details class="samtycke-mer">
+        <summary>Läs mer om vad som sparas</summary>
+        <p>Säger du ja sparas det du bekräftar på korten, ämnen du vill ta upp i slutet och svaret om pilotgym, ihop med dina enkätsvar. Det sparas i OpenGyms databas i EU, sammanställs anonymt till Boxrapporten 2026 och raderas senast den 30 juni 2027. Ditt namn och din e-post behövs inte, och assistenten skriver aldrig in namn på medlemmar eller coacher. Samtalet behandlas av Claude från Anthropic i USA, som inte tränar sina modeller på det och raderar det inom 30 dagar. För att stoppa missbruk räknar servern anrop per dygn, med din nätverksadress som kontrollsumma. Vill du att vi tar bort det som sparats, mejla <a href="mailto:daniel@opengym.se">daniel@opengym.se</a> med koden du får när samtalet är klart.</p>
+      </details>
     </div>
     <div class="actions" id="intro-ny">
-      <button type="button" class="btn-primary" id="btn-ja">Starta och spara det jag bekräftar</button>
-      <button type="button" class="btn-ghost" id="btn-nej">Starta utan att spara</button>
+      <button type="button" class="btn-primary" id="btn-start" disabled>Starta samtalet</button>
     </div>
     <div class="actions" id="intro-paborjat" hidden>
       <div class="notice">Du har ett påbörjat samtal. Fortsätt där du slutade eller börja om.</div>
@@ -266,7 +284,7 @@
   <section id="klart" class="card" hidden aria-labelledby="klart-titel">
     <div class="done-mark" aria-hidden="true">✓</div>
     <h2 id="klart-titel" tabindex="-1">Tack för samtalet.</h2>
-    <p class="lede" id="klart-sparat" hidden>Det du bekräftade är sparat. Tack.</p>
+    <p class="lede" id="klart-sparat" hidden>Korten du godkände är sparade, utan ditt namn. Tack.</p>
     <p class="kod" id="klart-kod" hidden>Koden till ditt samtal är <code id="kod"></code>. Mejla den till <a href="mailto:daniel@opengym.se">daniel@opengym.se</a> om du vill att vi tar bort det som sparats.</p>
     <p class="lede" id="klart-inget">Ingenting sparades.</p>
     <a href="/" class="btn-text">Till opengym.se</a>
@@ -803,10 +821,26 @@
     $('intro-paborjat').hidden = !tidigare;
   }
   let tidigare = null;
-  $('btn-ja').addEventListener('click', () => { track('intervju_samtycke', { svar: 'ja' }); oppnaSamtal(null, true); });
-  $('btn-nej').addEventListener('click', () => { track('intervju_samtycke', { svar: 'nej' }); oppnaSamtal(null, false); });
+  // Samtycket är en fråga med två svar. Startknappen går att trycka först när ägaren valt.
+  let valtSamtycke = null;
+  const samtyckesval = () => [...document.querySelectorAll('#samtycke .opt')];
+  function valjSamtycke(svar) {
+    valtSamtycke = svar;
+    samtyckesval().forEach(b => {
+      const vald = b.dataset.svar === svar;
+      b.classList.toggle('vald', vald);
+      b.setAttribute('aria-checked', String(vald));
+    });
+    $('btn-start').disabled = svar === null;
+  }
+  samtyckesval().forEach(b => b.addEventListener('click', () => valjSamtycke(b.dataset.svar)));
+  $('btn-start').addEventListener('click', () => {
+    if (!valtSamtycke) return;
+    track('intervju_samtycke', { svar: valtSamtycke });
+    oppnaSamtal(null, valtSamtycke === 'ja');
+  });
   $('btn-fortsatt').addEventListener('click', () => oppnaSamtal(tidigare));
-  $('btn-omstart').addEventListener('click', () => { glomSamtal(); tidigare = null; visaIntro(null); $('btn-ja').focus(); });
+  $('btn-omstart').addEventListener('click', () => { glomSamtal(); tidigare = null; valjSamtycke(null); visaIntro(null); samtyckesval()[0].focus(); });
 
   (function starta() {
     if (!endpoint()) { visa('stangd'); track('intervju_visad', { lage: 'stangd' }); return; }

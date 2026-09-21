@@ -20,10 +20,9 @@ const MOCK_BLOCK = '/mock/intervju-block';   // sidan byter intervju-tur mot int
 const UNDERLAG = { v: 1, rid: RID, svar: FALL.bas, skapad: '2026-09-21T10:00:00.000Z' };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 // Samtyckestexten ur byggplanen, ordagrant. Daniels att ändra, och då här också.
-const SAMTYCKE = [
-  'Säger du ja sparas det du bekräftar på korten, ämnen du vill ta upp i slutet och svaret om pilotgym, ihop med dina enkätsvar. Det sparas i OpenGyms databas i EU, sammanställs anonymt till Boxrapporten 2026 och raderas senast den 30 juni 2027. Ditt namn och din e-post behövs inte, och assistenten skriver aldrig in namn på medlemmar eller coacher. Samtalet behandlas av Claude från Anthropic i USA, som inte tränar sina modeller på det och raderar det inom 30 dagar. För att stoppa missbruk räknar servern anrop per dygn, med din nätverksadress som kontrollsumma. Vill du att vi tar bort det som sparats, mejla daniel@opengym.se med koden du får när samtalet är klart.',
-  'Säger du nej kan du prata ändå, men ingenting sparas.',
-];
+const SAMTYCKE = 'Säger du ja sparas det du bekräftar på korten, ämnen du vill ta upp i slutet och svaret om pilotgym, ihop med dina enkätsvar. Det sparas i OpenGyms databas i EU, sammanställs anonymt till Boxrapporten 2026 och raderas senast den 30 juni 2027. Ditt namn och din e-post behövs inte, och assistenten skriver aldrig in namn på medlemmar eller coacher. Samtalet behandlas av Claude från Anthropic i USA, som inte tränar sina modeller på det och raderar det inom 30 dagar. För att stoppa missbruk räknar servern anrop per dygn, med din nätverksadress som kontrollsumma. Vill du att vi tar bort det som sparats, mejla daniel@opengym.se med koden du får när samtalet är klart.';
+// Starta ett samtal: svara på frågan om samtycke, tryck sedan på den enda startknappen.
+const starta = async (p, svar) => { await p.click(`#samtycke .opt[data-svar="${svar}"]`); await p.click('#btn-start'); };
 
 // Korten i protokollets form. Värdena är protokollets exempel och inget mer.
 const KORT_PENGAR = {
@@ -240,16 +239,22 @@ const vantaTills = async (villkor, ms = 5000) => {
   {
     const { ctx, page } = await newPage({ width: 1280, height: 900 });
     await page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
-    check('intro med startknapparna', await page.isVisible('#btn-ja') && await page.isVisible('#btn-nej') && !(await page.isVisible('#btn-fortsatt')));
-    check('intro: knapparna heter som i planen', (await page.textContent('#btn-ja')) === 'Starta och spara det jag bekräftar' && (await page.textContent('#btn-nej')) === 'Starta utan att spara'
-      && await page.$eval('#btn-ja', b => b.className === 'btn-primary') && await page.$eval('#btn-nej', b => b.className === 'btn-ghost'));
-    check('intro: samtyckestexten står ordagrant som i planen', JSON.stringify(await page.$$eval('#samtycke p', ps => ps.map(p => p.textContent))) === JSON.stringify(SAMTYCKE));
-    check('intro: punkt 03 säger att du bestämmer', (await page.textContent('.facts li:nth-child(3) div')) === 'Du bestämmer om något sparas. Utan ja sparas ingenting.');
+    check('intro: en fråga om samtycke och en enda startknapp', await page.isVisible('#samtycke-fraga') && (await page.$$('#samtycke .opt')).length === 2 && (await page.$$('#intro-ny button')).length === 1 && !(await page.isVisible('#btn-fortsatt')));
+    check('intro: frågan säger vad det gäller', (await page.textContent('#samtycke-fraga')) === 'Får vi använda det du berättar?' && (await page.textContent('.samtycke-ingress')).includes('kort, som du godkänner eller rättar'));
+    check('intro: svaren förklarar vad som händer', JSON.stringify(await page.$$eval('#samtycke .opt .opt-text > span:first-child', e => e.map(x => x.textContent))) === JSON.stringify(['Ja, använd mina svar', 'Nej, jag vill bara prata'])
+      && (await page.textContent('#samtycke .opt[data-svar="nej"] .opt-sub')).includes('Ingenting sparas'));
+    check('intro: startknappen heter Starta samtalet och går inte att trycka förrän ägaren valt', (await page.textContent('#btn-start')) === 'Starta samtalet' && await page.isDisabled('#btn-start'));
+    check('intro: hela samtyckestexten ligger under Läs mer, ordagrant som i planen', (await page.textContent('.samtycke-mer summary')) === 'Läs mer om vad som sparas' && (await page.textContent('.samtycke-mer p')) === SAMTYCKE);
+    check('intro: punkt 03 säger att du bestämmer', (await page.textContent('.facts li:nth-child(3) div')) === 'Du bestämmer om vi får använda det du berättar.');
+    await page.click('#samtycke .opt[data-svar="nej"]');
+    await page.click('#samtycke .opt[data-svar="ja"]');
+    check('intro: ett val i taget, och sedan går knappen att trycka', await page.$eval('#samtycke .opt[data-svar="ja"]', b => b.getAttribute('aria-checked') === 'true' && b.classList.contains('vald'))
+      && await page.$eval('#samtycke .opt[data-svar="nej"]', b => b.getAttribute('aria-checked') === 'false') && !(await page.isDisabled('#btn-start')));
     check('intro: ingen rad om provversion kvar', !/provversion/i.test(await page.textContent('body')));
     await page.screenshot({ path: `${OUT}/intervju-intro.png`, fullPage: true });
 
     scenario.push(svar('Hej. Jag är OpenGyms AI-assistent. Du svarade att det mest irriterande är autogirot. Berätta om senaste gången.'));
-    await page.click('#btn-ja');
+    await page.click('#btn-start');
     await vantaPaSvar(page, 1);
     const f = anrop[0];
     check('start: skickar start, ingen text och tom historik', f.start === true && f.text === null && Array.isArray(f.historik) && f.historik.length === 0);
@@ -298,7 +303,7 @@ const vantaTills = async (villkor, ms = 5000) => {
     const fore = await turer(page);
     await page.reload({ waitUntil: 'load' });
     check('efter omladdning: fortsätt eller börja om', await page.isVisible('#btn-fortsatt') && await page.isVisible('#btn-omstart'));
-    check('efter omladdning: samtycket frågas inte igen', !(await page.isVisible('#btn-ja')) && !(await page.isVisible('#samtycke')));
+    check('efter omladdning: samtycket frågas inte igen', !(await page.isVisible('#btn-start')) && !(await page.isVisible('#samtycke')));
     await page.click('#btn-fortsatt');
     check('fortsätt: samtalet ritas upp igen', JSON.stringify((await turer(page)).map(t => t.vem)) === '["ai","du","ai","du","ai"]');
     check('fortsätt: samma turer med samma text', JSON.stringify(await turer(page)) === JSON.stringify(fore));
@@ -320,7 +325,7 @@ const vantaTills = async (villkor, ms = 5000) => {
     await page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
     const t0 = anrop.length;
     scenario.push(svar('Hej. Berätta om en vanlig tisdag.'));
-    await page.click('#btn-nej');
+    await starta(page, 'nej');
     await vantaPaSvar(page, 1);
     scenario.push(svar('Och på kvällen?', 'Morgonpass och lunch.'));
     await page.fill('#text', 'Morgonpass och lunch.');
@@ -336,10 +341,10 @@ const vantaTills = async (villkor, ms = 5000) => {
     const v1 = { v: 1, rid: RID, historik: svar('Hej.').handelser.pop().tillagg, slut: false };
     const gammal = await newPage({ width: 1280, height: 900 }, { samtal: v1 });
     await gammal.page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
-    check('sparad v 1: räknas som inget påbörjat samtal', await gammal.page.isVisible('#btn-ja') && !(await gammal.page.isVisible('#btn-fortsatt')));
+    check('sparad v 1: räknas som inget påbörjat samtal', await gammal.page.isVisible('#btn-start') && !(await gammal.page.isVisible('#btn-fortsatt')));
     const t1 = anrop.length;
     scenario.push(svar('Hej. Nytt samtal.'));
-    await gammal.page.click('#btn-ja');
+    await starta(gammal.page, 'ja');
     await vantaPaSvar(gammal.page, 1);
     check('sparad v 1: det nya samtalet startar från början', anrop[t1].start === true && anrop[t1].historik.length === 0 && (await sparat(gammal.page)).v === 2);
     await gammal.ctx.close();
@@ -350,11 +355,11 @@ const vantaTills = async (villkor, ms = 5000) => {
     await om.page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
     check('sparad v 2: fortsätt eller börja om', await om.page.isVisible('#btn-fortsatt'));
     await om.page.click('#btn-omstart');
-    check('börja om: samtycket och båda knapparna visas igen', await om.page.isVisible('#samtycke') && await om.page.isVisible('#btn-ja') && await om.page.isVisible('#btn-nej') && !(await om.page.isVisible('#btn-fortsatt')));
+    check('börja om: frågan visas igen, utan val, och startknappen väntar', await om.page.isVisible('#samtycke') && await om.page.isDisabled('#btn-start') && (await om.page.$$('#samtycke .opt.vald')).length === 0 && !(await om.page.isVisible('#btn-fortsatt')));
     check('börja om: det gamla samtalet glöms', (await sparat(om.page)) === null);
     const t2 = anrop.length;
     scenario.push(svar('Hej igen.'));
-    await om.page.click('#btn-nej');
+    await starta(om.page, 'nej');
     await vantaPaSvar(om.page, 1);
     const s = await sparat(om.page);
     check('börja om: nytt samtal-id och det nya valet', s.samtal !== v2.samtal && UUID.test(s.samtal) && s.samtycke === false && anrop[t2].samtycke === false);
@@ -366,7 +371,7 @@ const vantaTills = async (villkor, ms = 5000) => {
     const { ctx, page } = await newPage({ width: 1280, height: 900 });
     await page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
     scenario.push(svar('Är det något mer du vill berätta?'));
-    await page.click('#btn-ja');
+    await starta(page, 'ja');
     await vantaPaSvar(page, 1);
     const sista = svar('Tack för samtalet. Då är vi klara.', 'Nej.');
     sista.handelser.push({ typ: 'slut' });
@@ -407,7 +412,7 @@ const vantaTills = async (villkor, ms = 5000) => {
     }; }, i);
 
     scenario.push(svar('Hej. Så här har jag uppfattat pengarna. Stämmer det?', '(start)', { kort: KORT_PENGAR }));
-    await page.click('#btn-ja');
+    await starta(page, 'ja');
     await vantaPaKort(page, 1);
     const k1 = await kortet('#logg .kort');
     check('kort: ritas efter assistentens tur', await page.$eval('#logg .kort', el => el.previousElementSibling && el.previousElementSibling.classList.contains('tur-ai')));
@@ -503,7 +508,7 @@ const vantaTills = async (villkor, ms = 5000) => {
     check('samtal: samma id i varje anrop till /intervju-block', idn.length === 1 && UUID.test(idn[0]));
 
     await page.click('#btn-stang');
-    check('klart med samtycke: det du bekräftade är sparat', (await page.textContent('#klart .lede:not([hidden])')) === 'Det du bekräftade är sparat. Tack.' && !(await page.isVisible('#klart-inget')));
+    check('klart med samtycke: korten är sparade', (await page.textContent('#klart .lede:not([hidden])')) === 'Korten du godkände är sparade, utan ditt namn. Tack.' && !(await page.isVisible('#klart-inget')));
     check('klart med samtycke: koden är de första åtta tecknen i samtal', (await page.textContent('#kod')) === idn[0].slice(0, 8) && (await page.textContent('#klart-kod')).includes('daniel@opengym.se'));
     await page.screenshot({ path: `${OUT}/intervju-klart.png`, fullPage: true });
     const m = await matt(page);
@@ -521,7 +526,7 @@ const vantaTills = async (villkor, ms = 5000) => {
     await page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
     const t0 = anrop.length, b0 = blockAnrop.length;
     scenario.push(svar('Hej. Så här har jag uppfattat pengarna.', '(start)', { kort: KORT_PENGAR }));
-    await page.click('#btn-nej');
+    await starta(page, 'nej');
     await vantaPaKort(page, 1);
     scenario.push(svar('Vill du vara ett av pilotgymmen?', kortsvarBlock(KORT_PENGAR.id, 'Stämmer.'), { kort: VALKORT }));
     await page.click('.kort-aktiv .kort-stammer');
@@ -543,7 +548,7 @@ const vantaTills = async (villkor, ms = 5000) => {
     await page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
     const t0 = anrop.length, b0 = blockAnrop.length;
     scenario.push(svar('Hej. Berätta om pengarna.'));
-    await page.click('#btn-ja');
+    await starta(page, 'ja');
     await vantaPaSvar(page, 1);
 
     // Assistenten parkerade innan den skrev sitt svar: fyra meddelanden i klar.
@@ -604,7 +609,7 @@ const vantaTills = async (villkor, ms = 5000) => {
     await page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
     const b0 = blockAnrop.length;
     scenario.push(svar('Det tar vi i slutet. Hur betalar medlemmarna?', '(start)', { parkerat: [PARKERAT] }));
-    await page.click('#btn-nej');
+    await starta(page, 'nej');
     await vantaPaSvar(page, 1);
     await page.waitForTimeout(300);
     check('parkerat utan samtycke: raden visas men sparas inte', (await page.textContent('#logg .parkerat')) === 'Tas upp i slutet: Coachernas scheman' && blockAnrop.length === b0);
@@ -615,7 +620,7 @@ const vantaTills = async (villkor, ms = 5000) => {
     const { ctx, page } = await newPage({ width: 1280, height: 900 });
     await page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
     scenario.push(svar('Hej. Berätta om pengarna.'));
-    await page.click('#btn-ja');
+    await starta(page, 'ja');
     await vantaPaSvar(page, 1);
     const b0 = blockAnrop.length;
     blockScenario.push({ status: 500, json: { ok: false, fel: 'tekniskt' } }, { status: 200, json: { ok: false, fel: 'block_form' } });
@@ -644,7 +649,7 @@ const vantaTills = async (villkor, ms = 5000) => {
     check('mobil: introt med samtycket utan sidledes rullning', await page.isVisible('#samtycke') && (await overflow(page)) === 0);
     await page.screenshot({ path: `${OUT}/intervju-intro-mobil.png`, fullPage: true });
     scenario.push(svar('Hej. Så här har jag uppfattat pengarna. Stämmer det?', '(start)', { kort: KORT_PENGAR }));
-    await page.click('#btn-ja');
+    await starta(page, 'ja');
     await vantaPaKort(page, 1);
     check('mobil: avstämningskortet utan sidledes rullning', (await overflow(page)) === 0);
     await page.screenshot({ path: `${OUT}/intervju-kort-mobil.png`, fullPage: true });
@@ -675,7 +680,7 @@ const vantaTills = async (villkor, ms = 5000) => {
     const { ctx, page } = await newPage({ width: 375, height: 740 });
     await page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
     scenario.push(svar('Hej. Berätta om en vanlig tisdag.'));
-    await page.click('#btn-ja');
+    await starta(page, 'ja');
     await vantaPaSvar(page, 1);
     check('mobil: ingen sidledes rullning', (await overflow(page)) === 0);
     await page.screenshot({ path: `${OUT}/intervju-mobil.png`, fullPage: true });
