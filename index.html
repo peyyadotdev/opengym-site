@@ -1057,7 +1057,7 @@
   // ========== INSTÄLLNINGAR ==========
   // Google Apps Script-webbappen som tar emot anmälningarna (se leads/Code.gs).
   const SIGNUP_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxPglyMzV0wkGIdYgHi6klVZgD0HrMnpro9UOOiqHTz3YAYYAlymyS8pxQFypTt4gtVKg/exec';
-  // PostHog utan kakor: klistra in projektets nyckel (phc_...). Tom nyckel = ingen mätning.
+  // PostHog utan cookies: klistra in projektets nyckel (phc_...). Tom nyckel = ingen mätning.
   const POSTHOG_KEY = 'phc_nDoAcMqFZRzAak22z5sXN3LtnRPEC9s3Q7PfdVH753Td';
   const POSTHOG_HOST = 'https://eu.i.posthog.com';
 
@@ -1172,7 +1172,7 @@
       if (!SIGNUP_ENDPOINT) throw new Error('Endpoint saknas');
 
       // Apps Script-webbappar tillåter inte egna headers vid cross-origin POST,
-      // så vi skickar formulärkodat (enkel förfrågan, ingen CORS-preflight).
+      // så vi skickar formulärkodat (simple request, ingen CORS-preflight).
       const body = new URLSearchParams();
       body.append('email', email);
       body.append('box', box);

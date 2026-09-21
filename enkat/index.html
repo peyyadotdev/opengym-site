@@ -343,11 +343,11 @@
   const TOTAL_LABEL = '7';
 
   // AI-intervjun erbjuds på tacksidan till den som svaren visar är vår typkund.
-  // Stängd tills servern i opengym är driftsatt och Daniel gett klartecken.
+  // Stängd tills servern i opengym är deployad och Daniel gett klartecken.
   const INTERVJU_OPPEN = true;
   const INTERVJU_UNDERLAG_KEY = 'opengym_intervju_underlag_v1';
 
-  // ========== MÄTNING (PostHog utan kakor) ==========
+  // ========== MÄTNING (PostHog utan cookies) ==========
   const phQueue = [];
   let phReady = false;
   function track(event, props) {
@@ -364,7 +364,7 @@
     s.onload = function () {
       window.posthog.init(POSTHOG_KEY, {
         api_host: POSTHOG_HOST,
-        persistence: 'memory',          // inga kakor, inget lagrat id
+        persistence: 'memory',          // inga cookies, inget lagrat id
         person_profiles: 'identified_only',
         autocapture: false,
         capture_pageview: true,
@@ -812,7 +812,7 @@
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 20000);
     try {
-      // Formulärkodat utan egna headers: enkel förfrågan, ingen CORS-preflight mot Apps Script.
+      // Formulärkodat utan egna headers: simple request, ingen CORS-preflight mot Apps Script.
       const res = await fetch(SIGNUP_ENDPOINT, { method: 'POST', body, keepalive: !completed, signal: ctrl.signal });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       let json = null;
