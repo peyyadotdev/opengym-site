@@ -129,7 +129,7 @@
 
   /* KORTEN: StackList för avstämningen, Options för valen. Radie 0, inga skuggor. */
   .kort { border: 1px solid var(--line); background: var(--paper); padding: 18px 20px; }
-  .kort-huvud { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .kort-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
   .kort-rubrik { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink); }
   .kort-bock { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; flex: none; }
   .kort-rader { border-top: 1px solid var(--line); }
@@ -441,15 +441,15 @@
     const k = post.kort;
     const aktiv = post === vantandeKort();
     const rot = skapa('div', 'kort' + (post.status === 'bekraftat' ? ' kort-bekraftat' : post.status === 'andrat' ? ' kort-andrat' : '') + (aktiv ? ' kort-aktiv' : ''));
-    const huvud = skapa('div', 'kort-huvud');
-    huvud.append(skapa('div', 'kort-rubrik', String(k.rubrik || '')));
+    const header = skapa('div', 'kort-header');
+    header.append(skapa('div', 'kort-rubrik', String(k.rubrik || '')));
     if (post.status === 'bekraftat') {
       const bock = skapa('span', 'kort-bock', '✓');
       bock.setAttribute('role', 'img');
       bock.setAttribute('aria-label', 'Bekräftat');
-      huvud.append(bock);
+      header.append(bock);
     }
-    rot.append(huvud);
+    rot.append(header);
     if (Array.isArray(k.val)) {
       // Valkortet: en rad att trycka på per svar, som enkätens svarsrader.
       const rader = skapa('div', 'opts');
