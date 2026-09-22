@@ -68,11 +68,27 @@ global.SpreadsheetApp = {
 global.LockService = { getScriptLock() { return { tryLock() { return true; }, releaseLock() {} }; } };
 global.ContentService = { MimeType: { JSON: 'json' }, createTextOutput(t) { return { text: t, setMimeType() { return this; } }; } };
 
-// Mockar för det som bara Utskick.gs använder: GmailApp, Session, Utilities, ui-dialoger.
+// Mockar för det som bara Utskick.gs använder: GmailApp, Session, Utilities, ui-dialoger,
+// och den avancerade Gmail-tjänsten som hämtar den riktiga "Skicka e-post som"-signaturen.
 const sentMail = [];
 global.GmailApp = { sendEmail(to, subject, body, opts) { sentMail.push({ to, subject, body, opts }); } };
 global.Session = { getActiveUser() { return { getEmail() { return 'daniel@peyya.dev'; } }; } };
 global.Utilities = { sleep() {} };
+
+let mockSignaturHtml = '<b>Daniel Dahlström</b><br>Grundare, OpenGym<br><a href="mailto:daniel@opengym.se">daniel@opengym.se</a>';
+let mockGmailApiPasadagen = true;
+global.Gmail = {
+  Users: {
+    Settings: {
+      SendAs: {
+        get(userId, sendAsEmail) {
+          if (!mockGmailApiPasadagen) throw new Error('Gmail API-tjänsten är inte påslagen i det här mock-scenariot.');
+          return { sendAsEmail, signature: mockSignaturHtml };
+        },
+      },
+    },
+  },
+};
 
 const alerts = [];
 let promptQueue = [];
@@ -119,13 +135,39 @@ ok('onOpen bygger menyn Utskick med tre val', () => {
   assert.ok(labels.some((l) => l.includes('påminnelse')));
 });
 
-ok('utskickTest skickar ett mejl till avsändaren själv, utan telefonnummer, med länken', () => {
+ok('utskickTest skickar ett mejl till avsändaren själv, som HTML med textreserv, utan telefonnummer, med länken', () => {
   utskickTest();
   assert.equal(sentMail.length, 1);
-  assert.equal(sentMail[0].to, 'daniel@peyya.dev');
-  assert.equal(sentMail[0].opts.from, 'daniel@opengym.se');
-  assert.ok(!sentMail[0].body.includes('073'), 'inget telefonnummer i mejlet');
-  assert.ok(sentMail[0].body.includes('https://opengym.se/enkat/'));
+  const m = sentMail[0];
+  assert.equal(m.to, 'daniel@peyya.dev');
+  assert.equal(m.opts.from, 'daniel@opengym.se');
+  assert.ok(!m.body.includes('073'), 'inget telefonnummer i textversionen');
+  assert.ok(!m.opts.htmlBody.includes('073'), 'inget telefonnummer i HTML-versionen');
+  assert.ok(m.body.includes('https://opengym.se/enkat/'), 'länken finns i textversionen');
+  assert.ok(m.opts.htmlBody.includes('https://opengym.se/enkat/'), 'länken finns i HTML-versionen');
+  assert.match(m.opts.htmlBody, /font-weight:700[^>]*>https:\/\/opengym\.se\/enkat\//, 'länken är fetstil, inte bara vanlig text');
+  assert.ok(m.subject.includes('Testboxen'), 'ämnesraden nämner boxnamnet');
+  assert.ok(m.subject.includes('5 min enkät'));
+});
+
+ok('signaturen hämtas via Gmail-tjänsten en gång per körning och landar i både text och HTML', () => {
+  sentMail.length = 0;
+  utskickTest();
+  const m = sentMail[0];
+  assert.ok(m.opts.htmlBody.includes('Grundare, OpenGym'), 'den riktiga Gmail-signaturen används i HTML');
+  assert.ok(m.body.includes('Grundare, OpenGym'), 'signaturen finns även, omvandlad till text, i textversionen');
+  assert.ok(!m.body.includes('<b>') && !m.body.includes('<br>'), 'HTML-taggarna är bortstädade i textversionen');
+});
+
+ok('utan Gmail-tjänsten (eller utan konfigurerad signatur) används en enkel reservsignatur, fortfarande utan telefon', () => {
+  mockGmailApiPasadagen = false;
+  sentMail.length = 0;
+  utskickTest();
+  const m = sentMail[0];
+  assert.ok(m.opts.htmlBody.includes('Daniel Dahlström'), 'reservsignaturen syns i HTML');
+  assert.ok(m.body.includes('daniel@opengym.se'), 'reservsignaturen syns i text');
+  assert.ok(!m.body.includes('073') && !m.opts.htmlBody.includes('073'), 'reservsignaturen har inget telefonnummer');
+  mockGmailApiPasadagen = true; // återställ för resten av testerna
 });
 
 ok('utskickEnkat kräver fliken Mottagare, ger tydligt fel annars', () => {
@@ -165,16 +207,24 @@ ok('en andra körning skickar inget nytt, alla har redan datum i skickat', () =>
   assert.equal(sentMail.length, 0);
 });
 
-ok('hälsningen använder förnamn när kolumnen är ifylld, annars bara "Hej,"', () => {
+ok('hälsningen använder förnamn med komma när kolumnen är ifylld, annars bara "Hej" utan komma', () => {
   const kol = mottagare.rows[0];
   const namnI = kol.indexOf('förnamn');
   assert.equal(mottagare.rows[1][namnI], '', 'agare1 saknar förnamn');
   assert.equal(mottagare.rows[2][namnI], 'Anna', 'Boxen Två har förnamn Anna');
   // Hälsningen syntes redan i utskicket ovan; bygg om mallen direkt för ett tydligt test.
-  const medNamn = utskickMallEnkat_({ boxnamn: 'X', fornamn: 'Anna' }, 0);
-  const utanNamn = utskickMallEnkat_({ boxnamn: 'X', fornamn: '' }, 0);
-  assert.ok(medNamn.text.startsWith('Hej Anna,'));
-  assert.ok(utanNamn.text.startsWith('Hej,'));
+  const medNamn = utskickMallEnkat_({ boxnamn: 'X', fornamn: 'Anna' }, 0, '');
+  const utanNamn = utskickMallEnkat_({ boxnamn: 'X', fornamn: '' }, 0, '');
+  assert.ok(medNamn.text.startsWith('Hej Anna,'), 'med förnamn: kommat är med');
+  assert.ok(utanNamn.text.startsWith('Hej\n'), 'utan förnamn: inget komma alls, inte ens ett ensamt "Hej,"');
+  assert.ok(!utanNamn.text.startsWith('Hej,'), 'får inte bli "Hej," utan namn');
+});
+
+ok('ämnesraden använder boxnamnet, eller "er box" om raden saknar ett', () => {
+  const medNamn = utskickMallEnkat_({ boxnamn: 'CrossFit Testet' }, 0, '');
+  const utanNamn = utskickMallEnkat_({ boxnamn: 'er box' }, 0, ''); // utskickKor_ sätter fallbacken innan byggMall anropas
+  assert.equal(medNamn.amne, 'Hur driver ni CrossFit Testet? – 5 min enkät + Boxrapporten 2026');
+  assert.equal(utanNamn.amne, 'Hur driver ni er box? – 5 min enkät + Boxrapporten 2026');
 });
 
 ok('utskickPaminnelse avbryts utan att skicka något om en dialog avbryts', () => {
@@ -206,7 +256,8 @@ ok('utskickPaminnelse går bara till skickade som inte har svarat, med rätt äm
   assert.ok(till1.subject.includes('12 boxar har redan svarat'));
   assert.ok(till1.body.includes('fyra av tio kör fasta grupper'));
   assert.ok(till1.body.includes('3 oktober'));
-  assert.ok(!till1.body.includes('073'));
+  assert.ok(!till1.body.includes('073') && !till1.opts.htmlBody.includes('073'));
+  assert.match(till1.opts.htmlBody, /font-weight:700[^>]*>https:\/\/opengym\.se\/enkat\//, 'länken är fetstil i påminnelsen också');
 });
 
 ok('hoppa_over/avregistrerad/stryk hoppas över, både i utskick och påminnelse', () => {

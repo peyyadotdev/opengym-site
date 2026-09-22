@@ -21,15 +21,19 @@
  * bindestreck, mellanslag och VERSALER. Kolumnerna skickat, paminnelse och
  * svarat läggs till automatiskt om de saknas.
  *
- * Bygg fliken en gång: skapa den, döp den till "Mottagare", och importera
- * docs/undersokning/mottagarlista-crossfit.csv och mottagarlista-hyrox.csv
- * (i det privata repot opengym) med Arkiv > Importera > Ladda upp > Lägg till
- * nya rader, en gång per fil. De två filerna har olika kolumner, det gör inget,
- * bara boxnamn/namn och e-post/epost måste finnas med.
+ * En valfri kolumn "förnamn" ger en personlig hälsning: "Hej Anna," med
+ * kommat, annars bara "Hej" utan komma. En valfri kolumn "hoppa_over" (eller
+ * "avregistrerad" eller "stryk") hoppar över raden helt, både i utskicket och
+ * i påminnelsen.
  *
- * En valfri kolumn "förnamn" ger en personlig hälsning, annars blir det "Hej,".
- * En valfri kolumn "hoppa_over" (eller "avregistrerad" eller "stryk") hoppar
- * över raden helt, både i utskicket och i påminnelsen.
+ * Mejlen skickas som HTML med en textversion som reserv, för att kunna göra
+ * enkätlänken visuellt tydlig. Signaturen hämtas live, en gång per körning,
+ * från Gmails egna inställningar för avsändaradressen (samma signatur som
+ * "Skicka e-post som" i Gmail) via Gmails avancerade tjänst. Det kräver ett
+ * engångssteg: i Apps Script-editorn, Tjänster (+) > Gmail API > Lägg till.
+ * Första körningen efteråt ber om ett nytt godkännande för den utökade
+ * behörigheten. Är tjänsten inte påslagen, eller saknas en signatur för
+ * adressen, används en enkel reservsignatur i stället, utan telefonnummer.
  */
 
 const UTSKICK_AVSANDARE = 'daniel@opengym.se';
@@ -41,10 +45,6 @@ const UTSKICK_FLIK = 'Mottagare';
 // opengym: 30 till 50 mejl per dag i två till tre dagar. Kör menyvalet en
 // gång om dagen i stället för att höja den här siffran.
 const UTSKICK_MAX_PER_KORNING = 40;
-
-// Var tredje mottagare (index 0, 3, 6, …) får den alternativa ämnesraden när
-// detta är satt till true, för ett enkelt A/B-test på en tredjedel av listan.
-const UTSKICK_TESTA_ALT_AMNE = false;
 
 function onOpen() {
   SpreadsheetApp.getUi()
@@ -58,9 +58,10 @@ function onOpen() {
 
 function utskickTest() {
   const till = Session.getActiveUser().getEmail();
-  const mall = utskickMallEnkat_({ boxnamn: 'Testboxen', fornamn: 'Test' }, 0);
-  GmailApp.sendEmail(till, mall.amne, mall.text, { from: UTSKICK_AVSANDARE, name: UTSKICK_AVSANDARNAMN });
-  SpreadsheetApp.getUi().alert('Testmejl skickat till ' + till + '. Kontrollera avsändare, ämnesrad och länk innan du kör ett riktigt utskick.');
+  const signatur = utskickHamtaSignatur_();
+  const mall = utskickMallEnkat_({ boxnamn: 'Testboxen', fornamn: 'Test' }, 0, signatur);
+  GmailApp.sendEmail(till, mall.amne, mall.text, { from: UTSKICK_AVSANDARE, name: UTSKICK_AVSANDARNAMN, htmlBody: mall.html });
+  SpreadsheetApp.getUi().alert('Testmejl skickat till ' + till + '. Kontrollera avsändare, ämnesrad, länken och signaturen innan du kör ett riktigt utskick.');
 }
 
 function utskickEnkat() {
@@ -85,7 +86,7 @@ function utskickPaminnelse() {
   utskickKor_({
     skrivKolumn: 'paminnelse',
     filter: (rad, kol) => utskickVarde_(rad, kol, 'skickat') && !utskickVarde_(rad, kol, 'paminnelse') && !utskickVarde_(rad, kol, 'svarat') && !utskickHoppaOver_(rad, kol),
-    byggMall: (data, index) => utskickMallPaminnelse_(data, index, params),
+    byggMall: (data, index, signatur) => utskickMallPaminnelse_(data, index, params, signatur),
   });
 }
 
@@ -103,6 +104,7 @@ function utskickKor_({ skrivKolumn, filter, byggMall }) {
     return;
   }
   const rader = sheet.getRange(2, 1, sistaRad - 1, sheet.getLastColumn()).getValues();
+  const signatur = utskickHamtaSignatur_(); // en gång per körning, inte per mottagare
 
   let skickade = 0;
   const fel = [];
@@ -112,10 +114,10 @@ function utskickKor_({ skrivKolumn, filter, byggMall }) {
     const epost = String(utskickVarde_(rad, kol, 'epost') || '').trim();
     if (!epost) continue;
 
-    const data = { boxnamn: utskickVarde_(rad, kol, 'boxnamn') || 'din box', fornamn: utskickVarde_(rad, kol, 'fornamn') };
-    const mall = byggMall(data, i);
+    const data = { boxnamn: utskickVarde_(rad, kol, 'boxnamn') || 'er box', fornamn: utskickVarde_(rad, kol, 'fornamn') };
+    const mall = byggMall(data, i, signatur);
     try {
-      GmailApp.sendEmail(epost, mall.amne, mall.text, { from: UTSKICK_AVSANDARE, name: UTSKICK_AVSANDARNAMN });
+      GmailApp.sendEmail(epost, mall.amne, mall.text, { from: UTSKICK_AVSANDARE, name: UTSKICK_AVSANDARNAMN, htmlBody: mall.html });
       sheet.getRange(i + 2, kol[skrivKolumn] + 1).setValue(new Date());
       skickade++;
       Utilities.sleep(2000); // en paus mellan varje mejl, ingen brådska
@@ -129,45 +131,148 @@ function utskickKor_({ skrivKolumn, filter, byggMall }) {
   SpreadsheetApp.getUi().alert(meddelande);
 }
 
-function utskickMallEnkat_(data, index) {
-  const halsning = data.fornamn ? 'Hej ' + data.fornamn + ',' : 'Hej,';
-  const amne = (UTSKICK_TESTA_ALT_AMNE && index % 3 === 0)
-    ? 'Vad betalar svenska boxar för sina system? Hjälp oss ta reda på det'
-    : 'Fem minuter om hur ni driver ' + data.boxnamn + ', och branschsiffrorna tillbaka';
+/** "Hej Anna," med komma när förnamnet finns, annars bara "Hej" utan komma. */
+function utskickHalsning_(fornamn) {
+  return fornamn ? 'Hej ' + fornamn + ',' : 'Hej';
+}
+
+function utskickMallEnkat_(data, index, signatur) {
+  const halsning = utskickHalsning_(data.fornamn);
+  const amne = 'Hur driver ni ' + data.boxnamn + '? – 5 min enkät + Boxrapporten 2026';
+
+  const stycken = [
+    'Jag heter Daniel Dahlström. Min sambo Jessica grundade och drev ReShape CrossFit, där jag ansvarade för bland annat teknik, bokningssystem, prismodeller och hemsida. Nu bygger vi OpenGym – ett affärssystem för boxar inom CrossFit, HYROX och funktionell träning.',
+    'Innan vi bygger klart vill vi förstå hur svenska boxar faktiskt arbetar idag: vilka system ni använder och vad de kostar, hur medlemmarna betalar, hur ni organiserar träningen, vad ni tar betalt och vad som får medlemmarna att stanna.',
+    'Enkäten tar cirka fem minuter att svara på. Svaren sammanställs anonymt, och alla som deltar får tillbaka Boxrapporten 2026 – en sammanställning av bland annat systemkostnader, medlemspriser, betalningssätt, träningsupplägg och retention bland svenska boxar.',
+  ];
+  const efterLanken = [
+    'I slutet av enkäten kan du också anmäla intresse för att bli en av tre pilotboxar. Pilotboxarna får använda OpenGym utan kostnad under pilotperioden och får vara med och påverka vad vi bygger.',
+    'Tack för att du tar dig tid.',
+    'Om du inte vill höra från oss igen, svara bara ”stryk” på det här mejlet så tar vi bort adressen.',
+  ];
+
   const text = [
     halsning,
     '',
-    'Jag heter Daniel Dahlström. Min sambo Jessica grundade och drev ReShape CrossFit, där jag skötte teknik, bokningssystem, prismodeller och hemsida, och jag bygger nu OpenGym, ett affärssystem för boxar inom CrossFit, HYROX och funktionell träning. Innan vi bygger klart vill vi veta hur svenska boxar faktiskt drivs: vilka system ni kör och vad de kostar, hur medlemmarna betalar, om ni kör fasta grupper, vad ni har på dörren och vad som får medlemmar att stanna.',
-    '',
-    'Enkäten tar fem till sju minuter. Svaren sammanställs anonymt, och alla som svarar får Boxrapporten 2026: vad boxar betalar för system, vilka medlemspriser som gäller, hur betalningarna fördelar sig, hur vanligt fasta grupper är och hur retention ser ut. Den bilden finns inte någon annanstans i dag.',
+    stycken.join('\n\n'),
     '',
     UTSKICK_ENKAT_URL,
     '',
-    'Sist i enkäten kan du anmäla intresse för att bli ett av tre pilotgym, med allt gratis under piloten och direkt inflytande över vad som byggs.',
+    efterLanken.join('\n\n'),
     '',
-    'Tack för din tid. Vill du inte höra av oss igen, svara "stryk" på det här mejlet så tar vi bort adressen.',
+    'Mvh',
+    'Daniel',
     '',
-    'Daniel Dahlström',
-    'OpenGym, opengym.se',
+    utskickSignaturText_(signatur),
   ].join('\n');
-  return { amne, text };
+
+  const html = utskickHtmlMejl_([
+    utskickP_(utskickEsc_(halsning)),
+    stycken.map((p) => utskickP_(utskickEsc_(p))).join(''),
+    utskickLankBlock_(UTSKICK_ENKAT_URL),
+    efterLanken.map((p) => utskickP_(utskickEsc_(p))).join(''),
+    utskickP_('Mvh<br>Daniel'),
+  ].join(''), signatur);
+
+  return { amne, text, html };
 }
 
-function utskickMallPaminnelse_(data, index, params) {
+function utskickMallPaminnelse_(data, index, params, signatur) {
   const amne = 'Påminnelse: fem minuter om ' + data.boxnamn + ', ' + params.antal + ' boxar har redan svarat';
-  const text = [
+  const stycken = [
     'Hej igen,',
-    '',
     'För en vecka sedan skickade jag en enkät om hur svenska boxar drivs. ' + params.antal + ' boxar har svarat hittills, och redan nu syns till exempel att ' + params.krok + '.',
+    'Vi stänger enkäten ' + params.stangerDatum + '. Fem minuter, och Boxrapporten 2026 kommer till dig när den är klar.',
+  ];
+  const efterLanken = [
+    'Svara ”stryk” om du inte vill ha fler mejl från oss.',
+  ];
+
+  const text = [
+    stycken.join('\n\n'),
     '',
-    'Vi stänger enkäten ' + params.stangerDatum + '. Fem minuter, och Boxrapporten 2026 kommer till dig när den är klar: ' + UTSKICK_ENKAT_URL,
+    UTSKICK_ENKAT_URL,
     '',
-    'Svara "stryk" om du inte vill ha fler mejl från oss.',
+    efterLanken.join('\n\n'),
     '',
-    'Daniel Dahlström, OpenGym',
+    'Mvh',
+    'Daniel',
+    '',
+    utskickSignaturText_(signatur),
   ].join('\n');
-  return { amne, text };
+
+  const html = utskickHtmlMejl_([
+    stycken.map((p) => utskickP_(utskickEsc_(p))).join(''),
+    utskickLankBlock_(UTSKICK_ENKAT_URL),
+    efterLanken.map((p) => utskickP_(utskickEsc_(p))).join(''),
+    utskickP_('Mvh<br>Daniel'),
+  ].join(''), signatur);
+
+  return { amne, text, html };
 }
+
+// ---------- HTML, länk och signatur ----------
+
+function utskickEsc_(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function utskickP_(innerHtml) {
+  return '<p style="margin:0 0 16px;">' + innerHtml + '</p>';
+}
+
+/** Enkätlänken, utmärkande: egen rad, fetstil, större text, som en liten rubrik. */
+function utskickLankBlock_(url) {
+  return '<p style="margin:24px 0;"><a href="' + utskickEsc_(url) + '" style="font-size:19px;font-weight:700;color:#111111;text-decoration:underline;">' + utskickEsc_(url) + '</a></p>';
+}
+
+function utskickHtmlMejl_(innerHtml, signatur) {
+  return '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#1a1a1a;max-width:560px;">'
+    + innerHtml
+    + '<div style="margin-top:24px;border-top:1px solid #e5e5e5;padding-top:12px;">' + (signatur || UTSKICK_RESERVSIGNATUR_HTML) + '</div>'
+    + '</div>';
+}
+
+// Reservsignatur om Gmails avancerade tjänst inte är påslagen eller adressen
+// saknar en konfigurerad signatur. Ingen telefon, se docs/undersokning/utskick.
+const UTSKICK_RESERVSIGNATUR_HTML =
+  '<strong>Daniel Dahlström</strong><br>Grundare, OpenGym<br>'
+  + '<a href="mailto:daniel@opengym.se" style="color:#111111;">daniel@opengym.se</a> · '
+  + '<a href="https://opengym.se" style="color:#111111;">opengym.se</a>';
+
+/**
+ * Hämtar den signatur (rå HTML) som är konfigurerad för UTSKICK_AVSANDARE under
+ * Gmail > Inställningar > Konton > Skicka e-post som. Kräver den avancerade
+ * Gmail-tjänsten (Tjänster > Gmail API i Apps Script-editorn). Returnerar en
+ * tom sträng, inte ett fel, om tjänsten saknas eller inget är konfigurerat:
+ * utskickSignaturHtml_/utskickSignaturText_ faller då tillbaka på reserven i
+ * stället för att avbryta utskicket.
+ */
+function utskickHamtaSignatur_() {
+  try {
+    const sendAs = Gmail.Users.Settings.SendAs.get('me', UTSKICK_AVSANDARE);
+    return (sendAs && sendAs.signature) || '';
+  } catch (e) {
+    return '';
+  }
+}
+
+/** Enkel text-till-textversion av signaturen, för mejlets textkropp (reserv för klienter utan HTML). */
+function utskickSignaturText_(signatur) {
+  const html = signatur || UTSKICK_RESERVSIGNATUR_HTML;
+  return String(html)
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|tr|li)>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+// ---------- Fliken Mottagare: kolumner och filter ----------
 
 /** Rubrikrad, normaliserad till gemener utan bindestreck/mellanslag, mappad till kolumnindex (0-baserat). */
 function utskickKolumner_(sheet) {
