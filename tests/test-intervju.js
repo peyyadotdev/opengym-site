@@ -745,7 +745,7 @@ const vantaTills = async (villkor, ms = 5000) => {
   // Det den fejkade mikrofonen sett: anropen till getUserMedia, om spåren stoppats, och varje recorder.
   const mikrofon = page => page.evaluate(() => ({ gum: window.__rost.gum, spar: window.__rost.spar.map(s => s.stoppad), recorders: window.__rost.recorders.map(r => ({ alternativ: r.alternativ, state: r.state })) }));
   const notis = page => page.evaluate(() => { const n = document.getElementById('rost-notis'); return n.hidden ? null : n.textContent; });
-  const ROST = BASE + '?api=' + MOCK + '&rost=1';
+  const ROST = BASE + '?api=' + MOCK;
   // Ett samtal som hunnit få assistentens första svar.
   async function rostSamtal(viewport, alternativ, adress = ROST, forsta = 'Hej. Berätta om en vanlig tisdag.') {
     const { ctx, page } = await newPage(viewport, alternativ);
@@ -768,22 +768,17 @@ const vantaTills = async (villkor, ms = 5000) => {
 
   // ---------- Rösten: när Prata syns ----------
   {
-    const utan = await rostSamtal(DESKTOP, { rost: 'pa' }, BASE + '?api=' + MOCK);
-    await utan.page.waitForTimeout(300);
-    check('feature flag: ingen Prata-knapp utan flagga, när PostHog inte laddas', !(await prata(utan.page)).synlig && (await utan.page.$$('#btn-prata')).length === 1);
-    await utan.ctx.close();
-
-    const ph = await rostSamtal(DESKTOP, { rost: 'pa', posthog: 'pa' }, BASE + '?api=' + MOCK);
-    await ph.page.waitForSelector('#btn-prata:not([hidden])', { timeout: 3000 });
-    check('feature flag: Prata syns när flaggan intervju-rost är på i PostHog', (await prata(ph.page)).synlig && (await ph.page.evaluate(() => (window.__ph || []).some(x => x[0] === 'intervju_visad'))));
-    await ph.ctx.close();
+    const alla = await rostSamtal(DESKTOP, { rost: 'pa' }, BASE + '?api=' + MOCK);
+    await alla.page.waitForSelector('#btn-prata:not([hidden])', { timeout: 3000 });
+    check('rösten är öppen för alla, utan flagga och utan PostHog', (await prata(alla.page)).synlig);
+    await alla.ctx.close();
 
     const phAv = await rostSamtal(DESKTOP, { rost: 'pa', posthog: 'av' }, BASE + '?api=' + MOCK);
-    await phAv.page.waitForTimeout(500);
-    check('feature flag: ingen Prata-knapp när flaggan är av i PostHog', !(await prata(phAv.page)).synlig && (await phAv.page.evaluate(() => (window.__ph || []).length > 0)));
+    await phAv.page.waitForTimeout(300);
+    check('rösten hänger inte på någon flagga i PostHog', (await prata(phAv.page)).synlig && (await phAv.page.evaluate(() => (window.__ph || []).length > 0)));
     await phAv.ctx.close();
 
-    // Ett samtal från före 2026-09-22 med samtycke false får aldrig rösten, inte ens med ?rost=1.
+    // Ett samtal från före 2026-09-22 med samtycke false får aldrig rösten.
     const nej = { v: 2, rid: RID, samtal: '9b1e4c2a-1111-4222-8333-444455556666', samtycke: false, historik: svar('Hej.').handelser.pop().tillagg, visning: [{ vem: 'ai', text: 'Hej.' }], slut: false };
     const gammal = await newPage(DESKTOP, { rost: 'pa', samtal: nej });
     await gammal.page.goto(ROST, { waitUntil: 'load' });
@@ -794,7 +789,7 @@ const vantaTills = async (villkor, ms = 5000) => {
 
     for (const saknas of ['MediaRecorder', 'mediaDevices']) {
       const u = await rostSamtal(DESKTOP, { utan: saknas });
-      check('webbläsare utan ' + saknas + ': ingen Prata-knapp, inte ens med ?rost=1', !(await prata(u.page)).synlig);
+      check('webbläsare utan ' + saknas + ': ingen Prata-knapp', !(await prata(u.page)).synlig);
       await u.ctx.close();
     }
   }
@@ -805,7 +800,7 @@ const vantaTills = async (villkor, ms = 5000) => {
     const { ctx, page } = await rostSamtal(DESKTOP, { rost: 'pa', klocka: true }, ROST, FRAGA);
     const t0 = talAnrop.length;
     const p0 = await prata(page);
-    check('Prata: syns med ?rost=1, i skrivraden direkt före Skicka', p0.synlig && !p0.av && p0.text === 'Prata' && p0.tid === null
+    check('Prata: syns i skrivraden direkt före Skicka', p0.synlig && !p0.av && p0.text === 'Prata' && p0.tid === null
       && await page.$eval('#btn-prata', el => el.nextElementSibling.id === 'btn-skicka' && !!el.closest('.skriv-rad')));
     check('Prata: ordet i mono bredvid en ring med prick, ingen ikon', await page.$eval('#btn-prata', el => getComputedStyle(el).fontFamily.includes('JetBrains Mono') && !!el.querySelector('.prata-ring .prata-prick') && !el.querySelector('svg, img')));
     check('Prata: mikrofonen frågas inte förrän ägaren trycker', (await mikrofon(page)).gum.length === 0);

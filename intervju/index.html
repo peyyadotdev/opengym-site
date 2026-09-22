@@ -374,13 +374,6 @@
       });
       phReady = true;
       phQueue.splice(0).forEach(function (item) { window.posthog.capture(item[0], item[1]); });
-      // Feature flag för rösten. Flaggorna kommer strax efter init, så Prata kan dyka upp efter att sidan laddats.
-      if (typeof window.posthog.onFeatureFlags === 'function') {
-        window.posthog.onFeatureFlags(function () {
-          rostFlagga = window.posthog.isFeatureEnabled('intervju-rost') === true;
-          uppdateraRost();
-        });
-      }
     };
     document.head.appendChild(s);
   })();
@@ -811,9 +804,9 @@
   // ========== RÖSTEN ==========
   // Tryck Prata, prata, tryck Klar. Klippet blir text hos /intervju-transkribera och hamnar i fältet,
   // där ägaren kan ändra det innan det skickas som en vanlig tur. Ljudet sparas aldrig här.
-  // Feature flag: ?rost=1 i adressen, eller flaggan intervju-rost i PostHog. Laddas inte PostHog är rösten av.
-  let rostFlagga = false;
-  function rostPa() { return new URLSearchParams(location.search).get('rost') === '1' || rostFlagga; }
+  // Öppen för alla sedan 2026-09-22 (Daniel), efter prov i drift. Låg bakom PostHog-flaggan
+  // intervju-rost och ?rost=1 fram till dess. Kraven nedan står kvar: samtycke, ett öppet samtal
+  // och en webbläsare som kan spela in.
   const LJUDTYPER = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
   const MAX_SEKUNDER = 180;        // inspelningen stannar av sig själv
   const MAX_LJUD = 4000000;        // tecken base64, serverns tak
@@ -844,7 +837,7 @@
   }
   // Bara i ett öppet samtal med samtycke. Äldre samtal utan samtycke får aldrig rösten.
   function rostTillaten() {
-    return samtal !== null && samtycke === true && !avslutat && !rostAv && rostPa() && rostStods();
+    return samtal !== null && samtycke === true && !avslutat && !rostAv && rostStods();
   }
   // Prata är av när Skicka är av, utom för att sluta spela in. Skicka är av så länge rösten arbetar.
   function uppdateraRost() {
