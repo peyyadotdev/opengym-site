@@ -39,7 +39,7 @@ npm test
 - `tests/test-enkat.js` startar en egen lokal server, kör hela enkäten i Chromium på desktop och mobil mot en mockad endpoint (validering, hopplogik, inskick, paus och återupptagning, overflow) och sparar skärmdumpar i `tests/screenshots/`.
 - `tests/test-intervju.js` kör intervjusidan i Chromium på desktop och mobil mot en mockad server: copyregler, stängt läge, utan enkätsvar, start, turer, fel, text i stället för HTML, återupptagning och avslut. Rösten körs med fejkad mikrofon och MediaRecorder: feature flag, inspelning, renskriven text i fältet, originaltexten och felen.
 - Manuellt: `npm run serve` och öppna `http://localhost:8000/enkat/`. Sidan skickar då på riktigt till webbappen, så testsvar hamnar i arket. Ta bort dem efteråt, eller sätt `SIGNUP_ENDPOINT` tillfälligt till `''` för att klicka runt utan att skicka.
-- Intervjun lokalt: starta den lokala servern i repot opengym med `npm run dev:intervju`, kör `npm run serve` här, och öppna `http://127.0.0.1:8000/intervju/?api=http://127.0.0.1:8787/functions/v1/intervju-tur`. Lägg till `&rost=1` för Prata-knappen. I drift syns den bara med `?rost=1` eller med PostHog-flaggan `intervju-rost`. Enkätsvaren läggs i webbläsaren av enkätens tacksida när intervjun är öppen.
+- Intervjun lokalt: starta den lokala servern i repot opengym med `npm run dev:intervju`, kör `npm run serve` här, och öppna `http://127.0.0.1:8000/intervju/?api=http://127.0.0.1:8787/functions/v1/intervju-tur`. Prata-knappen syns direkt, både lokalt och i drift, i webbläsare som kan spela in. Enkätsvaren läggs i webbläsaren av enkätens tacksida när intervjun är öppen.
 
 ## Publicera
 
