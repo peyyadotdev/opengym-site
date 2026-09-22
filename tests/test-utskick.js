@@ -71,7 +71,11 @@ global.ContentService = { MimeType: { JSON: 'json' }, createTextOutput(t) { retu
 // Mockar för det som bara Utskick.gs använder: GmailApp, Session, Utilities, ui-dialoger,
 // och den avancerade Gmail-tjänsten som hämtar den riktiga "Skicka e-post som"-signaturen.
 const sentMail = [];
-global.GmailApp = { sendEmail(to, subject, body, opts) { sentMail.push({ to, subject, body, opts }); } };
+let mockAlias = ['daniel@opengym.se'];
+global.GmailApp = {
+  sendEmail(to, subject, body, opts) { sentMail.push({ to, subject, body, opts }); },
+  getAliases() { return mockAlias; },
+};
 global.Session = { getActiveUser() { return { getEmail() { return 'daniel@peyya.dev'; } }; } };
 global.Utilities = { sleep() {} };
 
@@ -135,11 +139,11 @@ ok('onOpen bygger menyn Utskick med tre val', () => {
   assert.ok(labels.some((l) => l.includes('påminnelse')));
 });
 
-ok('utskickTest skickar ett mejl till avsändaren själv, som HTML med textreserv, utan telefonnummer, med länken', () => {
+ok('utskickTest skickar ett mejl till daniel@opengym.se, som HTML med textreserv, utan telefonnummer, med länken', () => {
   utskickTest();
   assert.equal(sentMail.length, 1);
   const m = sentMail[0];
-  assert.equal(m.to, 'daniel@peyya.dev');
+  assert.equal(m.to, 'daniel@opengym.se', 'testet går till opengym-adressen, inte kontots huvudadress');
   assert.equal(m.opts.from, 'daniel@opengym.se');
   assert.ok(!m.body.includes('073'), 'inget telefonnummer i textversionen');
   assert.ok(!m.opts.htmlBody.includes('073'), 'inget telefonnummer i HTML-versionen');
@@ -168,6 +172,22 @@ ok('utan Gmail-tjänsten (eller utan konfigurerad signatur) används en enkel re
   assert.ok(m.body.includes('daniel@opengym.se'), 'reservsignaturen syns i text');
   assert.ok(!m.body.includes('073') && !m.opts.htmlBody.includes('073'), 'reservsignaturen har inget telefonnummer');
   mockGmailApiPasadagen = true; // återställ för resten av testerna
+});
+
+ok('utan daniel@opengym.se som alias skickas inget, varken test eller utskick, och felet säger varför', () => {
+  mockAlias = [];
+  sentMail.length = 0;
+  const before = alerts.length;
+  utskickTest();
+  utskickEnkat();
+  assert.equal(sentMail.length, 0, 'inget mejl får gå från huvudadressen daniel@peyya.dev');
+  assert.equal(alerts.length, before + 2);
+  assert.ok(alerts[alerts.length - 1].includes('Skicka e-post som'));
+  assert.ok(alerts[alerts.length - 1].includes('daniel@peyya.dev'));
+  mockAlias = ['Daniel@OpenGym.se']; // skiftläge spelar ingen roll
+  utskickTest();
+  assert.equal(sentMail.length, 1);
+  mockAlias = ['daniel@opengym.se'];
 });
 
 ok('utskickEnkat kräver fliken Mottagare, ger tydligt fel annars', () => {
