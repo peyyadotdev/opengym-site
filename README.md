@@ -14,7 +14,7 @@ Designen görs i Claude Design-projektet ”OpenGym landningssida granskning” 
 | `enkat/index.html` | Enkäten ”Så driver du din box 2026”: sju delar, en per skärm, autospar efter varje del, återupptagning i samma webbläsare |
 | `intervju/index.html` | Intervjusidan: samtal med OpenGyms AI-assistent för boxägare som enkäten visar är typkund. Erbjuds på enkätens tacksida. Servern ligger i det privata repot opengym |
 | `tests/fall-typkund.json` | Testfallen för typkundsregeln, likadana som i repot opengym |
-| `leads/Code.gs` | Google Apps Script som tar emot både anmälningar och enkätsvar och skriver dem i ett Google Sheet, med stegen för att publicera den |
+| `leads/Leads.gs` | Google Apps Script som tar emot både anmälningar och enkätsvar och skriver dem i ett Google Sheet, med stegen för att publicera den |
 | `.nojekyll` | Får GitHub Pages att servera sidan som den är |
 | `tests/` | Testerna, se nedan |
 
@@ -34,7 +34,7 @@ npx playwright install chromium
 npm test
 ```
 
-- `tests/test-codegs.js` kör `leads/Code.gs` i Node mot ett mock-ark. Ingen Google-inloggning behövs.
+- `tests/test-leads.js` kör `leads/Leads.gs` i Node mot ett mock-ark. Ingen Google-inloggning behövs.
 - `tests/test-landing.js` kör landningssidan i Chromium: copyregler (inget ”hen”, ingen systemjargong, inga skogsgröna färger), hero-variant, platta på betonade ord, kalkylatorn, formuläret mot en mockad endpoint, overflow på mobil.
 - `tests/test-enkat.js` startar en egen lokal server, kör hela enkäten i Chromium på desktop och mobil mot en mockad endpoint (validering, hopplogik, inskick, paus och återupptagning, overflow) och sparar skärmdumpar i `tests/screenshots/`.
 - `tests/test-intervju.js` kör intervjusidan i Chromium på desktop och mobil mot en mockad server: copyregler, stängt läge, utan enkätsvar, start, turer, fel, text i stället för HTML, återupptagning och avslut. Rösten körs med fejkad mikrofon och MediaRecorder: feature flag, inspelning, renskriven text i fältet, originaltexten och felen.
@@ -53,7 +53,7 @@ Plattformarna cachar bilden per URL. Efter en ändring: kör sidan genom [Facebo
 
 ## Koppla formuläret
 
-Anmälningarna skickas formulärkodat till en Apps Script-webbapp, utan CORS-preflight. Publicera `leads/Code.gs` som webbapp enligt kommentaren överst i filen (cirka fem minuter) och klistra in webbappens URL som `SIGNUP_ENDPOINT` i `index.html`. Tills dess visar formuläret ett felmeddelande vid försök att skicka.
+Anmälningarna skickas formulärkodat till en Apps Script-webbapp, utan CORS-preflight. Publicera `leads/Leads.gs` som webbapp enligt kommentaren överst i filen (cirka fem minuter) och klistra in webbappens URL som `SIGNUP_ENDPOINT` i `index.html`. Tills dess visar formuläret ett felmeddelande vid försök att skicka.
 
 Fälten som skickas är `email`, `box` (valfritt boxnamn), `source` och `timestamp`. Ett dolt honeypot-fält stoppar de enklaste robotarna utan att något skickas.
 
@@ -65,4 +65,4 @@ Fälten som skickas är `email`, `box` (valfritt boxnamn), `source` och `timesta
 - **Sparning.** Efter varje del skickas hela svaret till samma Apps Script-webbapp som leadformuläret (`action=survey`) med ett slumpat svars-id, så raden i fliken *Enkät* uppdateras i stället för att dubbleras. Svaren ligger också i webbläsarens `localStorage`, så en avbruten enkät kan återupptas i samma webbläsare.
 - **E-post separat.** Svarsraden innehåller aldrig e-post. Pilotintresse (fråga 29) hamnar i fliken *Pilotintresse* med svars-id, eftersom ni behöver veta vilken box svaren gäller. E-post för Boxrapporten hamnar i fliken *Rapportlista* med bara datum, på slumpad rad, utan koppling till svaren.
 - **Mätning.** PostHog utan cookies (`persistence: 'memory'`). Klistra in projektets nyckel som `POSTHOG_KEY` i `enkat/index.html`, EU-värden är förvald. Events: `enkat_start`, `enkat_steg`, `enkat_validering`, `enkat_fortsatt`, `enkat_omstart`, `enkat_klar`, `enkat_fel`, `enkat_delad`. Tom nyckel = ingen mätning. Stäng gärna av lagring av IP-adress i PostHog-projektets inställningar.
-- **Efter ändring i `leads/Code.gs`:** Distribuera → Hantera distributioner → redigera → Ny version → Distribuera. Annars kör webbappen den gamla koden. Kontrollera med webbappens URL i webbläsaren: svaret ska innehålla `"version":2`.
+- **Efter ändring i `leads/Leads.gs`:** Distribuera → Hantera distributioner → redigera → Ny version → Distribuera. Annars kör webbappen den gamla koden. Kontrollera med webbappens URL i webbläsaren: svaret ska innehålla `"version":2`.

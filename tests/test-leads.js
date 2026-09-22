@@ -1,5 +1,5 @@
-// Kör leads/Code.gs i Node mot ett mock-kalkylark och kontrollerar beteendet.
-// Körs med: node tests/test-codegs.js
+// Kör leads/Leads.gs i Node mot ett mock-kalkylark och kontrollerar beteendet.
+// Körs med: node tests/test-leads.js
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
@@ -59,7 +59,7 @@ global.SpreadsheetApp = { getActiveSpreadsheet() { return { getSheetByName(n) { 
 global.LockService = { getScriptLock() { return { tryLock() { return true; }, releaseLock() {} }; } };
 global.ContentService = { MimeType: { JSON: 'json' }, createTextOutput(t) { return { text: t, setMimeType() { return this; } }; } };
 
-vm.runInThisContext(fs.readFileSync(path.join(__dirname, '..', 'leads', 'Code.gs'), 'utf8'), { filename: 'Code.gs' });
+vm.runInThisContext(fs.readFileSync(path.join(__dirname, '..', 'leads', 'Leads.gs'), 'utf8'), { filename: 'Leads.gs' });
 const post = (parameter) => JSON.parse(doPost({ parameter }).text);
 const get = () => JSON.parse(doGet().text);
 const col = (sheet, name) => sheet.rows[0].indexOf(name);

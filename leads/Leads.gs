@@ -17,7 +17,8 @@
  * Så här sätter du upp det (cirka fem minuter):
  *
  *  1. Skapa ett nytt Google Sheet, till exempel "OpenGym leads".
- *  2. Tillägg > Apps Script. Ersätt innehållet i Code.gs med den här filen. Spara.
+ *  2. Tillägg > Apps Script. Döp projektet till "OpenGym Collect". Byt namn på Code.gs
+ *     till Leads.gs och ersätt innehållet med den här filen. Spara.
  *  3. Distribuera > Ny distribution > Typ: Webbapp.
  *       Kör som:            Jag (ditt konto)
  *       Vem har åtkomst:    Alla
@@ -25,6 +26,11 @@
  *  4. Kopiera webbappens URL (slutar på /exec) och klistra in den som
  *     SIGNUP_ENDPOINT i index.html och i enkat/index.html.
  *  5. Testa: öppna URL:en i webbläsaren, du ska få {"ok":true,"service":"opengym-leads",...}.
+ *
+ * Alla .gs-filer i ett Apps Script-projekt delar samma globala scope. En annan fil i
+ * projektet får därför inte deklarera något som redan finns här, till exempel doPost,
+ * doGet, respond, clip eller SHEET_LEADS. Ett dubbelt const-namn stoppar hela projektet,
+ * och då tar web appen inte emot några anmälningar eller enkätsvar.
  *
  * Ändrar du koden senare: Distribuera > Hantera distributioner > redigera (pennan)
  * > Version: Ny version > Distribuera. URL:en behålls då. Glöm inte det här steget,

@@ -1,6 +1,6 @@
 # opengym-site
 
-Statisk sajt för opengym.se: landningssida (`index.html`), enkät (`enkat/index.html`), intervjusida (`intervju/index.html`), Apps Script-backend (`leads/Code.gs`), tester (`tests/`). Inga byggsteg. Kör `npm test` före push (första gången: `npm install && npx playwright install chromium`).
+Statisk sajt för opengym.se: landningssida (`index.html`), enkät (`enkat/index.html`), intervjusida (`intervju/index.html`), Apps Script-backend (`leads/Leads.gs`), tester (`tests/`). Inga byggsteg. Kör `npm test` före push (första gången: `npm install && npx playwright install chromium`).
 
 ## Design
 
@@ -22,7 +22,7 @@ Statisk sajt för opengym.se: landningssida (`index.html`), enkät (`enkat/index
 ## Formulär och data
 
 - Båda sidorna postar formulärkodat till Apps Script-webbappen (`SIGNUP_ENDPOINT`), utan egna headers, så att ingen CORS-preflight behövs. Sidorna läser JSON-svaret och visar fel om `ok` är false.
-- Ändras `leads/Code.gs` måste en ny version distribueras i Apps Script (Distribuera → Hantera distributioner → Ny version), annars kör webbappen den gamla koden.
+- Ändras `leads/Leads.gs` måste en ny version distribueras i Apps Script (Distribuera → Hantera distributioner → Ny version), annars kör webbappen den gamla koden.
 - Enkätens svarsrad innehåller aldrig e-post. Pilotintresse och rapportlista ligger i egna flikar.
 
 ## Intervjusidan
