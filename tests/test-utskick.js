@@ -1,7 +1,7 @@
-// Kör leads/Code.gs och leads/Utskick.gs i SAMMA Node-kontext mot ett mock-kalkylark,
+// Kör leads/Leads.gs och leads/Utskick.gs i SAMMA Node-kontext mot ett mock-kalkylark,
 // precis som Apps Script kör flera filer i ett projekt med delat globalt scope.
 // Kontrollerar dels att Utskick.gs fungerar mot fliken Mottagare, dels att inget i
-// Utskick.gs krockar med eller stör namnen i Code.gs (doPost, doGet, saveLead osv).
+// Utskick.gs krockar med eller stör namnen i Leads.gs (doPost, doGet, saveLead osv).
 // Körs med: node tests/test-utskick.js
 const fs = require('fs');
 const vm = require('vm');
@@ -96,13 +96,13 @@ const mockUi = {
 };
 
 // Ladda BÅDA filerna i samma vm-kontext, i den ordning Apps Script laddar ett
-// projekts filer (bokstavsordning: Code.gs före Utskick.gs).
-vm.runInThisContext(fs.readFileSync(path.join(__dirname, '..', 'leads', 'Code.gs'), 'utf8'), { filename: 'Code.gs' });
+// projekts filer (bokstavsordning: Leads.gs före Utskick.gs).
+vm.runInThisContext(fs.readFileSync(path.join(__dirname, '..', 'leads', 'Leads.gs'), 'utf8'), { filename: 'Leads.gs' });
 vm.runInThisContext(fs.readFileSync(path.join(__dirname, '..', 'leads', 'Utskick.gs'), 'utf8'), { filename: 'Utskick.gs' });
 
 let n = 0; const ok = (name, fn) => { fn(); n++; console.log('  ok', name); };
 
-ok('Utskick.gs stör inte Code.gs: doPost/doGet fungerar som förut', () => {
+ok('Utskick.gs stör inte Leads.gs: doPost/doGet fungerar som förut', () => {
   const r = JSON.parse(doGet().text);
   assert.equal(r.ok, true);
   assert.equal(r.version, 2);

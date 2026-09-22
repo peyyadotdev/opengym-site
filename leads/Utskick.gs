@@ -1,18 +1,18 @@
 /**
  * Utskick.gs — skickar enkätmejlet och påminnelsen till boxägarna, ett mejl i taget.
  *
- * Klistras in som en EXTRA fil i samma Apps Script-projekt som Code.gs, bundet till
+ * Klistras in som en EXTRA fil i samma Apps Script-projekt som Leads.gs, bundet till
  * samma kalkylark ("OpenGym leads"). Rör aldrig namnen doGet, doPost, saveLead,
  * saveSurvey, getOrCreateSheet, ensureHeaders, findRowByKey, upsertRow,
  * insertUniqueShuffled, clip, normEmail, isoDate, respond eller konstanterna
  * SHEET_LEADS, SHEET_SURVEY, SHEET_PILOT, SHEET_REPORT, LEADS_HEADER,
  * SURVEY_META, SURVEY_QUESTIONS, PILOT_HEADER, REPORT_HEADER, EMAIL_RE: de hör till
- * Code.gs, som är webbappens skarpa, publicerade mottagningsslut för
+ * Leads.gs, som är webbappens skarpa, publicerade mottagningsslut för
  * leads/index.html och enkat/index.html. Allt i den här filen har därför
  * prefixet Utskick eller utskick för att garanterat inte krocka. Att lägga till
  * eller ändra en fil i projektet rör inte den redan distribuerade webbappen,
  * det kräver ett eget steg (Distribuera > Hantera distributioner > Ny version),
- * se kommentaren i Code.gs. onOpen och menyfunktionerna nedan körs bara när
+ * se kommentaren i Leads.gs. onOpen och menyfunktionerna nedan körs bara när
  * någon med redigeringsåtkomst öppnar kalkylarket i webbläsaren, aldrig som en
  * del av webbappens doPost/doGet.
  *
