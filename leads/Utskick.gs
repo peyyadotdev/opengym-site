@@ -49,7 +49,7 @@ const UTSKICK_MAX_PER_KORNING = 40;
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Utskick')
-    .addItem('Skicka testmejl till mig', 'utskickTest')
+    .addItem('Skicka testmejl till ' + UTSKICK_AVSANDARE, 'utskickTest')
     .addSeparator()
     .addItem('Skicka enkäten (nästa omgång, max ' + UTSKICK_MAX_PER_KORNING + ')', 'utskickEnkat')
     .addItem('Skicka påminnelse (till obesvarade, max ' + UTSKICK_MAX_PER_KORNING + ')', 'utskickPaminnelse')
@@ -57,7 +57,8 @@ function onOpen() {
 }
 
 function utskickTest() {
-  const till = Session.getActiveUser().getEmail();
+  if (!utskickAvsandareOk_()) return;
+  const till = UTSKICK_AVSANDARE;
   const signatur = utskickHamtaSignatur_();
   const mall = utskickMallEnkat_({ boxnamn: 'Testboxen', fornamn: 'Test' }, 0, signatur);
   GmailApp.sendEmail(till, mall.amne, mall.text, { from: UTSKICK_AVSANDARE, name: UTSKICK_AVSANDARNAMN, htmlBody: mall.html });
@@ -90,8 +91,23 @@ function utskickPaminnelse() {
   });
 }
 
+/**
+ * GmailApp skickar tyst från kontots huvudadress (daniel@peyya.dev) om from-adressen
+ * inte finns bland kontots alias. Stoppa hellre än att skicka från fel adress.
+ */
+function utskickAvsandareOk_() {
+  const alias = GmailApp.getAliases().map(a => a.toLowerCase());
+  if (alias.indexOf(UTSKICK_AVSANDARE.toLowerCase()) !== -1) return true;
+  SpreadsheetApp.getUi().alert(
+    UTSKICK_AVSANDARE + ' är inte tillagd som avsändaradress i det här Gmail-kontot, så mejlen skulle gå från ' +
+    Session.getActiveUser().getEmail() + '. Inget har skickats.\n\n' +
+    'Lägg till den i Gmail > Inställningar > Konton > Skicka e-post som, och kör sedan igen.');
+  return false;
+}
+
 /** Läser fliken Mottagare, filtrerar rader, skickar upp till UTSKICK_MAX_PER_KORNING och skriver dagens datum i skrivKolumn. */
 function utskickKor_({ skrivKolumn, filter, byggMall }) {
+  if (!utskickAvsandareOk_()) return;
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(UTSKICK_FLIK);
   if (!sheet) {
     SpreadsheetApp.getUi().alert('Fliken "' + UTSKICK_FLIK + '" saknas. Skapa den och importera mottagarlistan, se kommentaren högst upp i Utskick.gs.');
