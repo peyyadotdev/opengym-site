@@ -313,8 +313,9 @@ function utskickKolumner_(sheet) {
   return kol;
 }
 
+/** Rubriker jämförs utan skiftläge, tecken och å/ä/ö: "Förnamn", "förnamn" och "fornamn" är samma kolumn, liksom "E-post" och "epost". */
 function utskickNormalisera_(s) {
-  return String(s).toLowerCase().replace(/[^a-zåäö0-9]/g, '');
+  return String(s).toLowerCase().replace(/[åä]/g, 'a').replace(/ö/g, 'o').replace(/[^a-z0-9]/g, '');
 }
 
 function utskickVarde_(rad, kol, namn) {

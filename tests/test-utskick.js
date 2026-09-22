@@ -215,6 +215,10 @@ ok('utskickEnkat skickar bara till rader utan datum i skickat, skriver dagens da
   assert.ok(mottagna.includes('agare2@boxen.se'));
   assert.ok(!mottagna.includes('redan@boxen.se'));
   assert.ok(sentMail.every((m) => !m.body.includes('073')), 'inget telefonnummer i något utskick');
+  const tillAnna = sentMail.find((m) => m.to === 'agare2@boxen.se');
+  assert.ok(tillAnna.body.startsWith('Hej Anna,'), 'kolumnen heter "förnamn" med ö i arket och ska ändå ge en personlig hälsning');
+  assert.ok(tillAnna.opts.htmlBody.includes('Hej Anna,'), 'även i HTML-versionen');
+  assert.ok(sentMail.find((m) => m.to === 'agare1@boxen.se').body.startsWith('Hej\n'), 'raden utan förnamn får bara "Hej"');
   const kol = mottagare.rows[0];
   const skickatCol = kol.indexOf('skickat');
   assert.ok(mottagare.rows[1][skickatCol] instanceof Date, 'agare1 fick dagens datum i skickat');
