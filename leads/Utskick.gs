@@ -157,7 +157,7 @@ function utskickMallEnkat_(data, index, signatur) {
   const amne = 'Hur driver ni ' + data.boxnamn + '? – 5 min enkät + Boxrapporten 2026';
 
   const stycken = [
-    'Jag heter Daniel Dahlström. Min sambo Jessica grundade och drev ReShape CrossFit, där jag ansvarade för bland annat teknik, bokningssystem, prismodeller och hemsida. Nu bygger vi OpenGym – ett affärssystem för boxar inom CrossFit, HYROX och funktionell träning.',
+    'Jag heter Daniel Dahlström. Min sambo Jessica grundade och drev ReShape CrossFit, där jag ansvarade för bland annat teknik, bokningssystem, prismodeller och hemsida. Under åren provade vi fem olika system, och inget av dem fick ihop fasta grupper, betalningar och träning på ett ställe. Därför bygger vi nu OpenGym – ett affärssystem för boxar inom CrossFit, HYROX och funktionell träning.',
     'Innan vi bygger klart vill vi förstå hur svenska boxar faktiskt arbetar idag: vilka system ni använder och vad de kostar, hur medlemmarna betalar, hur ni organiserar träningen, vad ni tar betalt och vad som får medlemmarna att stanna.',
     'Enkäten tar cirka fem minuter att svara på. Svaren sammanställs anonymt, och alla som deltar får tillbaka Boxrapporten 2026 – en sammanställning av bland annat systemkostnader, medlemspriser, betalningssätt, träningsupplägg och retention bland svenska boxar.',
   ];
