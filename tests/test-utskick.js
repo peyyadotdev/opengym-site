@@ -292,12 +292,13 @@ ok('utskickPaminnelse går bara till skickade som inte har svarat, med rätt äm
 });
 
 ok('hoppa_over/avregistrerad/stryk hoppas över, både i utskick och påminnelse', () => {
-  mottagare.rows[0].push('hoppa_over');
-  const nyKolLangd = mottagare.rows[0].length;
-  const strukenRad = new Array(nyKolLangd).fill('');
+  const hoppaI = mottagare.rows[0].indexOf('hoppa_over');
+  assert.ok(hoppaI !== -1, 'kolumnen hoppa_over skapas av första körningen, så den finns att skriva stryk i');
+  assert.equal(mottagare.rows[0].filter((r) => r === 'hoppa_over').length, 1, 'bara en hoppa_over-kolumn');
+  const strukenRad = new Array(mottagare.rows[0].length).fill('');
   strukenRad[0] = 'Struken Box';
   strukenRad[2] = 'struken@boxen.se';
-  strukenRad[nyKolLangd - 1] = 'stryk';
+  strukenRad[hoppaI] = 'stryk';
   mottagare.appendRow(strukenRad);
 
   sentMail.length = 0;
