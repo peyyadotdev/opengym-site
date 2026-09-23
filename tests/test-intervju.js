@@ -735,6 +735,36 @@ const vantaTills = async (villkor, ms = 5000) => {
     await ctx.close();
   }
 
+  // ---------- Medan assistenten arbetar ----------
+  // Prickarna och vad som pågår, från att svaret skickats tills första ordet kommer.
+  {
+    const { ctx, page } = await newPage({ width: 1280, height: 900 });
+    await page.goto(BASE + '?api=' + MOCK, { waitUntil: 'load' });
+    let slapp;
+    const forst = svar('Hej. Berätta om en vanlig tisdag.');
+    forst.vanta = new Promise(r => { slapp = r; });
+    scenario.push(forst);
+    await page.click('#btn-start');
+    await page.waitForSelector('#logg .arbetar:not([hidden])');
+    check('arbetar: prickar och "Förbereder samtalet" innan första svaret', (await page.textContent('#logg .arbetar')) === 'Förbereder samtalet' && (await antal(page, '#logg .arbetar-prickar span')) === 3);
+    slapp();
+    await vantaPaSvar(page, 1);
+    check('arbetar: borta när svaret kommit', (await antal(page, '#logg .arbetar')) === 0);
+
+    const andra = svar('Vad tar längst tid?', 'Vi kör autogiro.');
+    andra.vanta = new Promise(r => { slapp = r; });
+    scenario.push(andra);
+    await page.fill('#text', 'Vi kör autogiro.');
+    await page.click('#btn-skicka');
+    await page.waitForSelector('#logg .arbetar:not([hidden])');
+    check('arbetar: "Läser ditt svar" efter att ägaren skickat, under assistentens namn', (await page.textContent('#logg .tur-ai:last-child .arbetar')) === 'Läser ditt svar');
+    await page.screenshot({ path: `${OUT}/intervju-arbetar.png`, fullPage: true });
+    slapp();
+    await vantaPaSvar(page, 2);
+    check('arbetar: borta efter andra svaret, och bara text i turen', (await antal(page, '#logg .arbetar')) === 0 && (await page.textContent('#logg .tur-ai:last-child .tur-text')) === 'Vad tar längst tid?');
+    await ctx.close();
+  }
+
   // ---------- Rösten ----------
   // Prata-knappen och dess delar, som sidan visar dem.
   const prata = page => page.evaluate(() => {

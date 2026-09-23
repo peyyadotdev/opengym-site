@@ -811,8 +811,10 @@
         body.append('report_email', state.contact.c_report_email || '');
       }
     }
+    // Apps Script svarar på allt från två till tjugofem sekunder (mätt 2026-09-23). Inskicket får
+    // därför vänta länge innan det räknas som fel, annars visas fel för svar som faktiskt sparats.
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 20000);
+    const timer = setTimeout(() => ctrl.abort(), completed ? 45000 : 20000);
     try {
       // Formulärkodat utan egna headers: simple request, ingen CORS-preflight mot Apps Script.
       const res = await fetch(SIGNUP_ENDPOINT, { method: 'POST', body, keepalive: !completed, signal: ctrl.signal });
@@ -904,8 +906,12 @@
     btn.textContent = 'Skickar';
     errEl.hidden = true;
     setSaveStatus('');
+    // Tar inskicket mer än ett par sekunder säger sidan att det pågår, så att ingen tror att det fastnat.
+    const lugn = setTimeout(() => setSaveStatus('Sparar dina svar. Det kan ta upp till en halv minut, stäng inte sidan.'), 2500);
     try {
       await save(true);
+      clearTimeout(lugn);
+      setSaveStatus('');
       state.completedAt = new Date().toISOString();
       const erbjud = INTERVJU_OPPEN && arTypkund(snapshot());
       if (erbjud) sparaIntervjuUnderlag();
@@ -921,6 +927,8 @@
       showScreen('done');
       $('done-title').focus({ preventScroll: true });
     } catch (err) {
+      clearTimeout(lugn);
+      setSaveStatus('');
       console.error('OpenGym enkät: kunde inte skicka', err);
       track('enkat_fel', { steg: 'inskick', fel: String(err && err.message || err) });
       errEl.textContent = 'Kunde inte skicka svaren just nu. Dina svar finns kvar här, försök igen om en stund.';
