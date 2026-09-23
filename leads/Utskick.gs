@@ -19,7 +19,8 @@
  * Flik "Mottagare": en rad per box. Rubrikrad med minst boxnamn (eller namn,
  * som i CSV-filerna) och e-post (eller epost). Kolumnnamn tolkas oberoende av
  * bindestreck, mellanslag, VERSALER och å/ä/ö. Kolumnerna skickat, paminnelse,
- * svarat och hoppa_over läggs till automatiskt om de saknas.
+ * svarat och hoppa_over läggs till automatiskt om de saknas. Påminnelsen fyller
+ * själv i svarat för de adresser som finns i Rapportlista eller Pilotintresse.
  *
  * En valfri kolumn "förnamn" ger en personlig hälsning: "Hej Anna," med
  * kommat, annars bara "Hej" utan komma. Något skrivet i kolumnen "hoppa_over"
@@ -86,7 +87,10 @@ function utskickPaminnelse() {
 
   const params = { antal: antalSvar.getResponseText().trim(), krok: krokSvar.getResponseText().trim(), stangerDatum: datumSvar.getResponseText().trim() };
 
+  const markerade = utskickMarkeraSvarade_();
+
   utskickKor_({
+    inledning: markerade + ' rader markerade som svarat, eftersom adressen finns i Rapportlista eller Pilotintresse. De får ingen påminnelse.',
     skrivKolumn: 'paminnelse',
     filter: (rad, kol) => utskickVarde_(rad, kol, 'skickat') && !utskickVarde_(rad, kol, 'paminnelse') && !utskickVarde_(rad, kol, 'svarat') && !utskickHoppaOver_(rad, kol),
     byggMall: (data, index, signatur) => utskickMallPaminnelse_(data, index, params, signatur),
@@ -107,8 +111,48 @@ function utskickAvsandareOk_() {
   return false;
 }
 
+// Flikarna där Leads.gs sparar e-post från enkäten: den som vill ha Boxrapporten
+// eller anmäler pilotintresse har svarat.
+const UTSKICK_SVARSFLIKAR = ['Rapportlista', 'Pilotintresse'];
+
+/**
+ * Skriver i kolumnen svarat på varje rad i Mottagare vars adress finns i
+ * Rapportlista eller Pilotintresse, så att påminnelsen inte går till dem. Läser
+ * bara kolumnen e_post i de flikarna, aldrig svaren. Returnerar antalet nya.
+ */
+function utskickMarkeraSvarade_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const mottagare = ss.getSheetByName(UTSKICK_FLIK);
+  if (!mottagare || mottagare.getLastRow() < 2) return 0;
+
+  const kallor = {};
+  UTSKICK_SVARSFLIKAR.forEach((flik) => {
+    const sheet = ss.getSheetByName(flik);
+    if (!sheet || sheet.getLastRow() < 2) return;
+    const rubriker = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(utskickNormalisera_);
+    const i = rubriker.indexOf('epost');
+    if (i === -1) return;
+    sheet.getRange(2, i + 1, sheet.getLastRow() - 1, 1).getValues().forEach(([v]) => {
+      const epost = String(v || '').trim().toLowerCase();
+      if (epost && !kallor[epost]) kallor[epost] = flik;
+    });
+  });
+
+  const kol = utskickKolumner_(mottagare);
+  const rader = mottagare.getRange(2, 1, mottagare.getLastRow() - 1, mottagare.getLastColumn()).getValues();
+  let markerade = 0;
+  rader.forEach((rad, i) => {
+    if (utskickVarde_(rad, kol, 'svarat')) return;
+    const flik = kallor[String(utskickVarde_(rad, kol, 'epost') || '').trim().toLowerCase()];
+    if (!flik) return;
+    mottagare.getRange(i + 2, kol['svarat'] + 1).setValue('ja, finns i ' + flik);
+    markerade++;
+  });
+  return markerade;
+}
+
 /** Läser fliken Mottagare, filtrerar rader, skickar upp till UTSKICK_MAX_PER_KORNING och skriver dagens datum i skrivKolumn. */
-function utskickKor_({ skrivKolumn, filter, byggMall }) {
+function utskickKor_({ skrivKolumn, filter, byggMall, inledning }) {
   if (!utskickAvsandareOk_()) return;
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(UTSKICK_FLIK);
   if (!sheet) {
@@ -144,7 +188,7 @@ function utskickKor_({ skrivKolumn, filter, byggMall }) {
     }
   }
 
-  let meddelande = skickade + ' mejl skickade.';
+  let meddelande = (inledning ? inledning + '\n\n' : '') + skickade + ' mejl skickade.';
   if (fel.length) meddelande += '\n\nFel på ' + fel.length + ' rader:\n' + fel.join('\n');
   SpreadsheetApp.getUi().alert(meddelande);
 }
