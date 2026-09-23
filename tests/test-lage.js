@@ -66,7 +66,7 @@ const TIO = {
   // ---------- före tio svar ----------
   {
     const { ctx, page } = await oppna({ ok: true, steg: 0, nasta: 10 });
-    check('före tio svar: sidan säger när siffrorna kommer', /när 10 boxar har svarat/.test(await text(page, '#ingress')));
+    check('före tio svar: sidan säger när siffrorna kommer', /när minst 10 boxar har svarat/.test(await text(page, '#ingress')));
     check('före tio svar: inga siffror visas', !(await page.isVisible('#siffror')));
     check('före tio svar: stegen förklaras', await page.isVisible('#fot'));
     check('sidan indexeras inte', (await page.$eval('meta[name=robots]', m => m.content)).includes('noindex'));
@@ -75,7 +75,7 @@ const TIO = {
   }
   {
     const { ctx, page } = await oppna({ ok: true, service: 'opengym-leads', version: 2, actions: ['lead', 'survey'] });
-    check('gammal deployment utan läget: samma som före tio svar, inget fel', /när 10 boxar har svarat/.test(await text(page, '#ingress')) && !(await page.isVisible('#nasta')));
+    check('gammal deployment utan läget: samma som före tio svar, inget fel', /när minst 10 boxar har svarat/.test(await text(page, '#ingress')) && !(await page.isVisible('#nasta')));
     await ctx.close();
   }
 
