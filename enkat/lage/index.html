@@ -154,7 +154,7 @@
   function visa(l) {
     const steg = l && typeof l.steg === 'number' ? l.steg : 0;
     if (!steg) {
-      $('ingress').textContent = 'Siffrorna visas här när 10 boxar har svarat. Titta in igen om några dagar.';
+      $('ingress').textContent = 'Siffrorna visas här när minst 10 boxar har svarat. Titta in igen om några dagar.';
       $('fot').hidden = false;
       return;
     }
