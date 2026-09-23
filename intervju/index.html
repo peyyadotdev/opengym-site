@@ -120,6 +120,14 @@
   .tur-text p + p { margin-top: 10px; }
   .tur-du { background: var(--bg); border: 1px solid var(--line); padding: 12px 14px; }
   .tur-du .tur-text { color: var(--ink-soft); }
+  /* ARBETAR: assistenten läser, tänker eller sammanställer ett kort. Tre prickar och vad som pågår. */
+  .arbetar { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 13px; color: var(--ink-muted); min-height: 26px; }
+  .tur-text:not(:empty) + .arbetar { margin-top: 10px; }
+  .arbetar-prickar { display: inline-flex; gap: 5px; flex: none; }
+  .arbetar-prickar span { width: 7px; height: 7px; border-radius: 50%; background: var(--ink); opacity: 0.25; animation: arbetar 1.2s infinite ease-in-out; }
+  .arbetar-prickar span:nth-child(2) { animation-delay: 0.15s; }
+  .arbetar-prickar span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes arbetar { 0%, 70%, 100% { opacity: 0.25; transform: none; } 35% { opacity: 1; transform: translateY(-3px); } }
   .parkerat { font-family: var(--mono); font-size: 13px; line-height: 1.5; color: var(--ink-soft); margin-top: -8px; }
   .status { font-family: var(--mono); font-size: 13px; color: var(--ink-muted); min-height: 20px; margin-bottom: 8px; }
   .skriv { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 18px; }
@@ -212,6 +220,7 @@
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+    .arbetar-prickar span { animation: none; opacity: 0.6; }
   }
   ::selection { background: var(--plate); color: var(--ink); }
 </style>
@@ -458,6 +467,36 @@
       return p;
     }));
   }
+  // Visar att assistenten arbetar: från att svaret skickats tills första ordet kommer, och igen när
+  // strömmen står still innan svaret är klart, till exempel medan ett kort sammanställs. Utan det såg
+  // det ut som att inget hände i upp till tjugo sekunder (provsamtalet 2026-09-23).
+  const ARBETAR_PAUS_MS = 1500;
+  const ARBETAR_LANGT_MS = 12000;
+  function arbetsindikator(tur, forsta) {
+    const el = skapa('div', 'arbetar');
+    const prickar = skapa('span', 'arbetar-prickar');
+    prickar.setAttribute('aria-hidden', 'true');
+    prickar.append(skapa('span'), skapa('span'), skapa('span'));
+    const ord = skapa('span', 'arbetar-ord');
+    el.append(prickar, ord);
+    tur.append(el);
+    let paus = null;
+    let lang = null;
+    const visa = text => { ord.textContent = text; el.hidden = false; };
+    const langsamt = text => { clearTimeout(lang); lang = setTimeout(() => visa(text), ARBETAR_LANGT_MS); };
+    visa(forsta);
+    langsamt('Tar lite längre än vanligt');
+    return {
+      // Ett ord kom: prickarna försvinner, och kommer tillbaka om strömmen står still.
+      text() {
+        el.hidden = true;
+        clearTimeout(lang);
+        clearTimeout(paus);
+        paus = setTimeout(() => { visa('Sammanställer'); langsamt('Sammanställer fortfarande'); }, ARBETAR_PAUS_MS);
+      },
+      klar() { clearTimeout(paus); clearTimeout(lang); el.remove(); },
+    };
+  }
   function skapa(tagg, klass, text) {
     const e = document.createElement(tagg);
     if (klass) e.className = klass;
@@ -692,8 +731,9 @@
     lasKort(true);
     let duKropp = null;
     if (text !== null) { duKropp = nyTur('du'); fyll(duKropp, text); $('text').value = ''; $('original').hidden = true; }
-    $('status').textContent = 'Skriver…';
+    $('status').textContent = '';
     const aiKropp = nyTur('ai');
+    const arbetar = arbetsindikator(aiKropp.parentElement, start ? 'Förbereder samtalet' : kortsvar ? 'Läser' : 'Läser ditt svar');
     let svarstext = '';
     let klar = false;
     let nyttKort = null;
@@ -725,7 +765,7 @@
             if (h.typ === 'text' && typeof h.delta === 'string') {
               svarstext += h.delta;
               fyll(aiKropp, svarstext);
-              $('status').textContent = '';
+              arbetar.text();
             } else if (h.typ === 'klar' && Array.isArray(h.tillagg)) {
               historik = historik.concat(h.tillagg);
               klar = true;
@@ -747,7 +787,7 @@
     } catch (_) {
       felkod = 'natverk';
     }
-    $('status').textContent = '';
+    arbetar.klar();
     if (klar) {
       // Turen är skickad: originaltexten hör till den och försvinner.
       if (text !== null) { visning.push({ vem: 'du', text }); rensaOriginal(); }
