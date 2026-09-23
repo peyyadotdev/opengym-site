@@ -157,12 +157,12 @@ function utskickMallEnkat_(data, index, signatur) {
   const amne = 'Hur driver ni ' + data.boxnamn + '? – 5 min enkät';
 
   const stycken = [
-    'Jag heter Daniel Dahlström. Min sambo Jessica grundade och drev ReShape CrossFit, där jag ansvarade för bland annat teknik, bokningssystem, prismodeller och hemsida. Under åren provade vi fem olika system, och inget av dem fick ihop fasta grupper, betalningar och träning på ett ställe. Därför bygger vi nu OpenGym – ett affärssystem för boxar inom CrossFit, HYROX och funktionell träning.',
+    'Jag heter Daniel Dahlström. Min sambo Jessica grundade och drev ReShape CrossFit, där jag ansvarade för bland annat teknik, bokningssystem, prismodeller och hemsida. Nu bygger vi OpenGym, ett nytt system för boxar inom CrossFit, HYROX och funktionell träning.',
     'Innan vi bygger klart vill vi förstå hur svenska boxar faktiskt arbetar idag: vilka system ni använder och vad de kostar, hur medlemmarna betalar, hur ni organiserar träningen, vad ni tar betalt och vad som får medlemmarna att stanna.',
-    'Enkäten tar cirka fem minuter att svara på. Svaren sammanställs anonymt, och alla som deltar får tillbaka Boxrapporten 2026 – en sammanställning av bland annat systemkostnader, medlemspriser, betalningssätt, träningsupplägg och retention bland svenska boxar.',
+    'Enkäten tar cirka fem minuter att svara på. Svaren sammanställs anonymt, och alla som deltar får tillbaka Boxrapporten 2026 – en sammanställning av bland annat systemkostnader, medlemspriser, betalningssätt, träningsupplägg och hur länge medlemmarna stannar kvar.',
   ];
   const efterLanken = [
-    'I slutet av enkäten kan du också anmäla intresse för att bli en av tre pilotboxar. Pilotboxarna får använda OpenGym utan kostnad under pilotperioden och får vara med och påverka vad vi bygger.',
+    'I slutet av enkäten kan du också anmäla intresse för att bli en av tre pilotboxar. Pilotboxarna får använda OpenGym utan kostnad under pilotperioden och vara med och påverka vad vi bygger.',
     'Tack för att du tar dig tid.',
     'Om du inte vill höra från oss igen, svara bara ”stryk” på det här mejlet så tar vi bort adressen.',
   ];
