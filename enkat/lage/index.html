@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Läget i Boxrapporten 2026 – OpenGym</title>
+<meta name="description" content="Fem siffror ur enkäten, för boxägare som svarat.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23121311'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%23f4f2ec' stroke-width='6'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23a6ff1f'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,100..900&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f2ec;
+    --ink: #131311;
+    --ink-soft: #3a3a36;
+    --ink-muted: #6b6a63;
+    --line: #d5d1c5;
+    --plate: #e9ffc2;
+    --paper: #faf9f5;
+    --error: #9a2f12;
+    --error-soft: #f1c6b6;
+    --display: 'Anybody', 'Inter Tight', system-ui, sans-serif;
+    --sans: 'Inter Tight', system-ui, -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    --card-x: 36px;
+    --card-y: 40px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased; min-height: 100vh; display: flex; flex-direction: column;
+  }
+  main { flex: 1; }
+  .wrap { width: 100%; max-width: 760px; margin: 0 auto; padding: 0 20px; }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  [hidden] { display: none !important; }
+
+  .top { padding: 18px 0; border-bottom: 1px solid var(--line); background: var(--bg); }
+  .top-inner { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .logo {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--display); font-weight: 700; font-stretch: 110%; font-size: 19px;
+    letter-spacing: -0.01em; text-decoration: none; color: var(--ink);
+  }
+  .logo svg { width: 24px; height: 24px; }
+  .top-meta { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted); text-align: right; }
+
+  .card { background: var(--paper); border: 1px solid var(--line); padding: var(--card-y) var(--card-x); margin: 32px 0 40px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--ink-muted); margin-bottom: 18px; display: flex; align-items: center; gap: 12px;
+  }
+  .eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--ink); flex: none; }
+  h1 { font-family: var(--display); font-weight: 700; font-stretch: 105%; letter-spacing: -0.025em; font-size: clamp(32px, 6vw, 48px); line-height: 1.05; margin-bottom: 18px; }
+  .lede { font-size: 17px; line-height: 1.6; color: var(--ink-soft); max-width: 60ch; }
+
+  /* FEM SIFFROR: stort tal i mono-display, förklaringen under. */
+  .siffror { list-style: none; margin: 28px 0 8px; border-top: 1px solid var(--line); }
+  .siffra { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 20px; align-items: baseline; padding: 18px 0; border-bottom: 1px solid var(--line); }
+  .siffra-tal { font-family: var(--display); font-weight: 700; font-stretch: 110%; font-size: 30px; line-height: 1.1; letter-spacing: -0.02em; white-space: nowrap; }
+  .siffra-tal.tom { font-family: var(--mono); font-weight: 400; font-size: 14px; color: var(--ink-muted); letter-spacing: 0; }
+  .siffra-text { font-size: 16px; line-height: 1.5; color: var(--ink-soft); }
+  .siffra-extra { display: block; font-family: var(--mono); font-size: 12px; color: var(--ink-muted); margin-top: 4px; }
+
+  .notice { margin-top: 24px; padding: 14px 16px; border: 1px solid var(--plate); background: rgba(233, 255, 194, 0.45); border-radius: 2px; font-size: 15px; line-height: 1.5; }
+  .notice.fel { border-color: var(--error-soft); background: rgba(241, 198, 182, 0.25); color: var(--error); }
+  .fot { margin-top: 24px; font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--ink-muted); }
+
+  footer { padding: 28px 0 36px; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--ink-muted); line-height: 1.6; }
+  footer a { color: inherit; }
+
+  @media (max-width: 600px) {
+    :root { --card-x: 18px; --card-y: 26px; }
+    .card { margin: 16px 0 28px; }
+    .top-meta { display: none; }
+    .siffra { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  }
+  ::selection { background: var(--plate); color: var(--ink); }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-inner">
+    <a href="/" class="logo" aria-label="OpenGym, till startsidan">
+      <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <rect width="64" height="64" rx="12" fill="#121311"/>
+        <circle cx="32" cy="32" r="18" fill="none" stroke="#f4f2ec" stroke-width="6"/>
+        <circle cx="32" cy="32" r="5" fill="#a6ff1f"/>
+      </svg>
+      OpenGym
+    </a>
+    <div class="top-meta">För dig som svarat</div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section class="card" aria-labelledby="rubrik">
+      <div class="eyebrow">Boxrapporten 2026</div>
+      <h1 id="rubrik">Läget just nu</h1>
+      <p class="lede" id="ingress">Hämtar siffrorna…</p>
+
+      <ul class="siffror" id="siffror" hidden>
+        <li class="siffra"><div class="siffra-tal" id="tal-fasta"></div><div class="siffra-text">kör fasta grupper i någon form</div></li>
+        <li class="siffra"><div class="siffra-tal" id="tal-kostnad"></div><div class="siffra-text">är den vanligaste systemkostnaden per månad, före transaktionsavgifter<span class="siffra-extra" id="extra-kostnad"></span></div></li>
+        <li class="siffra"><div class="siffra-tal" id="tal-pris"></div><div class="siffra-text">är det vanligaste priset på ett löpande medlemskap per månad<span class="siffra-extra" id="extra-pris"></span></div></li>
+        <li class="siffra"><div class="siffra-tal" id="tal-betal"></div><div class="siffra-text">vet inte vad betalningarna kostar per år</div></li>
+        <li class="siffra"><div class="siffra-tal" id="tal-retention"></div><div class="siffra-text">vet inte hur många som är kvar efter tolv månader</div></li>
+      </ul>
+
+      <p class="notice" id="nasta" role="status" hidden></p>
+      <p class="fot" id="fot" hidden>Siffrorna gäller de boxar som svarat, inte alla svenska boxar. De räknas om i steg, när 10, 20 och 40 boxar har svarat, så att ingen enskild box svar går att se. Hela Boxrapporten 2026 kommer när enkäten har stängt.</p>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    © 2026 OpenGym · <a href="/">opengym.se</a><br>
+    Sidan är för boxägare som svarat på enkäten. Dela gärna enkäten, men inte den här sidan.
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+  // Samma Apps Script-web app som enkäten (se leads/Leads.gs och leads/Rapport.gs). ?action=lage ger
+  // bara summor, aldrig svar. Sidan skriver allt med textContent.
+  const SIGNUP_ENDPOINT = 'https://script.google.com/macros/s/AKfycbw7-ieu2E8vYWq3fHRU670uYV_C01lDp4iqjIYxhsIX5Uj8yMnTtUasBIDwblkmGBiYxA/exec';
+  const $ = id => document.getElementById(id);
+
+  const xAvY = d => (d && typeof d.antal === 'number' && typeof d.av === 'number' && d.av > 0) ? d.antal + ' av ' + d.av : null;
+  function satt(id, text) {
+    const el = $(id);
+    el.textContent = text || 'För få svar än';
+    el.classList.toggle('tom', !text);
+  }
+  function vanligast(talId, extraId, d) {
+    satt(talId, d && typeof d.vanligast === 'string' ? d.vanligast : null);
+    const delar = [];
+    if (d && d.vanligast && typeof d.antal === 'number') delar.push(d.antal + ' av ' + d.av + ' som svarat');
+    if (d && d.vet_inte > 0) delar.push(d.vet_inte + ' vet inte');
+    $(extraId).textContent = delar.join(', ');
+  }
+  function visaNasta(text, fel) {
+    $('nasta').textContent = text;
+    $('nasta').classList.toggle('fel', !!fel);
+    $('nasta').hidden = false;
+  }
+
+  function visa(l) {
+    const steg = l && typeof l.steg === 'number' ? l.steg : 0;
+    if (!steg) {
+      $('ingress').textContent = 'Siffrorna visas här när 10 boxar har svarat. Titta in igen om några dagar.';
+      $('fot').hidden = false;
+      return;
+    }
+    $('ingress').textContent = 'Så här ser det ut efter de första ' + steg + ' svaren.';
+    satt('tal-fasta', xAvY(l.fasta_grupper));
+    vanligast('tal-kostnad', 'extra-kostnad', l.systemkostnad);
+    vanligast('tal-pris', 'extra-pris', l.medlemspris);
+    satt('tal-betal', xAvY(l.betalkostnad_okand));
+    satt('tal-retention', xAvY(l.retention_okand));
+    $('siffror').hidden = false;
+    visaNasta(l.nasta ? 'Nästa uppdatering när ' + l.nasta + ' boxar har svarat.' : 'Det här är sista uppdateringen. Hela Boxrapporten 2026 kommer när enkäten har stängt.');
+    $('fot').hidden = false;
+  }
+
+  fetch(SIGNUP_ENDPOINT + '?action=lage', { method: 'GET' })
+    .then(r => r.json())
+    .then(l => {
+      if (!l || l.ok !== true) throw new Error('fel');
+      visa(l);
+    })
+    .catch(() => {
+      $('ingress').textContent = '';
+      visaNasta('Siffrorna gick inte att hämta just nu. Ladda om sidan om en stund.', true);
+    });
+})();
+</script>
+</body>
+</html>

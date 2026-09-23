@@ -15,6 +15,8 @@ Designen görs i Claude Design-projektet ”OpenGym landningssida granskning” 
 | `intervju/index.html` | Intervjusidan: samtal med OpenGyms AI-assistent för boxägare som enkäten visar är typkund. Erbjuds på enkätens tacksida. Servern ligger i det privata repot opengym |
 | `tests/fall-typkund.json` | Testfallen för typkundsregeln, likadana som i repot opengym |
 | `leads/Leads.gs` | Google Apps Script som tar emot både anmälningar och enkätsvar och skriver dem i ett Google Sheet, med stegen för att publicera den |
+| `leads/Rapport.gs` | Läget i Boxrapporten: fem siffror ur enkätsvaren i steg om 10, 20 och 40 svar, och mejlet till rapportlistan vid 20 och 40 |
+| `enkat/lage/index.html` | Läget i Boxrapporten för dem som svarat. Olistad, länkas från tacksidan och mejlet |
 | `.nojekyll` | Får GitHub Pages att servera sidan som den är |
 | `tests/` | Testerna, se nedan |
 
@@ -35,6 +37,8 @@ npm test
 ```
 
 - `tests/test-leads.js` kör `leads/Leads.gs` i Node mot ett mock-ark. Ingen Google-inloggning behövs.
+- `tests/test-rapport.js` kör `Leads.gs`, `Rapport.gs` och `Utskick.gs` i samma kontext: stegen 10, 20 och 40, att bara summor lämnar arket, och mejlet vid 20 och 40.
+- `tests/test-lage.js` kör läget i Boxrapporten i Chromium mot en mockad endpoint: före tio svar, siffrorna, fel, text i stället för HTML, mobil och länkarna från enkäten.
 - `tests/test-landing.js` kör landningssidan i Chromium: copyregler (inget ”hen”, ingen systemjargong, inga skogsgröna färger), hero-variant, platta på betonade ord, kalkylatorn, formuläret mot en mockad endpoint, overflow på mobil.
 - `tests/test-enkat.js` startar en egen lokal server, kör hela enkäten i Chromium på desktop och mobil mot en mockad endpoint (validering, hopplogik, inskick, paus och återupptagning, overflow) och sparar skärmdumpar i `tests/screenshots/`.
 - `tests/test-intervju.js` kör intervjusidan i Chromium på desktop och mobil mot en mockad server: copyregler, stängt läge, utan enkätsvar, start, turer, fel, text i stället för HTML, återupptagning och avslut. Rösten körs med fejkad mikrofon och MediaRecorder: feature flag, inspelning, renskriven text i fältet, originaltexten och felen.

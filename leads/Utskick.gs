@@ -53,6 +53,8 @@ function onOpen() {
     .addSeparator()
     .addItem('Skicka enkäten (nästa omgång, max ' + UTSKICK_MAX_PER_KORNING + ')', 'utskickEnkat')
     .addItem('Skicka påminnelse (till obesvarade, max ' + UTSKICK_MAX_PER_KORNING + ')', 'utskickPaminnelse')
+    .addSeparator()
+    .addItem('Skicka läget i Boxrapporten (vid 20 och 40 svar)', 'rapportSkickaLage')
     .addToUi();
 }
 
