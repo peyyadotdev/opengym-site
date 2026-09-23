@@ -10,7 +10,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const OUT = path.join(__dirname, 'screenshots');
-const ENDPOINT_PREFIX = 'https://script.google.com/macros/s/';
+const ENDPOINT_PREFIX = 'https://arbncxjhzjdoabqmxpla.supabase.co/functions/v1/enkat-spara';
 // Samma fall som i repot opengym, testade mot sidans kopia av typkundsregeln.
 const FALL = JSON.parse(fs.readFileSync(path.join(__dirname, 'fall-typkund.json'), 'utf8'));
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.txt': 'text/plain; charset=utf-8' };

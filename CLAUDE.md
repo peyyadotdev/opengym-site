@@ -21,7 +21,7 @@ Statisk sajt för opengym.se: landningssida (`index.html`), enkät (`enkat/index
 
 ## Formulär och data
 
-- Båda sidorna postar formulärkodat till Apps Script-webbappen (`SIGNUP_ENDPOINT`), utan egna headers, så att ingen CORS-preflight behövs. Sidorna läser JSON-svaret och visar fel om `ok` är false.
+- Startsidans anmälan postar formulärkodat till Apps Script-webbappen (`SIGNUP_ENDPOINT` i `index.html`). Enkäten postar samma formulär till Supabase-funktionen `enkat-spara` (`ENKAT_ENDPOINT` i `enkat/index.html`) sedan 2026-09-23, som sparar i databasen, svarar på under en sekund och skickar en kopia till Apps Script i bakgrunden. Båda utan egna headers, så att ingen CORS-preflight behövs. Sidorna läser JSON-svaret och visar fel om `ok` är false. Funktionen ligger i repot opengym.
 - Ändras `leads/Leads.gs` måste en ny version distribueras i Apps Script (Distribuera → Hantera distributioner → Ny version), annars kör webbappen den gamla koden.
 - Enkätens svarsrad innehåller aldrig e-post. Pilotintresse och rapportlista ligger i egna flikar.
 - Läget i Boxrapporten (`enkat/lage/`) hämtar fem siffror med GET `?action=lage` från samma web app. `leads/Rapport.gs` räknar dem på de 10, 20 eller 40 första inskickade svaren, så att siffrorna bara ändras i steg (Daniel, 2026-09-23). Bara summor lämnar arket, aldrig rader. Sidan har `noindex` och länkas bara från enkätens tacksida och från mejlet vid 20 och 40 svar, som Daniel skickar från menyn Utskick. Den är olistad, inte låst: den som har länken ser siffrorna.
