@@ -154,7 +154,7 @@ function utskickHalsning_(fornamn) {
 
 function utskickMallEnkat_(data, index, signatur) {
   const halsning = utskickHalsning_(data.fornamn);
-  const amne = 'Hur driver ni ' + data.boxnamn + '? – 5 min enkät + Boxrapporten 2026';
+  const amne = 'Hur driver ni ' + data.boxnamn + '? – 5 min enkät';
 
   const stycken = [
     'Jag heter Daniel Dahlström. Min sambo Jessica grundade och drev ReShape CrossFit, där jag ansvarade för bland annat teknik, bokningssystem, prismodeller och hemsida. Under åren provade vi fem olika system, och inget av dem fick ihop fasta grupper, betalningar och träning på ett ställe. Därför bygger vi nu OpenGym – ett affärssystem för boxar inom CrossFit, HYROX och funktionell träning.',
@@ -188,7 +188,7 @@ function utskickMallEnkat_(data, index, signatur) {
     utskickLankBlock_(UTSKICK_ENKAT_URL),
     efterLanken.map((p) => utskickP_(utskickEsc_(p))).join(''),
     utskickP_('Mvh<br>Daniel'),
-  ].join(''), signatur);
+  ].join(''), signatur, UTSKICK_PREHEADER_ENKAT);
 
   return { amne, text, html };
 }
@@ -242,8 +242,17 @@ function utskickLankBlock_(url) {
   return '<p style="margin:24px 0;"><a href="' + utskickEsc_(url) + '" style="font-size:19px;font-weight:700;color:#111111;text-decoration:underline;">' + utskickEsc_(url) + '</a></p>';
 }
 
-function utskickHtmlMejl_(innerHtml, signatur) {
-  return '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#1a1a1a;max-width:560px;">'
+// Förhandsvisningen efter ämnesraden i inkorgen; utan den visar Gmail mejlets första rader.
+const UTSKICK_PREHEADER_ENKAT = 'Hjälp oss bygga OpenGym, ett nytt system för boxar. Svara på några frågor och få Boxrapporten 2026 tillbaka.';
+
+function utskickPreheader_(text) {
+  return '<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#ffffff;opacity:0;">'
+    + utskickEsc_(text) + '</div>';
+}
+
+function utskickHtmlMejl_(innerHtml, signatur, preheader) {
+  return (preheader ? utskickPreheader_(preheader) : '')
+    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#1a1a1a;max-width:560px;">'
     + innerHtml
     + '<div style="margin-top:24px;border-top:1px solid #e5e5e5;padding-top:12px;">' + (signatur || UTSKICK_RESERVSIGNATUR_HTML) + '</div>'
     + '</div>';
