@@ -306,4 +306,44 @@ ok('hoppa_over/avregistrerad/stryk hoppas över, både i utskick och påminnelse
   assert.ok(!sentMail.some((m) => m.to === 'struken@boxen.se'), 'ny men struken rad ska inte få enkätmejlet');
 });
 
+ok('påminnelsen markerar svarat från Rapportlista och Pilotintresse och skickar inte till dem', () => {
+  const rubrik = mottagare.rows[0];
+  const ny = (namn, epost) => {
+    const rad = new Array(rubrik.length).fill('');
+    rad[rubrik.indexOf('namn')] = namn;
+    rad[rubrik.indexOf('epost')] = epost;
+    rad[rubrik.indexOf('skickat')] = new Date('2026-09-24');
+    mottagare.appendRow(rad);
+  };
+  ny('Rapportboxen', 'rapport@boxen.se');
+  ny('Pilotboxen', 'pilot@boxen.se');
+  ny('Tysta boxen', 'tyst@boxen.se');
+
+  const rapport = spreadsheet.insertSheet('Rapportlista');
+  rapport.appendRow(REPORT_HEADER);
+  rapport.appendRow(['2026-09-25', ' Rapport@Boxen.se ']); // skiftläge och mellanslag ska inte spela roll
+  const pilot = spreadsheet.insertSheet('Pilotintresse');
+  pilot.appendRow(PILOT_HEADER);
+  pilot.appendRow(['rid-1', '2026-09-25T10:00', 'pilot@boxen.se', 'Pilotboxen', 'ja']);
+
+  promptQueue = [
+    { button: 'OK', text: '14' },
+    { button: 'OK', text: 'hälften kör fasta grupper' },
+    { button: 'OK', text: '8 oktober' },
+  ];
+  sentMail.length = 0;
+  const alertsFore = alerts.length;
+  utskickPaminnelse();
+  const mottagna = sentMail.map((m) => m.to);
+  assert.deepEqual(mottagna, ['tyst@boxen.se'], 'bara den som inte finns i någon av flikarna får påminnelsen');
+
+  const svaratI = rubrik.indexOf('svarat');
+  const radFor = (epost) => mottagare.rows.find((r) => r[rubrik.indexOf('epost')] === epost);
+  assert.equal(radFor('rapport@boxen.se')[svaratI], 'ja, finns i Rapportlista');
+  assert.equal(radFor('pilot@boxen.se')[svaratI], 'ja, finns i Pilotintresse');
+  assert.ok(!radFor('tyst@boxen.se')[svaratI], 'den tysta boxen är inte markerad');
+  assert.ok(alerts[alertsFore].startsWith('2 rader markerade som svarat'), 'slutrutan säger hur många som markerades');
+  assert.ok(alerts[alertsFore].includes('1 mejl skickade.'));
+});
+
 console.log(`\n${n} checks passed`);
