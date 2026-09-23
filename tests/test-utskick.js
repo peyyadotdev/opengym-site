@@ -247,8 +247,15 @@ ok('hälsningen använder förnamn med komma när kolumnen är ifylld, annars ba
 ok('ämnesraden använder boxnamnet, eller "er box" om raden saknar ett', () => {
   const medNamn = utskickMallEnkat_({ boxnamn: 'CrossFit Testet' }, 0, '');
   const utanNamn = utskickMallEnkat_({ boxnamn: 'er box' }, 0, ''); // utskickKor_ sätter fallbacken innan byggMall anropas
-  assert.equal(medNamn.amne, 'Hur driver ni CrossFit Testet? – 5 min enkät + Boxrapporten 2026');
-  assert.equal(utanNamn.amne, 'Hur driver ni er box? – 5 min enkät + Boxrapporten 2026');
+  assert.equal(medNamn.amne, 'Hur driver ni CrossFit Testet? – 5 min enkät');
+  assert.equal(utanNamn.amne, 'Hur driver ni er box? – 5 min enkät');
+});
+
+ok('enkätmejlet börjar med en dold preheader som styr förhandsvisningen, textversionen har ingen', () => {
+  const m = utskickMallEnkat_({ boxnamn: 'X', fornamn: 'Anna' }, 0, '');
+  assert.ok(m.html.startsWith('<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;'), 'preheadern ligger först i HTML');
+  assert.ok(m.html.includes('Hjälp oss bygga OpenGym, ett nytt system för boxar. Svara på några frågor och få Boxrapporten 2026 tillbaka.</div>'));
+  assert.ok(!m.text.includes('Hjälp oss bygga OpenGym'), 'textversionen visar inte preheadern som vanlig text');
 });
 
 ok('utskickPaminnelse avbryts utan att skicka något om en dialog avbryts', () => {
