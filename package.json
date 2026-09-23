@@ -4,13 +4,15 @@
   "description": "Landningssida och enkät för OpenGym. Statisk sajt, inga byggsteg. Paketet finns bara för testerna.",
   "scripts": {
     "serve": "python3 -m http.server 8000",
-    "test": "node tests/test-leads.js && node tests/test-utskick.js && node tests/test-landing.js && node tests/test-enkat.js && node tests/test-intervju.js",
+    "test": "node tests/test-leads.js && node tests/test-utskick.js && node tests/test-rapport.js && node tests/test-landing.js && node tests/test-enkat.js && node tests/test-intervju.js && node tests/test-lage.js",
     "test:leads": "node tests/test-leads.js",
     "test:utskick": "node tests/test-utskick.js",
     "test:enkat": "node tests/test-enkat.js",
     "test:landing": "node tests/test-landing.js",
     "test:intervju": "node tests/test-intervju.js",
-    "og": "node assets/og/build.js"
+    "og": "node assets/og/build.js",
+    "test:rapport": "node tests/test-rapport.js",
+    "test:lage": "node tests/test-lage.js"
   },
   "devDependencies": {
     "playwright": "^1.56.0"

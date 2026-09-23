@@ -1,6 +1,6 @@
 # opengym-site
 
-Statisk sajt för opengym.se: landningssida (`index.html`), enkät (`enkat/index.html`), intervjusida (`intervju/index.html`), Apps Script-backend (`leads/Leads.gs`), tester (`tests/`). Inga byggsteg. Kör `npm test` före push (första gången: `npm install && npx playwright install chromium`).
+Statisk sajt för opengym.se: landningssida (`index.html`), enkät (`enkat/index.html`), intervjusida (`intervju/index.html`), läget i Boxrapporten (`enkat/lage/index.html`), Apps Script-backend (`leads/Leads.gs`, `leads/Rapport.gs`, `leads/Utskick.gs`), tester (`tests/`). Inga byggsteg. Kör `npm test` före push (första gången: `npm install && npx playwright install chromium`).
 
 ## Design
 
@@ -24,6 +24,7 @@ Statisk sajt för opengym.se: landningssida (`index.html`), enkät (`enkat/index
 - Båda sidorna postar formulärkodat till Apps Script-webbappen (`SIGNUP_ENDPOINT`), utan egna headers, så att ingen CORS-preflight behövs. Sidorna läser JSON-svaret och visar fel om `ok` är false.
 - Ändras `leads/Leads.gs` måste en ny version distribueras i Apps Script (Distribuera → Hantera distributioner → Ny version), annars kör webbappen den gamla koden.
 - Enkätens svarsrad innehåller aldrig e-post. Pilotintresse och rapportlista ligger i egna flikar.
+- Läget i Boxrapporten (`enkat/lage/`) hämtar fem siffror med GET `?action=lage` från samma web app. `leads/Rapport.gs` räknar dem på de 10, 20 eller 40 första inskickade svaren, så att siffrorna bara ändras i steg (Daniel, 2026-09-23). Bara summor lämnar arket, aldrig rader. Sidan har `noindex` och länkas bara från enkätens tacksida och från mejlet vid 20 och 40 svar, som Daniel skickar från menyn Utskick. Den är olistad, inte låst: den som har länken ser siffrorna.
 
 ## Intervjusidan
 

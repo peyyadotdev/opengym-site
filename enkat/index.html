@@ -107,6 +107,8 @@
   h3 { font-size: 19px; line-height: 1.2; margin-bottom: 12px; }
   .lede { font-size: 17px; line-height: 1.6; color: var(--ink-soft); max-width: 60ch; }
   .lede + .lede { margin-top: 16px; }
+  .lage-rad { margin-top: 24px; }
+  .lage-rad a { color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
   .facts { list-style: none; margin: 28px 0 32px; border-top: 1px solid var(--line); }
   .facts li { display: grid; grid-template-columns: 28px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 15px; color: var(--ink-soft); }
   .facts li span:first-child { font-family: var(--mono); font-size: 12px; color: var(--ink); background: var(--plate); padding: 2px 4px; align-self: start; justify-self: start; }
@@ -314,6 +316,7 @@
       <p>Vill du berätta mer? Vår AI-assistent frågar vidare om det du svarade, där vi har mest att lära. Tio till femton minuter, och du skriver när det passar.</p>
       <a class="btn-primary" href="/intervju/" id="intervju-lank">Berätta mer</a>
     </div>
+    <p class="lede lage-rad">Följ läget i Boxrapporten: fem siffror som visas när 10, 20 och 40 boxar har svarat. <a href="/enkat/lage/" id="lage-lank">Se läget</a></p>
     <p class="lede">Känner du en annan boxägare som borde svara? Skicka länken.</p>
     <div class="share">
       <code id="share-url">opengym.se/enkat</code>
@@ -946,6 +949,7 @@
       const when = isNaN(d) ? '' : ` ${d.toLocaleDateString('sv-SE')}`;
       box.innerHTML = `<div class="notice" style="flex-basis:100%">Du skickade in dina svar${when}. Tack! Vill du svara igen, till exempel för en annan box, går det bra.</div>
         <button type="button" class="btn-ghost" id="btn-again">Svara igen</button>
+        <a href="/enkat/lage/" class="btn-text" id="intro-lage">Se läget i Boxrapporten</a>
         <a href="/" class="btn-text">Till opengym.se</a>`;
       $('btn-again').addEventListener('click', () => { track('enkat_omstart', { efter: 'klar' }); startFresh(); });
       return;

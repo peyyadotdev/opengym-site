@@ -98,7 +98,12 @@ function doPost(e) {
 }
 
 // Gör det enkelt att kontrollera att webbappen är publicerad och vilken version som kör.
-function doGet() {
+// ?action=lage ger läget i Boxrapporten ur Rapport.gs: bara summor, aldrig rader.
+function doGet(e) {
+  const action = e && e.parameter ? clip(e.parameter.action, 20) : '';
+  if (action === 'lage' && typeof rapportLage === 'function') {
+    try { return respond(rapportLage()); } catch (err) { return respond({ ok: false, error: 'tekniskt' }); }
+  }
   return respond({ ok: true, service: 'opengym-leads', version: 2, actions: ['lead', 'survey'] });
 }
 
