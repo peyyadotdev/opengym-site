@@ -336,8 +336,10 @@
 
 <script>
   // ========== INSTÄLLNINGAR ==========
-  // Samma Apps Script-webbapp som leadformuläret på startsidan (se leads/Leads.gs).
-  const SIGNUP_ENDPOINT = 'https://script.google.com/macros/s/AKfycbw7-ieu2E8vYWq3fHRU670uYV_C01lDp4iqjIYxhsIX5Uj8yMnTtUasBIDwblkmGBiYxA/exec';
+  // Supabase-funktionen /enkat-spara (repot opengym) sedan 2026-09-23. Den sparar i databasen och
+  // svarar direkt, och skickar sedan en kopia till Apps Script-web appen, så att kalkylarket fylls
+  // som förut. Anmälningarna på startsidan går fortfarande direkt till Apps Script.
+  const ENKAT_ENDPOINT = 'https://arbncxjhzjdoabqmxpla.supabase.co/functions/v1/enkat-spara';
   // PostHog: klistra in projektets API-nyckel (phc_...). Tom nyckel = ingen mätning alls.
   const POSTHOG_KEY = 'phc_nDoAcMqFZRzAak22z5sXN3LtnRPEC9s3Q7PfdVH753Td';
   const POSTHOG_HOST = 'https://eu.i.posthog.com';
@@ -791,7 +793,7 @@
   }
 
   async function save(completed) {
-    if (!SIGNUP_ENDPOINT) throw new Error('Endpoint saknas');
+    if (!ENKAT_ENDPOINT) throw new Error('Endpoint saknas');
     const body = new URLSearchParams();
     body.append('action', 'survey');
     body.append('rid', state.rid);
@@ -811,13 +813,13 @@
         body.append('report_email', state.contact.c_report_email || '');
       }
     }
-    // Apps Script svarar på allt från två till tjugofem sekunder (mätt 2026-09-23). Inskicket får
-    // därför vänta länge innan det räknas som fel, annars visas fel för svar som faktiskt sparats.
+    // Funktionen svarar på under en sekund. Svarar inte databasen skickar den direkt till Apps Script,
+    // som tog 2 till 27 sekunder (mätt 2026-09-23), så inskicket får vänta länge innan det räknas som fel.
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), completed ? 45000 : 20000);
     try {
-      // Formulärkodat utan egna headers: simple request, ingen CORS-preflight mot Apps Script.
-      const res = await fetch(SIGNUP_ENDPOINT, { method: 'POST', body, keepalive: !completed, signal: ctrl.signal });
+      // Formulärkodat utan egna headers: simple request, ingen CORS-preflight.
+      const res = await fetch(ENKAT_ENDPOINT, { method: 'POST', body, keepalive: !completed, signal: ctrl.signal });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       let json = null;
       try { json = await res.json(); } catch (_) {}
@@ -907,7 +909,7 @@
     errEl.hidden = true;
     setSaveStatus('');
     // Tar inskicket mer än ett par sekunder säger sidan att det pågår, så att ingen tror att det fastnat.
-    const lugn = setTimeout(() => setSaveStatus('Sparar dina svar. Det kan ta upp till en halv minut, stäng inte sidan.'), 2500);
+    const lugn = setTimeout(() => setSaveStatus('Sparar dina svar. Stäng inte sidan.'), 2500);
     try {
       await save(true);
       clearTimeout(lugn);
@@ -988,13 +990,13 @@
     if (document.visibilityState !== 'hidden') return;
     flushPersist();
     if (!state || state.completedAt || $('survey').hidden) return;
-    if (!SIGNUP_ENDPOINT || !(state.maxStep > 0)) return;
+    if (!ENKAT_ENDPOINT || !(state.maxStep > 0)) return;
     save(false).catch(() => {});
   });
   window.addEventListener('pagehide', flushPersist);
 
   renderIntroActions();
-  if (!SIGNUP_ENDPOINT) console.warn('OpenGym enkät: SIGNUP_ENDPOINT är inte satt, svaren kan inte skickas.');
+  if (!ENKAT_ENDPOINT) console.warn('OpenGym enkät: ENKAT_ENDPOINT är inte satt, svaren kan inte skickas.');
 </script>
 
 </body>
