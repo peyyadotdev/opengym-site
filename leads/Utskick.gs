@@ -18,13 +18,13 @@
  *
  * Flik "Mottagare": en rad per box. Rubrikrad med minst boxnamn (eller namn,
  * som i CSV-filerna) och e-post (eller epost). Kolumnnamn tolkas oberoende av
- * bindestreck, mellanslag och VERSALER. Kolumnerna skickat, paminnelse och
- * svarat läggs till automatiskt om de saknas.
+ * bindestreck, mellanslag, VERSALER och å/ä/ö. Kolumnerna skickat, paminnelse,
+ * svarat och hoppa_over läggs till automatiskt om de saknas.
  *
  * En valfri kolumn "förnamn" ger en personlig hälsning: "Hej Anna," med
- * kommat, annars bara "Hej" utan komma. En valfri kolumn "hoppa_over" (eller
- * "avregistrerad" eller "stryk") hoppar över raden helt, både i utskicket och
- * i påminnelsen.
+ * kommat, annars bara "Hej" utan komma. Något skrivet i kolumnen "hoppa_over"
+ * (eller i en kolumn "avregistrerad" eller "stryk") hoppar över raden helt,
+ * både i utskicket och i påminnelsen.
  *
  * Mejlen skickas som HTML med en textversion som reserv, för att kunna göra
  * enkätlänken visuellt tydlig. Signaturen hämtas live, en gång per körning,
@@ -310,13 +310,14 @@ function utskickKolumner_(sheet) {
   if (!('boxnamn' in kol) || !('epost' in kol)) {
     throw new Error('Kolumnen "boxnamn" (eller "namn") och "e-post" (eller "epost") måste finnas i rubrikraden på fliken ' + sheet.getName() + '.');
   }
-  const kravda = { skickat: 0, paminnelse: 0, svarat: 0 };
+  const kravda = { skickat: 0, paminnelse: 0, svarat: 0, hoppa_over: 0 };
   const rubrikRad = 1;
   Object.keys(kravda).forEach((namn) => {
-    if (!(namn in kol)) {
+    const nyckel = utskickNormalisera_(namn); // kol har normaliserade nycklar: hoppa_over heter hoppaover där
+    if (!(nyckel in kol)) {
       const nyKol = sheet.getLastColumn() + 1;
       sheet.getRange(rubrikRad, nyKol).setValue(namn);
-      kol[namn] = nyKol - 1;
+      kol[nyckel] = nyKol - 1;
     }
   });
   return kol;
