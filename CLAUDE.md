@@ -34,3 +34,9 @@ Statisk sajt för opengym.se: landningssida (`index.html`), enkät (`enkat/index
 - Rösten är öppen för alla sedan 2026-09-22, på Daniels besked. Prata-knappen syns i alla samtal med samtycke, i webbläsare som kan spela in. Den låg bakom PostHog-flaggan `intervju-rost` och `?rost=1` fram till dess, och båda är borttagna ur koden.
 - Typkundsregeln i `enkat/index.html`, mellan `TYPKUND START` och `TYPKUND SLUT`, är en kopia av regeln i opengym. Ändras den ändras också kopian där, och `tests/fall-typkund.json` ska vara likadan i båda repona.
 - Enkätsvaren lämnas över i localStorage under `opengym_intervju_underlag_v1`, utan kontaktfält. Allt som kommer från servern sätts med `textContent`, aldrig med `innerHTML`.
+
+## Personer
+
+- **Daniel Dahlström** (daniel@opengym.se) driver OpenGym och beställer arbetet. **Peyya** (GitHub-organisationen peyyadotdev) är hans bolag, inte hans efternamn. Skriv aldrig ”Daniel Peyya”.
+- **Jessica** är medgrundare. Hon grundade och drev ReShape CrossFit; Daniel skötte teknik, bokningssystem, prismodeller, affärsmodell och hemsida.
+- Tider anges i svensk tid (Europe/Stockholm).
