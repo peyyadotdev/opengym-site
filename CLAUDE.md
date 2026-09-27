@@ -40,3 +40,7 @@ Statisk sajt för opengym.se: landningssida (`index.html`), enkät (`enkat/index
 - **Daniel Dahlström** (daniel@opengym.se) driver OpenGym och beställer arbetet. **Peyya** (GitHub-organisationen peyyadotdev) är hans bolag, inte hans efternamn. Skriv aldrig ”Daniel Peyya”.
 - **Jessica** är medgrundare. Hon grundade och drev ReShape CrossFit; Daniel skötte teknik, bokningssystem, prismodeller, affärsmodell och hemsida.
 - Tider anges i svensk tid (Europe/Stockholm).
+
+## Språk i docs, tester, commit-meddelanden och svar
+
+- Svenska, men behåll vedertagna engelska termer från teknik och bransch när svenskan saknar ett bra ord, och översätt dem aldrig till påhittade ord: branch (inte gren), batch (inte sats), commit, push, merge, pull request, deploy, webhook (inte krok), endpoint (inte slutpunkt), callback (inte återanrop), payload, sandbox (inte sandlåda), retry, feature flag, backend, frontend, repo, cache, token. Copyreglerna ovan gäller sidorna på opengym.se, inte den här texten.
