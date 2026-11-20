@@ -70,7 +70,8 @@ const digits = s => String(s).replace(/[^\d]/g, '');
     const canon = [...src.matchAll(/<link rel="canonical" href="([^"]+)"/g)].map(m => m[1]);
     check('en canonical, och den är https://opengym.se/', canon.length === 1 && canon[0] === 'https://opengym.se/');
     const desc = src.match(/<meta name="description" content="([^"]+)"/)[1];
-    check('description är 120–160 tecken (' + desc.length + ')', desc.length >= 120 && desc.length <= 160);
+    // 159 tecken mättes till 986 px och varnade i geo.new 2026-11-20. Under 150 tecken ryms i sökresultatet.
+    check('description är 120–150 tecken (' + desc.length + ')', desc.length >= 120 && desc.length <= 150);
     const blocks = [...src.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(m => JSON.parse(m[1]));
     const nodes = blocks.flatMap(b => b['@graph'] || [b]);
     const ofType = t => nodes.filter(nd => [].concat(nd['@type']).includes(t));
