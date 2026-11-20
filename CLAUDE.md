@@ -21,7 +21,7 @@ Statisk sajt för opengym.se: landningssida (`index.html`), enkät (`enkat/index
 
 ## Sökmotorer och AI-sök
 
-- `index.html` har canonical, och ett JSON-LD-block i `<head>` med Organization, WebSite och sidan som FAQPage. Texten där är en kopia av sidans egen: titel, description, h1 och de sex frågorna under Bytet. Ändras någon av dem ändras JSON-LD också. `tests/test-landing.js` jämför.
+- `index.html` har canonical, och ett JSON-LD-block i `<head>` med Organization, WebSite och sidan som FAQPage. Texten där är en kopia av sidans egen: titel, description, h1 och de sex frågorna under Bytet. Ändras någon av dem ändras JSON-LD också. `tests/test-landing.js` jämför. Description hålls på 120–150 tecken, annars klipps den i sökresultatet.
 - `llms.txt` i roten beskriver sajten för AI-sök. Copyreglerna gäller där också. Pris och siffror står på två ställen, så ändras de på sidan ändras de i `llms.txt`. Testet jämför.
 - Lägg bara in profillänkar (`sameAs`, länkar i sidfoten) som Daniel har bekräftat. Hitta inte på adresser, betyg, datum eller siffror för att en granskning ska bli grön.
 - Sajten ligger på GitHub Pages, som inte kan skicka egna svarshuvuden. HSTS och andra säkerhetshuvuden går inte att lösa i repot. Det kräver en tjänst framför sajten, och det är Daniels beslut.
