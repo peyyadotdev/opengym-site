@@ -19,6 +19,13 @@ Statisk sajt för opengym.se: landningssida (`index.html`), enkät (`enkat/index
 - Lova inte funktioner som inte finns i första versionen. Listan ”På väg, inte i första versionen” i sektion 05 är stället för dem.
 - Siffror: mellanslag före %, tankstreck i intervall (80–500), svenska citattecken ”…”, `→` som enda pilglyf. Aldrig emoji.
 
+## Sökmotorer och AI-sök
+
+- `index.html` har canonical, och ett JSON-LD-block i `<head>` med Organization, WebSite och sidan som FAQPage. Texten där är en kopia av sidans egen: titel, description, h1 och de sex frågorna under Bytet. Ändras någon av dem ändras JSON-LD också. `tests/test-landing.js` jämför.
+- `llms.txt` i roten beskriver sajten för AI-sök. Copyreglerna gäller där också. Pris och siffror står på två ställen, så ändras de på sidan ändras de i `llms.txt`. Testet jämför.
+- Lägg bara in profillänkar (`sameAs`, länkar i sidfoten) som Daniel har bekräftat. Hitta inte på adresser, betyg, datum eller siffror för att en granskning ska bli grön.
+- Sajten ligger på GitHub Pages, som inte kan skicka egna svarshuvuden. HSTS och andra säkerhetshuvuden går inte att lösa i repot. Det kräver en tjänst framför sajten, och det är Daniels beslut.
+
 ## Formulär och data
 
 - Startsidans anmälan postar formulärkodat till Apps Script-webbappen (`SIGNUP_ENDPOINT` i `index.html`). Enkäten postar samma formulär till Supabase-funktionen `enkat-spara` (`ENKAT_ENDPOINT` i `enkat/index.html`) sedan 2026-09-23, som sparar i databasen, svarar på under en sekund och skickar en kopia till Apps Script i bakgrunden. Båda utan egna headers, så att ingen CORS-preflight behövs. Sidorna läser JSON-svaret och visar fel om `ok` är false. Funktionen ligger i repot opengym.

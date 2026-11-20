@@ -65,6 +65,34 @@ const digits = s => String(s).replace(/[^\d]/g, '');
     check('og:image och twitter:image pekar på delningsbilden', !!og && og[1] === 'https://opengym.se/assets/og/landing.png' && /<meta name="twitter:image" content="https:\/\/opengym.se\/assets\/og\/landing.png"/.test(src));
     const png = fs.readFileSync(path.join(ROOT, 'assets', 'og', 'landing.png'));
     check('delningsbilden är en 1200 × 630 png under 300 kB', png.toString('latin1', 1, 4) === 'PNG' && png.readUInt32BE(16) === 1200 && png.readUInt32BE(20) === 630 && png.length < 300 * 1024);
+
+    // Sökmotorer och AI-sök: canonical, description, strukturerad data
+    const canon = [...src.matchAll(/<link rel="canonical" href="([^"]+)"/g)].map(m => m[1]);
+    check('en canonical, och den är https://opengym.se/', canon.length === 1 && canon[0] === 'https://opengym.se/');
+    const desc = src.match(/<meta name="description" content="([^"]+)"/)[1];
+    check('description är 120–160 tecken (' + desc.length + ')', desc.length >= 120 && desc.length <= 160);
+    const blocks = [...src.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(m => JSON.parse(m[1]));
+    const nodes = blocks.flatMap(b => b['@graph'] || [b]);
+    const ofType = t => nodes.filter(nd => [].concat(nd['@type']).includes(t));
+    const org = ofType('Organization')[0];
+    check('JSON-LD: Organization med namn, url, logga och e-post', blocks.length === 1 && !!org && org.name === 'OpenGym' && org.url === 'https://opengym.se/' && fs.existsSync(path.join(ROOT, org.logo.replace('https://opengym.se/', ''))) && org.email === 'daniel@opengym.se');
+    const site = ofType('WebSite')[0];
+    check('JSON-LD: WebSite med namn och url', !!site && site.name === 'OpenGym' && site.url === 'https://opengym.se/');
+    check('JSON-LD: en FAQPage med sex frågor', ofType('FAQPage').length === 1 && ofType('FAQPage')[0].mainEntity.length === 6);
+    check('JSON-LD: inga profillänkar som inte är bekräftade', !('sameAs' in org));
+  }
+
+  // ---------- llms.txt: finns, länkar till sidan och säger samma pris som sidan ----------
+  {
+    const llms = fs.readFileSync(path.join(ROOT, 'llms.txt'), 'utf8');
+    const lines = llms.split('\n').filter(l => l.trim());
+    check('llms.txt: rubrik, minst fem rader och länk till sidan', /^# OpenGym$/.test(lines[0]) && lines.length >= 5 && /\]\(https:\/\/opengym\.se\/\)/.test(llms));
+    const page = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    const ids = [...llms.matchAll(/\]\(https:\/\/opengym\.se\/#([a-z0-9-]+)\)/g)].map(m => m[1]);
+    check('llms.txt: ankarlänkarna finns på sidan (' + ids.join(', ') + ')', ids.length > 0 && ids.every(id => page.includes('id="' + id + '"')));
+    const price = ['cirka 3 % på det som går genom OpenGym Pay, allt inräknat', '25 000 kr', '4 500 kr', '60 dagar', '97 %', '76 %', '80–500'];
+    check('llms.txt: samma siffror som sidan', price.every(p => llms.includes(p) && page.replace(/&nbsp;/g, ' ').includes(p)));
+    check('llms.txt: copyreglerna gäller här också', !/\bhens?\b/i.test(llms) && !/systemlicens|plattform|träningslager|retention|affärssystem/i.test(llms));
   }
 
   // ---------- Desktop ----------
@@ -82,6 +110,27 @@ const digits = s => String(s).replace(/[^\d]/g, '');
     check('åtta sektioner i rätt ordning', (await page.$$eval('section', els => els.map(e => e.id).join(','))) === 'fasta-grupper,var-story,appen,sa-funkar-det,vad-ingar,pris,bytet,pilot');
     check('sex rutor i Vad ingår, åtta prispunkter, sex frågor', (await page.locator('.tile').count()) === 6 && (await page.locator('.price-points li').count()) === 8 && (await page.locator('.faq-item').count()) === 6);
     check('desktop utan overflow', (await overflow(page)) === 0);
+
+    // Strukturerad data säger samma sak som sidan visar
+    const norm = s => String(s).replace(/\s+/g, ' ').trim();
+    const ld = JSON.parse(await page.$eval('script[type="application/ld+json"]', el => el.textContent))['@graph'];
+    const webpage = ld.find(nd => [].concat(nd['@type']).includes('FAQPage'));
+    check('JSON-LD: sidans namn, rubrik och beskrivning är sidans egna', webpage.name === (await page.title()) && webpage.headline === norm(await page.textContent('h1')) && webpage.description === (await page.getAttribute('meta[name="description"]', 'content')));
+    const visibleFaq = await page.$$eval('.faq-item', els => els.map(e => [e.querySelector('h3').textContent, e.querySelector('p').textContent]));
+    check('JSON-LD: frågorna och svaren är ordagrant de som syns under Bytet', JSON.stringify(webpage.mainEntity.map(q => [q.name, q.acceptedAnswer.text])) === JSON.stringify(visibleFaq.map(([q, a]) => [norm(q), norm(a)])));
+
+    // Tillgänglighet: skip-länk, etiketter, ankare
+    check('skip-länken är sidans första länk och pekar på <main>', (await page.$eval('a', el => el.getAttribute('href'))) === '#main' && (await page.$eval('#main', el => el.tagName)) === 'MAIN');
+    check('skip-länken ligger utanför skärmen tills den får fokus', (await page.$eval('.skip-link', el => el.getBoundingClientRect().bottom)) < 0);
+    await page.keyboard.press('Tab');
+    check('första Tab landar på skip-länken, och då syns den', await page.evaluate(() => document.activeElement.classList.contains('skip-link') && document.activeElement.getBoundingClientRect().top >= 0));
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Tab');
+    check('efter skip-länken fortsätter Tab inne i <main>, förbi menyn', await page.evaluate(() => !!document.activeElement.closest('main') && !document.activeElement.closest('nav')));
+    check('alla fält har en etikett', await page.$$eval('input, select, textarea', els => els.every(el => el.getAttribute('aria-label') || el.closest('label') || (el.id && document.querySelector('label[for="' + el.id + '"]')))));
+    check('alla ankarlänkar har ett mål på sidan', await page.$$eval('a[href^="#"]', els => els.every(a => document.getElementById(a.getAttribute('href').slice(1)))));
+    check('sidfoten: Om oss till Vår story, och samma e-post som i JSON-LD', (await page.$eval('footer a[href="#var-story"]', el => el.textContent)) === 'Om oss' && (await page.$eval('footer a[href^="mailto:"]', el => el.getAttribute('href'))) === 'mailto:' + ld.find(nd => nd['@type'] === 'Organization').email);
+    await page.evaluate(() => { window.scrollTo(0, 0); document.activeElement.blur(); });
 
     // Kalkylatorn
     check('kalkylator: standardvärden', digits(await page.textContent('#volume-out')) === '142500' && digits(await page.textContent('#fee-out')) === '3525' && digits(await page.textContent('#fee-big')) === '3525');

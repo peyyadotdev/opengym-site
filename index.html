@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenGym – Fler som stannar. Färre adminkvällar.</title>
-<meta name="description" content="OpenGym är gjort för att behålla medlemmarna du har. Fasta grupper, medlemskap, bokning, betalningar och WOD i en app, med kvällens admin förberedd när du kommer från golvet. För CrossFit-, HYROX- och funktionella boxar i Sverige. Pilotgym sökes.">
+<meta name="description" content="OpenGym är gjort för att behålla medlemmarna du har. Fasta grupper, medlemskap, bokning, betalningar och WOD i en app. För CrossFit- och HYROX-boxar i Sverige.">
 <meta name="author" content="OpenGym">
+<link rel="canonical" href="https://opengym.se/">
 
 <!-- Open Graph / delning -->
 <meta property="og:type" content="website">
@@ -26,6 +27,104 @@
 <meta name="twitter:description" content="Ingen startar en box för att jaga nya medlemmar. OpenGym är gjort för att behålla dem du har. Pilotgym sökes.">
 <meta name="twitter:image" content="https://opengym.se/assets/og/landing.png">
 <meta name="twitter:image:alt" content="OpenGym: Fler som stannar. Färre adminkvällar.">
+
+<!-- Strukturerad data: vem som står bakom, sajten, sidan och frågorna under Bytet.
+     Texten är en kopia av sidans egen. Ändras titel, description, h1 eller en fråga ändras den här också (tests/test-landing.js jämför). -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://opengym.se/#organization",
+      "name": "OpenGym",
+      "url": "https://opengym.se/",
+      "logo": "https://opengym.se/assets/logo.svg",
+      "description": "Systemet för boxar inom CrossFit, HYROX och funktionell träning i Sverige.",
+      "email": "daniel@opengym.se"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://opengym.se/#website",
+      "name": "OpenGym",
+      "url": "https://opengym.se/",
+      "inLanguage": "sv-SE",
+      "publisher": {
+        "@id": "https://opengym.se/#organization"
+      }
+    },
+    {
+      "@type": [
+        "WebPage",
+        "FAQPage"
+      ],
+      "@id": "https://opengym.se/#webpage",
+      "url": "https://opengym.se/",
+      "name": "OpenGym – Fler som stannar. Färre adminkvällar.",
+      "headline": "Ingen startar en box för att jaga nya medlemmar.",
+      "description": "OpenGym är gjort för att behålla medlemmarna du har. Fasta grupper, medlemskap, bokning, betalningar och WOD i en app. För CrossFit- och HYROX-boxar i Sverige.",
+      "inLanguage": "sv-SE",
+      "isPartOf": {
+        "@id": "https://opengym.se/#website"
+      },
+      "about": {
+        "@id": "https://opengym.se/#organization"
+      },
+      "primaryImageOfPage": "https://opengym.se/assets/og/landing.png",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Måste jag byta allt på en gång?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Nej. Börja gratis med WOD, resultat och gruppen. Behåll medlemssystemet. Flytta medlemskap och betalningar när du är redo."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Vad händer med autogirot?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Autogiromedgivanden går inte att flytta mellan system, oavsett vart du byter. Medlemmarna godkänner i stället Swish eller kort med BankID i appen, det tar några sekunder. Appen påminner dem som inte gjort det, och du ser hur många som är klara."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Tappar medlemmarna sin historik?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Nej. PR, resultat och medlemshistorik flyttas över från Zoezi, Wondr, SugarWOD, BTWB, Wodify eller Excel."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Ingen månadsavgift. Var är haken?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Vi tjänar när du får betalt, och bara då. Varje månad ser du exakt vad OpenGym kostade och vad det gav."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Tar AI:n beslut åt mig?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Nej. Den föreslår, du säger ja eller nej. Återbetalningar, avtal och vem som kommer in genom dörren bestämmer alltid en människa."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Vilka står bakom?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Jessica och Daniel. Jessica grundade och drev ReShape CrossFit, Daniel skötte teknik, bokningssystem och affärsmodell. Fasta grupper är hennes sätt att driva box. Systemet bygger vi tillsammans. Läs mer under Vår story."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
 
 <!-- Favicon: viktskiva på gummigolv, limeprick -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23121311'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%23f4f2ec' stroke-width='6'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23a6ff1f'/%3E%3C/svg%3E">
@@ -85,6 +184,23 @@
   :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
   [hidden] { display: none !important; }
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  /* Hoppa till innehållet: första länken på sidan, syns först när den får fokus */
+  .skip-link {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 30;
+    padding: 10px 16px;
+    background: var(--ink);
+    color: var(--paper);
+    border: 1px solid var(--ink);
+    border-radius: 2px;
+    font-family: var(--mono);
+    font-size: 12px;
+    transform: translateY(-300%);
+  }
+  .skip-link:focus { transform: none; }
+  .skip-link:hover { background: var(--plate); color: var(--ink); }
   .container { max-width: 1240px; margin: 0 auto; padding: 0 var(--gutter); position: relative; }
   p, h1, h2, h3 { text-wrap: pretty; }
 
@@ -558,6 +674,8 @@
 </head>
 <body>
 
+<a class="skip-link" href="#main">Hoppa till innehållet</a>
+
 <nav class="nav" aria-label="Huvudmeny">
   <div class="container nav-inner">
     <a href="#top" class="logo" aria-label="OpenGym, till toppen">
@@ -577,6 +695,8 @@
     </div>
   </div>
 </nav>
+
+<main id="main">
 
 <header class="hero" id="top">
   <div class="hero-grid" aria-hidden="true"></div>
@@ -1020,7 +1140,7 @@
             <label class="sr-only" for="signup-box">Boxens namn</label>
             <input type="text" id="signup-box" name="box" placeholder="Boxens namn" autocomplete="organization" maxlength="120">
             <!-- Honeypot mot robotar: fältet syns inte och ska lämnas tomt -->
-            <input type="text" id="signup-website" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <input type="text" id="signup-website" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" aria-label="Lämna tomt">
             <button type="submit" id="signup-button"><span id="signup-label">Bli pilotgym</span><span aria-hidden="true">→</span></button>
           </form>
           <p id="signup-error" class="signup-error" role="alert" hidden></p>
@@ -1044,13 +1164,17 @@
   </div>
 </section>
 
+</main>
+
 <footer>
   <div class="container footer-inner">
     <span>© 2026 OpenGym · Byggt av folk som har drivit box</span>
     <div class="footer-links">
+      <a href="#var-story">Om oss</a>
       <a href="#pris">Pris</a>
       <a href="https://opengym.se/enkat/">Enkäten</a>
       <a href="#pilot">Bli pilotgym</a>
+      <a href="mailto:daniel@opengym.se">daniel@opengym.se</a>
     </div>
   </div>
 </footer>

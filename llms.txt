@@ -1,0 +1,29 @@
+# OpenGym
+
+> OpenGym är systemet för boxar inom CrossFit, HYROX och funktionell träning i Sverige. Det är gjort för att behålla medlemmarna boxen redan har, med fasta grupper: samma personer, samma coach, samma tider varje vecka.
+
+Medlemskap, bokning, betalningar och WOD ligger i samma app, med boxens namn på. OpenGym föreslår, ägaren säger ja. Ingen återbetalning, inget avtal och ingen spärr på dörren utan att en människa har bestämt det.
+
+Vi söker pilotgym: ägarledda boxar med 80–500 medlemmar som vill köra OpenGym först av alla. Pilotgym betalar ingenting under piloten.
+
+## Sidor
+
+- [OpenGym](https://opengym.se/): hela sidan, med fasta grupper, appen, en dag med OpenGym, vad som ingår, pris och bytet
+- [Vår story](https://opengym.se/#var-story): Jessica och Daniel, och hur fasta grupper kom till på ReShape CrossFit
+- [Vad ingår](https://opengym.se/#vad-ingar): medlemskap, schema, dörren, OpenGym Pay, bokföring och träning, och det som inte finns i första versionen
+- [Pris](https://opengym.se/#pris): vad OpenGym kostar, med en kalkylator
+- [Bytet](https://opengym.se/#bytet): frågor och svar om att byta system
+- [Bli pilotgym](https://opengym.se/#pilot): anmälan för boxar som vill vara med från start
+- [Enkäten ”Hur driver du din box 2026?”](https://opengym.se/enkat/): fem till sju minuter för boxägare, anonym. Alla som svarar får Boxrapporten 2026.
+
+## Kort om OpenGym
+
+- Fasta grupper: medlemskapet är en plats i en grupp. De populära tiderna går till grupperna. Lunch och förmiddag bokas fritt.
+- På ReShape CrossFit var 97 % kvar efter 90 dagar och 76 % efter 18 månader, i fasta grupper. Siffrorna gäller medlemmar som tränade tre pass i veckan eller mer.
+- Pris med OpenGym Pay: ingen månadsavgift. 60 dagar utan avgifter, därefter cirka 3 % på det som går genom OpenGym Pay, allt inräknat. De första 25 000 kr per månad är fria. Aldrig mer än 4 500 kr i månaden.
+- Den som bara kör WOD, resultat och gruppen och behåller medlemssystemet betalar ingenting.
+- Bakom OpenGym står Jessica och Daniel. Jessica grundade och drev ReShape CrossFit. Daniel skötte teknik, bokningssystem, prismodeller och affärsmodell.
+
+## Kontakt
+
+- [daniel@opengym.se](mailto:daniel@opengym.se)
